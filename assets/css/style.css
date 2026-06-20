@@ -194,9 +194,9 @@ a:hover { text-decoration: underline; }
   padding-top: 8px; border-top: 1px dashed var(--line); }
 
 /* ---------- list pages ---------- */
-.page-head { padding: 36px 0 8px; }
-.page-head h1 { margin: 0 0 .15em; font-size: 1.9rem; }
-.page-head .count { color: var(--muted); font-size: .95rem; }
+.page-head { padding: 48px 0 12px; }
+.page-head h1 { margin: 0; font-size: clamp(2rem, 4.4vw, 3rem); line-height: 1.15; color: var(--accent-dark); }
+.page-head .count { display: none; }
 
 .toolbar { padding: 14px 0 4px; }
 .search {
