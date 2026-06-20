@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>News — LIT @ KAIST</title>
+  <meta name="description" content="LIT 연구실 소식 — 논문 게재, 수상, 행사 등" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html"><span>LIT</span> @ KAIST</a>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <div class="dropdown">
+          <a href="people.html" class="drop-toggle">People</a>
+          <div class="dropdown-menu">
+            <a href="people.html#faculty">Faculty</a>
+            <a href="people.html#members">Members</a>
+            <a href="people.html#alumni">Alumni</a>
+          </div>
+        </div>
+        <div class="dropdown">
+          <a href="journal.html" class="drop-toggle">Publications</a>
+          <div class="dropdown-menu dropdown-menu-pubs">
+            <div class="dm-group">
+              <a class="dm-head" href="journal.html">Journal</a>
+              <a href="journal.html#international">International</a>
+              <a href="journal.html#domestic">Domestic</a>
+            </div>
+            <div class="dm-group">
+              <a class="dm-head" href="conferences.html">Conferences</a>
+              <a href="conferences.html#international">International</a>
+              <a href="conferences.html#domestic">Domestic</a>
+            </div>
+            <div class="dm-group">
+              <a class="dm-head" href="patents.html">Patents</a>
+              <a href="patents.html#international">International</a>
+              <a href="patents.html#domestic">Domestic</a>
+            </div>
+          </div>
+        </div>
+        <a href="news.html" class="active">News</a>
+        <a href="album.html">Album</a>
+        <button class="lang-toggle" type="button" data-lang-toggle></button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="page-head reveal">
+      <h1>News</h1>
+      <div class="count" data-ko="연구실 소식 — 논문 게재 · 수상 · 행사" data-en="Lab news — papers, awards, events">연구실 소식 — 논문 게재 · 수상 · 행사</div>
+    </div>
+    <div id="list"></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">© <span id="yr"></span> LIT Laboratory, KAIST.</div>
+  </footer>
+
+  <script src="assets/js/pubs.js"></script>
+  <script src="assets/js/news.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/reveal.js"></script>
+  <script>
+    document.getElementById("yr").textContent = new Date().getFullYear();
+    News.initPage({ mount: "list", csv: "data/news.csv", admin: true });
+  </script>
+</body>
+</html>

@@ -12,40 +12,54 @@
       <a class="brand" href="index.html"><span>LIT</span> @ KAIST</a>
       <nav class="nav">
         <a href="index.html">Home</a>
+        <a href="about.html">About</a>
         <div class="dropdown">
-          <a href="journal.html" class="drop-toggle">Journal</a>
+          <a href="people.html" class="drop-toggle">People</a>
           <div class="dropdown-menu">
-            <a href="journal.html#international">International</a>
-            <a href="journal.html#domestic">Domestic</a>
+            <a href="people.html#faculty">Faculty</a>
+            <a href="people.html#members">Members</a>
+            <a href="people.html#alumni">Alumni</a>
           </div>
         </div>
         <div class="dropdown">
-          <a href="conferences.html" class="drop-toggle active">Conferences</a>
-          <div class="dropdown-menu">
-            <a href="conferences.html#international">International</a>
-            <a href="conferences.html#domestic">Domestic</a>
+          <a href="journal.html" class="drop-toggle active">Publications</a>
+          <div class="dropdown-menu dropdown-menu-pubs">
+            <div class="dm-group">
+              <a class="dm-head" href="journal.html">Journal</a>
+              <a href="journal.html#international">International</a>
+              <a href="journal.html#domestic">Domestic</a>
+            </div>
+            <div class="dm-group">
+              <a class="dm-head active" href="conferences.html">Conferences</a>
+              <a href="conferences.html#international">International</a>
+              <a href="conferences.html#domestic">Domestic</a>
+            </div>
+            <div class="dm-group">
+              <a class="dm-head" href="patents.html">Patents</a>
+              <a href="patents.html#international">International</a>
+              <a href="patents.html#domestic">Domestic</a>
+            </div>
           </div>
         </div>
-        <div class="dropdown">
-          <a href="patents.html" class="drop-toggle">Patents</a>
-          <div class="dropdown-menu">
-            <a href="patents.html#international">International</a>
-            <a href="patents.html#domestic">Domestic</a>
-          </div>
-        </div>
+        <a href="news.html">News</a>
+        <a href="album.html">Album</a>
+        <button class="lang-toggle" type="button" data-lang-toggle></button>
       </nav>
     </div>
   </header>
 
   <main class="wrap">
-    <div class="page-head">
+    <div class="page-head reveal">
       <h1>Conference Papers</h1>
       <div class="count"><span id="count">불러오는 중…</span></div>
     </div>
     <div id="tabs" class="tabs"></div>
     <div class="toolbar">
       <input id="search" class="search" type="search"
-             placeholder="제목 · 저자 · 학술대회 · 연도 검색…" autocomplete="off" />
+             placeholder="제목 · 저자 · 학술대회 · 연도 검색…"
+             data-ko-placeholder="제목 · 저자 · 학술대회 · 연도 검색…"
+             data-en-placeholder="Search title · author · conference · year…"
+             autocomplete="off" />
     </div>
     <div id="list"></div>
   </main>
@@ -55,6 +69,8 @@
   </footer>
 
   <script src="assets/js/pubs.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/reveal.js"></script>
   <script>
     document.getElementById("yr").textContent = new Date().getFullYear();
     Pubs.initCategory({

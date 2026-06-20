@@ -13,61 +13,112 @@
       <a class="brand" href="index.html"><span>LIT</span> @ KAIST</a>
       <nav class="nav">
         <a href="index.html" class="active">Home</a>
+        <a href="about.html">About</a>
         <div class="dropdown">
-          <a href="journal.html" class="drop-toggle">Journal</a>
+          <a href="people.html" class="drop-toggle">People</a>
           <div class="dropdown-menu">
-            <a href="journal.html#international">International</a>
-            <a href="journal.html#domestic">Domestic</a>
+            <a href="people.html#faculty">Faculty</a>
+            <a href="people.html#members">Members</a>
+            <a href="people.html#alumni">Alumni</a>
           </div>
         </div>
         <div class="dropdown">
-          <a href="conferences.html" class="drop-toggle">Conferences</a>
-          <div class="dropdown-menu">
-            <a href="conferences.html#international">International</a>
-            <a href="conferences.html#domestic">Domestic</a>
+          <a href="journal.html" class="drop-toggle">Publications</a>
+          <div class="dropdown-menu dropdown-menu-pubs">
+            <div class="dm-group">
+              <a class="dm-head" href="journal.html">Journal</a>
+              <a href="journal.html#international">International</a>
+              <a href="journal.html#domestic">Domestic</a>
+            </div>
+            <div class="dm-group">
+              <a class="dm-head" href="conferences.html">Conferences</a>
+              <a href="conferences.html#international">International</a>
+              <a href="conferences.html#domestic">Domestic</a>
+            </div>
+            <div class="dm-group">
+              <a class="dm-head" href="patents.html">Patents</a>
+              <a href="patents.html#international">International</a>
+              <a href="patents.html#domestic">Domestic</a>
+            </div>
           </div>
         </div>
-        <div class="dropdown">
-          <a href="patents.html" class="drop-toggle">Patents</a>
-          <div class="dropdown-menu">
-            <a href="patents.html#international">International</a>
-            <a href="patents.html#domestic">Domestic</a>
-          </div>
-        </div>
+        <a href="news.html">News</a>
+        <a href="album.html">Album</a>
+        <button class="lang-toggle" type="button" data-lang-toggle></button>
       </nav>
     </div>
   </header>
 
-  <main class="wrap">
-    <!-- ▼▼▼ 연구실 소개 문구는 자유롭게 수정하세요 (기존 사이트 인증서 만료로 자동 수집 불가) ▼▼▼ -->
-    <section class="hero">
-      <h1>LIT Laboratory</h1>
-      <p class="lead">
-        KAIST LIT 연구실의 출판물 아카이브입니다. 학술지 논문, 국제·국내 학술대회 논문,
-        특허 정보를 국제/국내로 나누어 연도별로 확인할 수 있습니다.
-      </p>
-    </section>
-    <!-- ▲▲▲ 연구실 소개 문구 끝 ▲▲▲ -->
+  <!-- ▼▼▼ 전체화면 히어로 슬라이드 ▼▼▼
+       이미지 교체: 아래 각 slide 의 style="background-image: ..." 에서
+       linear-gradient(...) 부분을 url('assets/img/hero1.jpg') 등으로 바꾸세요.
+       예) style="background-image: url('assets/img/hero1.jpg')"
+       슬라이드 개수는 .slide 블록을 추가/삭제하면 자동으로 맞춰집니다. -->
+  <section class="hero-slider" id="heroSlider" aria-label="대표 이미지 슬라이드">
+    <div class="slides">
+      <div class="slide is-active"
+           style="background-image: linear-gradient(120deg, #073f78, #0b5cad);">
+        <div class="slide-inner">
+          <h1 class="slide-title"
+              data-ko="정보전송연구실 (LIT)" data-en="Laboratory for Information Transmission">정보전송연구실 (LIT)</h1>
+          <p class="slide-sub"
+             data-ko="KAIST 전기및전자공학부" data-en="School of Electrical Engineering, KAIST">KAIST 전기및전자공학부</p>
+        </div>
+      </div>
+      <div class="slide"
+           style="background-image: linear-gradient(120deg, #0b5cad, #2a9d8f);">
+        <div class="slide-inner">
+          <h1 class="slide-title"
+              data-ko="무선 통신 · 신호 처리 연구" data-en="Wireless Communications & Signal Processing">무선 통신 · 신호 처리 연구</h1>
+          <p class="slide-sub"
+             data-ko="슬라이드 문구를 자유롭게 수정하세요" data-en="Edit this caption freely">슬라이드 문구를 자유롭게 수정하세요</p>
+        </div>
+      </div>
+      <div class="slide"
+           style="background-image: linear-gradient(120deg, #073f78, #1d3557);">
+        <div class="slide-inner">
+          <h1 class="slide-title"
+              data-ko="대학원생을 모집합니다" data-en="We are recruiting graduate students">대학원생을 모집합니다</h1>
+          <p class="slide-sub"
+             data-ko="석·박사 과정 상시 모집" data-en="M.S. / Ph.D. positions open">석·박사 과정 상시 모집</p>
+        </div>
+      </div>
+    </div>
 
+    <button class="slider-arrow prev" type="button" aria-label="이전 슬라이드">&#10094;</button>
+    <button class="slider-arrow next" type="button" aria-label="다음 슬라이드">&#10095;</button>
+    <div class="slider-dots" aria-hidden="true"></div>
+  </section>
+  <!-- ▲▲▲ 히어로 슬라이드 끝 ▲▲▲ -->
+
+  <main class="wrap">
     <section class="cards">
-      <a class="card" href="journal.html">
+      <a class="card reveal d1" href="journal.html">
         <div class="c-count" id="count-journal">—</div>
         <h3>Journal Papers</h3>
-        <div class="c-desc">학술지 논문</div>
+        <div class="c-desc" data-ko="학술지 논문" data-en="Journal articles">학술지 논문</div>
         <div class="c-break" id="break-journal">&nbsp;</div>
       </a>
-      <a class="card" href="conferences.html">
+      <a class="card reveal d2" href="conferences.html">
         <div class="c-count" id="count-conference">—</div>
         <h3>Conference Papers</h3>
-        <div class="c-desc">학술대회 논문</div>
+        <div class="c-desc" data-ko="학술대회 논문" data-en="Conference papers">학술대회 논문</div>
         <div class="c-break" id="break-conference">&nbsp;</div>
       </a>
-      <a class="card" href="patents.html">
+      <a class="card reveal d3" href="patents.html">
         <div class="c-count" id="count-patent">—</div>
         <h3>Patents</h3>
-        <div class="c-desc">특허</div>
+        <div class="c-desc" data-ko="특허" data-en="Patents">특허</div>
         <div class="c-break" id="break-patent">&nbsp;</div>
       </a>
+    </section>
+
+    <section class="home-news reveal">
+      <div class="hn-head">
+        <h2 data-ko="최근 소식" data-en="Recent News">최근 소식</h2>
+        <a class="hn-more" href="news.html" data-ko="전체 보기 →" data-en="View all →">전체 보기 →</a>
+      </div>
+      <ul id="homeNews" class="recent-news"><li class="muted">불러오는 중…</li></ul>
     </section>
   </main>
 
@@ -76,8 +127,13 @@
   </footer>
 
   <script src="assets/js/pubs.js"></script>
+  <script src="assets/js/news.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/hero.js"></script>
+  <script src="assets/js/reveal.js"></script>
   <script>
     document.getElementById("yr").textContent = new Date().getFullYear();
+    News.renderRecent({ mount: "homeNews", csv: "data/news.csv", count: 6 });
 
     function countCsv(path) {
       return fetch(path)
