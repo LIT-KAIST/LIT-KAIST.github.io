@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LIT @ KAIST</title>
   <meta name="description" content="LIT 연구실 출판물 — 학술지, 학술대회, 특허" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20260620i" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20260620j" />
 </head>
 <body>
   <header class="site-header">
@@ -91,55 +91,99 @@
   </section>
   <!-- ▲▲▲ 히어로 슬라이드 끝 ▲▲▲ -->
 
-  <main class="wrap">
-    <section class="cards">
-      <a class="card reveal d1" href="journal.html">
-        <div class="c-count" id="count-journal">—</div>
-        <h3>Journal Papers</h3>
-        <div class="c-desc" data-ko="학술지 논문" data-en="Journal articles">학술지 논문</div>
-        <div class="c-break" id="break-journal">&nbsp;</div>
-      </a>
-      <a class="card reveal d2" href="conferences.html">
-        <div class="c-count" id="count-conference">—</div>
-        <h3>Conference Papers</h3>
-        <div class="c-desc" data-ko="학술대회 논문" data-en="Conference papers">학술대회 논문</div>
-        <div class="c-break" id="break-conference">&nbsp;</div>
-      </a>
-      <a class="card reveal d3" href="patents.html">
-        <div class="c-count" id="count-patent">—</div>
-        <h3>Patents</h3>
-        <div class="c-desc" data-ko="특허" data-en="Patents">특허</div>
-        <div class="c-break" id="break-patent">&nbsp;</div>
-      </a>
+  <main class="panels">
+    <!-- ▼ 연구실 한 줄 정체성 (딥네이비) -->
+    <section class="panel c-navy identity compact" data-panel>
+      <div class="wrap panel-content">
+        <p class="eyebrow">KAIST · School of Electrical Engineering</p>
+        <p class="lead"
+           data-ko="전송 기술과 인공지능으로 6G의 통신과 센싱을 하나로 잇습니다."
+           data-en="Bridging communication and sensing for 6G with transmission technology and artificial intelligence.">
+          전송 기술과 인공지능으로 6G의 통신과 센싱을 하나로 잇습니다.
+        </p>
+      </div>
     </section>
 
-    <section class="home-research reveal">
-      <div class="hn-head">
+    <!-- ▼ 연구 분야 (토글 + 이미지, qe.skku 스타일) -->
+    <section class="panel c-white" data-panel>
+      <div class="wrap panel-content">
         <h2 data-ko="연구 분야" data-en="Research Areas">연구 분야</h2>
-        <a class="hn-more" href="about.html" data-ko="자세히 보기 →" data-en="Learn more →">자세히 보기 →</a>
-      </div>
-      <div class="topic-grid">
-        <div class="topic">
-          <h3 data-ko="AI·통신·센싱 융합 (I²SAC)" data-en="Intelligence·Sensing·Communication (I²SAC)">AI·통신·센싱 융합 (I²SAC)</h3>
-          <p data-ko="AI로 통신과 센싱을 통합하는 6G 원천 기술" data-en="AI-driven integration of communication and sensing for 6G">AI로 통신과 센싱을 통합하는 6G 원천 기술</p>
+        <div class="rt-tabs" role="tablist">
+          <button type="button" class="rt-tab active" data-rt="0" data-ko="AI·통신·센싱 융합" data-en="AI·Sensing·Comm">AI·통신·센싱 융합</button>
+          <button type="button" class="rt-tab" data-rt="1" data-ko="MIMO · Massive MIMO" data-en="MIMO &amp; Massive MIMO">MIMO · Massive MIMO</button>
+          <button type="button" class="rt-tab" data-rt="2" data-ko="심층강화학습 최적화" data-en="Deep RL Optimization">심층강화학습 최적화</button>
         </div>
-        <div class="topic">
-          <h3 data-ko="MIMO · Massive MIMO" data-en="MIMO &amp; Massive MIMO">MIMO · Massive MIMO</h3>
-          <p data-ko="대규모 안테나 빔포밍·프리코딩 설계" data-en="Beamforming &amp; precoding for large antenna arrays">대규모 안테나 빔포밍·프리코딩 설계</p>
+        <div class="rt-panels">
+          <div class="rt-panel active" data-rt="0">
+            <div class="rt-text">
+              <h3 data-ko="AI·통신·센싱 융합 (I²SAC)" data-en="Integrated Intelligence, Sensing &amp; Communication (I²SAC)">AI·통신·센싱 융합 (I²SAC)</h3>
+              <p data-ko="인공지능을 핵심 도구로 통신과 센싱을 하나의 시스템에서 통합하는 6G 원천 기술을 연구합니다."
+                 data-en="We study core 6G technologies that integrate communication and sensing within a single system using AI.">인공지능을 핵심 도구로 통신과 센싱을 하나의 시스템에서 통합하는 6G 원천 기술을 연구합니다.</p>
+              <ul>
+                <li data-ko="Near-field ISAC 확장 표적 추정" data-en="Extended target estimation in near-field ISAC">Near-field ISAC 확장 표적 추정</li>
+                <li data-ko="Semantic·token 기반 통신" data-en="Semantic &amp; token-based communication">Semantic·token 기반 통신</li>
+                <li data-ko="멀티모달 AI 채널 추정 · OTFS ISAC 파형" data-en="Multi-modal AI channel estimation · OTFS ISAC waveforms">멀티모달 AI 채널 추정 · OTFS ISAC 파형</li>
+              </ul>
+            </div>
+            <div class="rt-img" style="--rg: linear-gradient(135deg,#16385f,#0a2240)">
+              <img src="assets/img/research/isac.jpg" alt="" loading="lazy" onerror="this.remove()">
+            </div>
+          </div>
+          <div class="rt-panel" data-rt="1">
+            <div class="rt-text">
+              <h3 data-ko="MIMO · Massive MIMO" data-en="MIMO &amp; Massive MIMO">MIMO · Massive MIMO</h3>
+              <p data-ko="대규모 안테나 시스템에서 전송 효율과 신뢰성을 높이는 빔포밍·프리코딩 기법을 설계합니다."
+                 data-en="We design beamforming and precoding techniques that improve efficiency and reliability in large antenna systems.">대규모 안테나 시스템에서 전송 효율과 신뢰성을 높이는 빔포밍·프리코딩 기법을 설계합니다.</p>
+              <ul>
+                <li data-ko="Robust 하이브리드 빔포밍" data-en="Robust hybrid beamforming">Robust 하이브리드 빔포밍</li>
+                <li data-ko="Deep unfolding 기반 WMMSE 프리코딩" data-en="Deep unfolding-based WMMSE precoding">Deep unfolding 기반 WMMSE 프리코딩</li>
+                <li data-ko="THz 대역 빔포밍" data-en="Terahertz-band beamforming">THz 대역 빔포밍</li>
+              </ul>
+            </div>
+            <div class="rt-img" style="--rg: linear-gradient(135deg,#0e4f5c,#0b3c47)">
+              <img src="assets/img/research/mimo.jpg" alt="" loading="lazy" onerror="this.remove()">
+            </div>
+          </div>
+          <div class="rt-panel" data-rt="2">
+            <div class="rt-text">
+              <h3 data-ko="심층강화학습 기반 네트워크 최적화" data-en="Deep RL-based Network Optimization">심층강화학습 기반 네트워크 최적화</h3>
+              <p data-ko="심층강화학습으로 동적인 네트워크 환경에서 자원 할당과 제어를 최적화합니다."
+                 data-en="We optimize resource allocation and control in dynamic network environments using deep reinforcement learning.">심층강화학습으로 동적인 네트워크 환경에서 자원 할당과 제어를 최적화합니다.</p>
+              <ul>
+                <li data-ko="Cell-free MEC task offloading" data-en="Task offloading for cell-free MEC">Cell-free MEC task offloading</li>
+                <li data-ko="다수 UAV 기반 다중 표적 추적" data-en="Multi-target tracking using multiple UAVs">다수 UAV 기반 다중 표적 추적</li>
+              </ul>
+            </div>
+            <div class="rt-img" style="--rg: linear-gradient(135deg,#3a2c6b,#241a47)">
+              <img src="assets/img/research/drl.jpg" alt="" loading="lazy" onerror="this.remove()">
+            </div>
+          </div>
         </div>
-        <div class="topic">
-          <h3 data-ko="심층강화학습 네트워크 최적화" data-en="Deep RL Network Optimization">심층강화학습 네트워크 최적화</h3>
-          <p data-ko="동적 네트워크의 자원 할당·제어 최적화" data-en="Resource allocation &amp; control in dynamic networks">동적 네트워크의 자원 할당·제어 최적화</p>
-        </div>
+        <p style="margin-top:18px"><a class="about-morelink" href="about.html"
+           data-ko="연구 분야 자세히 보기 →" data-en="More on our research →">연구 분야 자세히 보기 →</a></p>
       </div>
     </section>
 
-    <section class="home-news reveal">
-      <div class="hn-head">
-        <h2 data-ko="최근 소식" data-en="Recent News">최근 소식</h2>
-        <a class="hn-more" href="news.html" data-ko="전체 보기 →" data-en="View all →">전체 보기 →</a>
+    <!-- ▼ 최근 소식 + 갤러리 (밝은 회색) -->
+    <section class="panel c-gray compact" data-panel>
+      <div class="wrap panel-content">
+        <div class="home-bottom">
+          <div class="home-news">
+            <div class="hn-head">
+              <h2 data-ko="최근 소식" data-en="Recent News">최근 소식</h2>
+              <a class="hn-more" href="news.html" data-ko="전체 보기 →" data-en="View all →">전체 보기 →</a>
+            </div>
+            <ul id="homeNews" class="recent-news"><li class="muted">불러오는 중…</li></ul>
+          </div>
+          <aside class="home-gallery">
+            <div class="hn-head">
+              <h2 data-ko="갤러리" data-en="Gallery">갤러리</h2>
+              <a class="hn-more" href="album.html" data-ko="더보기 →" data-en="More →">더보기 →</a>
+            </div>
+            <div id="homeGallery" class="hg-grid"></div>
+          </aside>
+        </div>
       </div>
-      <ul id="homeNews" class="recent-news"><li class="muted">불러오는 중…</li></ul>
     </section>
   </main>
 
@@ -147,37 +191,15 @@
     <div class="wrap">© <span id="yr"></span> LIT Laboratory, KAIST.</div>
   </footer>
 
-  <script src="assets/js/pubs.js?v=20260620i"></script>
-  <script src="assets/js/news.js?v=20260620i"></script>
-  <script src="assets/js/i18n.js?v=20260620i"></script>
-  <script src="assets/js/hero.js?v=20260620i"></script>
-  <script src="assets/js/reveal.js?v=20260620i"></script>
+  <script src="assets/js/pubs.js?v=20260620j"></script>
+  <script src="assets/js/news.js?v=20260620j"></script>
+  <script src="assets/js/i18n.js?v=20260620j"></script>
+  <script src="assets/js/hero.js?v=20260620j"></script>
+  <script src="assets/js/reveal.js?v=20260620j"></script>
+  <script src="assets/js/home.js?v=20260620j"></script>
   <script>
     document.getElementById("yr").textContent = new Date().getFullYear();
-    News.renderRecent({ mount: "homeNews", csv: "data/news.csv", count: 6 });
-
-    function countCsv(path) {
-      return fetch(path, { cache: "no-store" })
-        .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
-        .then(function (t) {
-          return Pubs._rowsToObjects(Pubs._parseCSV(t))
-            .filter(function (x) { return (x.title || "").trim(); }).length;
-        });
-    }
-
-    [
-      { id: "journal", intl: "data/journal_international.csv", dom: "data/journal_domestic.csv" },
-      { id: "conference", intl: "data/conference_international.csv", dom: "data/conference_domestic.csv" },
-      { id: "patent", intl: "data/patent_international.csv", dom: "data/patent_domestic.csv" },
-    ].forEach(function (c) {
-      Promise.all([countCsv(c.intl), countCsv(c.dom)])
-        .then(function (n) {
-          document.getElementById("count-" + c.id).textContent = n[0] + n[1];
-          document.getElementById("break-" + c.id).textContent =
-            "International " + n[0] + " · Domestic " + n[1];
-        })
-        .catch(function () { document.getElementById("count-" + c.id).textContent = "?"; });
-    });
+    News.renderRecent({ mount: "homeNews", csv: "data/news.csv", count: 5 });
   </script>
 </body>
 </html>

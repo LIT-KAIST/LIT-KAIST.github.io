@@ -49,35 +49,4 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", load);
   else load();
 })(window);
-
-/* ===== 패널 스크롤 애니메이션 (오른쪽에서 날아옴 / 위로 오버랩되며 사라짐) ===== */
-(function (global) {
-  var reduce = global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var items = [].slice.call(document.querySelectorAll(".about-panel .panel-content"));
-  if (!items.length) return;
-  if (reduce) { items.forEach(function (c) { c.style.opacity = 1; }); return; }
-
-  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
-  var ticking = false;
-
-  function update() {
-    var vh = global.innerHeight || document.documentElement.clientHeight;
-    items.forEach(function (c) {
-      var r = c.getBoundingClientRect();
-      var cy = r.top + r.height / 2;
-      var t = (cy - vh / 2) / (vh / 2);     // -1(위) … 0(중앙) … +1(아래)
-      var k = clamp((Math.abs(t) - 0.18) / 0.72, 0, 1);  // 중앙 근처는 또렷, 멀수록 사라짐
-      var tx = 0, ty = 0;
-      if (t > 0) tx = k * 90;               // 아래에 있으면 오른쪽에서 날아옴
-      else ty = -k * 50;                    // 위로 지나가면 위로 오버랩되며 사라짐
-      c.style.opacity = (1 - k).toFixed(3);
-      c.style.transform = "translate(" + tx.toFixed(1) + "px," + ty.toFixed(1) + "px)";
-    });
-    ticking = false;
-  }
-  function onScroll() { if (!ticking) { global.requestAnimationFrame(update); ticking = true; } }
-
-  global.addEventListener("scroll", onScroll, { passive: true });
-  global.addEventListener("resize", onScroll);
-  update();
-})(window);
+/* 패널 스크롤 애니메이션은 reveal.js 로 일반화되었습니다 (.panel .panel-content). */
