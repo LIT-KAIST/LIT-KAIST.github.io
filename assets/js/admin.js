@@ -157,6 +157,7 @@
     },
     album: {
       label: "Album", csv: "data/album.csv", idCol: "date",
+      title: function (r) { return r.title || ""; },
       sub: function (r) { return (r.date || "").slice(0, 10); },
       auto: true, // date/year/이미지 자동 처리
       fields: [
@@ -194,7 +195,8 @@
     },
     news: {
       label: "News", csv: "data/news.csv", idCol: "date", auto: true,
-      sub: function (r) { return (r.date || "").slice(0, 10) + " · " + (r.title || ""); },
+      title: function (r) { return r.title || ""; },
+      sub: function (r) { return (r.date || "").slice(0, 10); },
       fields: [
         { name: "title", label: "제목 (한국어)", required: true },
         { name: "title_en", label: "Title (English)" },
@@ -343,8 +345,9 @@
     listEl.innerHTML = '<div class="adm-count">' + list.length + "개</div>" +
       list.map(function (r) {
         var id = r[col.idCol] || r.title || "";
+        var disp = col.title ? (col.title(r) || id) : id;
         return '<div class="adm-row">' +
-          '<div class="adm-row-main"><span class="adm-row-title">' + esc(id) + "</span>" +
+          '<div class="adm-row-main"><span class="adm-row-title">' + esc(disp) + "</span>" +
           '<span class="adm-row-sub">' + esc(col.sub ? col.sub(r) : "") + "</span></div>" +
           '<div class="adm-row-act">' +
             (col.moveToAlumni ? '<button type="button" class="adm-mini" data-act="move" data-id="' + esc(id) + '">→ Alumni</button>' : "") +
