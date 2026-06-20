@@ -146,7 +146,7 @@ a:hover { text-decoration: underline; }
 /* 텍스트 가독성용 어두운 오버레이 */
 .hero-slider .slide::after {
   content: ""; position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.45));
+  background: linear-gradient(180deg, rgba(0,0,0,.38), rgba(0,0,0,.55));
 }
 .hero-slider .slide-inner {
   position: relative; z-index: 2; color: #fff;
