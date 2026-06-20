@@ -548,7 +548,17 @@ a:hover { text-decoration: underline; }
 }
 
 /* ---------- news admin (GitHub token) ---------- */
-.admin-launch { text-align: right; padding: 8px 0 0; }
+.admin-launch { text-align: right; padding: 8px 0 0; display: flex; gap: 8px; justify-content: flex-end; }
+.admin-btn.on { color: #fff; background: var(--accent); border-color: var(--accent); }
+/* 항목별 수정/삭제 */
+.ni-admin { margin: 10px 0 0 106px; display: flex; gap: 8px; }
+.ni-edit, .ni-del { font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 8px; padding: 4px 12px; background: var(--soft); }
+.ni-edit { color: var(--accent); }
+.ni-edit:hover { border-color: var(--accent); background: #fff; }
+.ni-del { color: #b91c1c; }
+.ni-del:hover { border-color: #b91c1c; background: #fff; }
+@media (max-width: 600px) { .ni-admin { margin-left: 0; } }
 .admin-btn { font: inherit; font-size: .85rem; cursor: pointer; color: var(--muted);
   background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: 5px 12px; }
 .admin-btn:hover { border-color: var(--accent); color: var(--accent); }

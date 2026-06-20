@@ -67,6 +67,8 @@
   function initPage(cfg) {
     var mount = document.getElementById(cfg.mount);
     var news = [];
+    var adminMode = false;   // 관리 모드(수정/삭제 버튼 표시) 토글
+    var editTarget = null;   // 수정 중인 항목의 date (null = 새 등록)
     mount.innerHTML = '<p class="muted" style="padding:24px 0">불러오는 중…</p>';
 
     loadNews(cfg.csv)
@@ -90,6 +92,12 @@
           "</div>" +
           '<div class="ni-content">' + nl2br(pick(row, "content")) + "</div>" +
           (linksHtml(row) ? '<div class="ni-links">' + linksHtml(row) + "</div>" : "") +
+          (adminMode
+            ? '<div class="ni-admin">' +
+                '<button type="button" class="ni-edit" data-date="' + esc(row.date) + '">수정</button>' +
+                '<button type="button" class="ni-del" data-date="' + esc(row.date) + '">삭제</button>' +
+              "</div>"
+            : "") +
         "</article>"
       );
     }
@@ -121,20 +129,24 @@
     // 언어 토글 시 재렌더 (제목·본문이 언어별로 다름)
     document.addEventListener("lit:lang", function () { render(); });
 
-    /* ---------------- 관리자(깃허브 토큰) 등록 ---------------- */
+    /* ---------------- 관리자(깃허브 토큰) 등록/수정/삭제 ---------------- */
+    var amModal = null;
+
     function buildAdmin() {
       var bar = document.createElement("div");
       bar.className = "admin-launch";
-      bar.innerHTML = '<button type="button" class="admin-btn" id="adminOpen">✎ 관리자</button>';
+      bar.innerHTML =
+        '<button type="button" class="admin-btn" id="adminNew">✎ 새 뉴스</button>' +
+        '<button type="button" class="admin-btn" id="adminMode">관리 모드</button>';
       mount.parentNode.insertBefore(bar, mount);
 
-      var modal = document.createElement("div");
-      modal.className = "admin-modal";
-      modal.setAttribute("aria-hidden", "true");
-      modal.innerHTML =
+      amModal = document.createElement("div");
+      amModal.className = "admin-modal";
+      amModal.setAttribute("aria-hidden", "true");
+      amModal.innerHTML =
         '<div class="am-panel">' +
           '<button type="button" class="am-close" aria-label="닫기">&times;</button>' +
-          "<h2>뉴스 등록 (관리자)</h2>" +
+          '<h2 id="amHeading">뉴스 등록 (관리자)</h2>' +
           '<p class="am-note">GitHub 개인 토큰(권한: 이 저장소 Contents 읽기/쓰기)이 필요합니다. ' +
           "토큰은 이 브라우저에만 저장되며 사이트에 올라가지 않습니다.</p>" +
           '<label class="am-field"><span>GitHub 토큰</span>' +
@@ -154,26 +166,59 @@
           "</div>" +
           '<div class="am-msg" id="amMsg"></div>' +
         "</div>";
-      document.body.appendChild(modal);
+      document.body.appendChild(amModal);
 
       var saved = localStorage.getItem("lit-gh-token");
-      if (saved) modal.querySelector("#amToken").value = saved;
+      if (saved) amModal.querySelector("#amToken").value = saved;
 
-      function open() { modal.setAttribute("aria-hidden", "false"); document.body.style.overflow = "hidden"; }
-      function close() { modal.setAttribute("aria-hidden", "true"); document.body.style.overflow = ""; }
-      document.getElementById("adminOpen").addEventListener("click", open);
-      modal.querySelector(".am-close").addEventListener("click", close);
-      modal.addEventListener("click", function (e) { if (e.target === modal) close(); });
+      amModal.querySelector(".am-close").addEventListener("click", closeModal);
+      amModal.addEventListener("click", function (e) { if (e.target === amModal) closeModal(); });
+      amModal.querySelector("#amSubmit").addEventListener("click", submitNews);
 
-      modal.querySelector("#amSubmit").addEventListener("click", function () {
-        submitNews(modal, close);
+      document.getElementById("adminNew").addEventListener("click", function () { openAdd(); });
+      document.getElementById("adminMode").addEventListener("click", function () {
+        adminMode = !adminMode;
+        this.classList.toggle("on", adminMode);
+        render();
+      });
+
+      // 항목의 수정/삭제 버튼 (위임)
+      mount.addEventListener("click", function (e) {
+        var ed = e.target.closest && e.target.closest(".ni-edit");
+        var dl = e.target.closest && e.target.closest(".ni-del");
+        if (ed) { openEdit(ed.getAttribute("data-date")); }
+        else if (dl) { doDelete(dl.getAttribute("data-date")); }
       });
     }
 
-    function setMsg(modal, text, kind) {
-      var m = modal.querySelector("#amMsg");
-      m.textContent = text;
-      m.className = "am-msg" + (kind ? " am-" + kind : "");
+    function openModal() { amModal.setAttribute("aria-hidden", "false"); document.body.style.overflow = "hidden"; }
+    function closeModal() { amModal.setAttribute("aria-hidden", "true"); document.body.style.overflow = ""; }
+    function field(id) { return amModal.querySelector("#" + id); }
+    function setMsg(text, kind) {
+      var m = field("amMsg"); m.textContent = text; m.className = "am-msg" + (kind ? " am-" + kind : "");
+    }
+
+    function openAdd() {
+      editTarget = null;
+      field("amHeading").textContent = "뉴스 등록 (관리자)";
+      field("amSubmit").textContent = "등록";
+      ["amTitle", "amTitleEn", "amContent", "amContentEn", "amLinks"].forEach(function (id) { field(id).value = ""; });
+      field("amForum").value = "Board"; field("amStatus").value = "publish";
+      setMsg("");
+      openModal();
+    }
+    function openEdit(date) {
+      var row = news.filter(function (r) { return r.date === date; })[0];
+      if (!row) return;
+      editTarget = date;
+      field("amHeading").textContent = "뉴스 수정";
+      field("amSubmit").textContent = "수정 저장";
+      field("amTitle").value = row.title || ""; field("amTitleEn").value = row.title_en || "";
+      field("amContent").value = row.content || ""; field("amContentEn").value = row.content_en || "";
+      field("amLinks").value = row.links || "";
+      field("amForum").value = row.forum || "Board"; field("amStatus").value = row.status || "publish";
+      setMsg("");
+      openModal();
     }
 
     function nowStamp() {
@@ -188,49 +233,31 @@
     }
     function b64encode(str) { return btoa(unescape(encodeURIComponent(str))); }
     function b64decode(b64) { return decodeURIComponent(escape(atob(String(b64).replace(/\s/g, "")))); }
+    function colIndex(rows) {
+      var ix = {};
+      (rows[0] || []).forEach(function (name, i) { ix[String(name).replace(/^﻿/, "").trim()] = i; });
+      return ix;
+    }
 
-    function submitNews(modal, close) {
-      var token = modal.querySelector("#amToken").value.trim();
-      var title = modal.querySelector("#amTitle").value.trim();
-      var content = modal.querySelector("#amContent").value.trim();
-      if (!token) { setMsg(modal, "GitHub 토큰을 입력하세요.", "err"); return; }
-      if (!title || !content) { setMsg(modal, "제목과 본문(한국어)은 필수입니다.", "err"); return; }
-
-      if (modal.querySelector("#amRemember").checked) localStorage.setItem("lit-gh-token", token);
-      else localStorage.removeItem("lit-gh-token");
-
-      var stamp = nowStamp();
-      var row = {
-        date: stamp, year: stamp.slice(0, 4),
-        forum: modal.querySelector("#amForum").value.trim() || "Board",
-        title: title, title_en: modal.querySelector("#amTitleEn").value.trim(),
-        content: content, content_en: modal.querySelector("#amContentEn").value.trim(),
-        links: modal.querySelector("#amLinks").value.trim(),
-        status: modal.querySelector("#amStatus").value,
-      };
-      var newLine = COLS.map(function (c) { return csvField(row[c]); }).join(",");
-
-      setMsg(modal, "등록 중…", "");
+    // GET → transform(rows) → PUT (rows = 헤더 포함 2차원 배열)
+    function commitCsv(token, message, transform) {
       var api = "https://api.github.com/repos/" + resolveRepo() + "/contents/" + FILE;
       var headers = { Authorization: "token " + token, Accept: "application/vnd.github+json" };
-
-      fetch(api + "?ref=" + BRANCH, { headers: headers })
+      return fetch(api + "?ref=" + BRANCH, { headers: headers, cache: "no-store" })
         .then(function (r) {
           if (r.status === 401) throw new Error("토큰이 유효하지 않습니다 (401).");
           if (!r.ok) throw new Error("파일 조회 실패 (" + r.status + ").");
           return r.json();
         })
         .then(function (data) {
-          var text = b64decode(data.content);
-          var nl = text.indexOf("\n"); // 헤더 줄 끝
-          if (nl < 0) throw new Error("CSV 형식 오류.");
-          var updated = text.slice(0, nl + 1) + newLine + "\n" + text.slice(nl + 1);
+          var rows = global.Pubs._parseCSV(b64decode(data.content));
+          transform(rows);
+          var out = "﻿" + rows.map(function (r) {
+            return r.map(csvField).join(",");
+          }).join("\n") + "\n";
           return fetch(api, {
             method: "PUT", headers: headers,
-            body: JSON.stringify({
-              message: "Add news: " + title, branch: BRANCH,
-              content: b64encode(updated), sha: data.sha,
-            }),
+            body: JSON.stringify({ message: message, branch: BRANCH, content: b64encode(out), sha: data.sha }),
           });
         })
         .then(function (r) {
@@ -238,14 +265,85 @@
             throw new Error("커밋 실패 (" + r.status + "): " + (e.message || ""));
           });
           return r.json();
-        })
+        });
+    }
+
+    function submitNews() {
+      var token = field("amToken").value.trim();
+      var title = field("amTitle").value.trim();
+      var content = field("amContent").value.trim();
+      if (!token) { setMsg("GitHub 토큰을 입력하세요.", "err"); return; }
+      if (!title || !content) { setMsg("제목과 본문(한국어)은 필수입니다.", "err"); return; }
+      if (field("amRemember").checked) localStorage.setItem("lit-gh-token", token);
+      else localStorage.removeItem("lit-gh-token");
+
+      var isEdit = !!editTarget;
+      var stamp = isEdit ? editTarget : nowStamp();
+      var row = {
+        date: stamp, year: stamp.slice(0, 4),
+        forum: field("amForum").value.trim() || "Board",
+        title: title, title_en: field("amTitleEn").value.trim(),
+        content: content, content_en: field("amContentEn").value.trim(),
+        links: field("amLinks").value.trim(),
+        status: field("amStatus").value,
+      };
+
+      setMsg(isEdit ? "수정 중…" : "등록 중…", "");
+      commitCsv(token, (isEdit ? "Update news: " : "Add news: ") + title, function (rows) {
+        var ix = colIndex(rows);
+        if (isEdit) {
+          var di = ix["date"], hit = false;
+          for (var i = 1; i < rows.length; i++) {
+            if ((rows[i][di] || "").trim() === editTarget) {
+              COLS.forEach(function (c) { if (ix[c] != null) rows[i][ix[c]] = row[c] || ""; });
+              hit = true; break;
+            }
+          }
+          if (!hit) throw new Error("수정할 항목을 찾지 못했습니다.");
+        } else {
+          var cells = new Array((rows[0] || COLS).length).fill("");
+          COLS.forEach(function (c) { if (ix[c] != null) cells[ix[c]] = row[c] || ""; });
+          rows.splice(1, 0, cells);
+        }
+      })
         .then(function () {
-          setMsg(modal, "등록 완료! 1~2분 후 사이트에 반영됩니다.", "ok");
-          ["amTitle", "amTitleEn", "amContent", "amContentEn", "amLinks"].forEach(function (id) {
-            modal.querySelector("#" + id).value = "";
-          });
+          setMsg((isEdit ? "수정" : "등록") + " 완료! 1~2분 후 사이트에 완전히 반영됩니다.", "ok");
+          // 즉시 화면 반영 (낙관적 업데이트)
+          if (isEdit) {
+            var t = news.filter(function (r) { return r.date === editTarget; })[0];
+            if (t) Object.keys(row).forEach(function (k) { t[k] = row[k]; });
+          } else if (row.status === "publish") {
+            news.unshift(row);
+          }
+          editTarget = null;
+          render();
+          setTimeout(closeModal, 900);
         })
-        .catch(function (err) { setMsg(modal, err.message, "err"); });
+        .catch(function (err) { setMsg(err.message, "err"); });
+    }
+
+    function doDelete(date) {
+      var row = news.filter(function (r) { return r.date === date; })[0];
+      var title = row ? (row.title || "") : "";
+      if (!global.confirm("이 뉴스를 삭제할까요?\n\n" + title)) return;
+      var token = (localStorage.getItem("lit-gh-token") || "").trim();
+      if (!token) {
+        global.alert("먼저 '✎ 새 뉴스'를 열어 GitHub 토큰을 입력(기억)해 주세요.");
+        return;
+      }
+      commitCsv(token, "Delete news: " + title, function (rows) {
+        var di = colIndex(rows)["date"], hit = false;
+        for (var i = 1; i < rows.length; i++) {
+          if ((rows[i][di] || "").trim() === date) { rows.splice(i, 1); hit = true; break; }
+        }
+        if (!hit) throw new Error("삭제할 항목을 찾지 못했습니다.");
+      })
+        .then(function () {
+          news = news.filter(function (r) { return r.date !== date; });
+          render();
+          global.alert("삭제 완료! 1~2분 후 사이트에 완전히 반영됩니다.");
+        })
+        .catch(function (err) { global.alert("삭제 실패: " + err.message); });
     }
   }
 
