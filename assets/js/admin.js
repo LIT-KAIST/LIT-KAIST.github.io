@@ -243,10 +243,10 @@
     listEl = document.getElementById("admList");
 
     var tok = token();
-    if (tok) { document.getElementById("admToken").value = tok; setTokState(true); }
+    if (tok) { document.getElementById("admToken").value = tok; verifyAccess(); }
     document.getElementById("admSaveTok").addEventListener("click", function () {
       var v = document.getElementById("admToken").value.trim();
-      if (v) { localStorage.setItem("lit-gh-token", v); setTokState(true); setMsg("토큰을 저장했습니다.", "ok"); }
+      if (v) { localStorage.setItem("lit-gh-token", v); verifyAccess(); }
       else { localStorage.removeItem("lit-gh-token"); setTokState(false); }
     });
 
@@ -275,6 +275,27 @@
     var el = document.getElementById("admTokState");
     el.textContent = ok ? "✓ 저장됨" : "토큰 필요";
     el.className = "adm-tokstate" + (ok ? " ok" : "");
+  }
+
+  // 토큰 저장 시 저장소 쓰기 권한을 즉시 확인
+  function verifyAccess() {
+    var el = document.getElementById("admTokState");
+    el.textContent = "확인 중…"; el.className = "adm-tokstate";
+    fetch("https://api.github.com/repos/" + repo(), { headers: ghHeaders(), cache: "no-store" })
+      .then(function (r) {
+        if (r.status === 401) throw new Error("토큰이 유효하지 않습니다");
+        if (r.status === 404) throw new Error("저장소를 찾지 못했습니다(권한 없음)");
+        if (!r.ok) throw new Error("저장소 접근 불가 (" + r.status + ")");
+        return r.json();
+      })
+      .then(function (d) {
+        if (d.permissions && d.permissions.push) {
+          el.textContent = "✓ 쓰기 권한 확인됨 (" + repo() + ")"; el.className = "adm-tokstate ok";
+        } else {
+          el.textContent = "✗ 이 저장소에 쓰기 권한이 없습니다"; el.className = "adm-tokstate err";
+        }
+      })
+      .catch(function (e) { el.textContent = "✗ " + e.message; el.className = "adm-tokstate err"; });
   }
 
   function selectTab(key) {
