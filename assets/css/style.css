@@ -334,7 +334,7 @@ a:hover { text-decoration: underline; }
 /* ---------- contact page ---------- */
 .contact-sub { color: var(--phead); font-size: 1.15rem; font-weight: 700; margin: 1.2em 0 .25em; }
 .contact-ul { list-style: disc; padding-left: 1.3em; margin: .2em 0 0; }
-.contact-ul li { color: var(--pfg); font-size: clamp(1rem, 1.7vw, 1.15rem); margin: .3em 0; line-height: 1.55; }
+.contact-ul li { color: var(--pfg); font-size: clamp(1.15rem, 2vw, 1.4rem); margin: .4em 0; line-height: 1.55; }
 .contact-card {
   margin-top: 28px; border: 1px solid var(--pborder); border-left: 4px solid var(--plink);
   border-radius: 12px; padding: 18px 20px; background: rgba(0,0,0,.02); max-width: 460px;

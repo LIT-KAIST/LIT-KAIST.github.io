@@ -203,7 +203,7 @@
         const link = linkOf(rec);
         html += '<li class="pub" value="' + idx + '">';
         html += '<div class="pub-cite">' + citation(rec, type);
-        if (forthcoming) html += ' <span class="badge badge-soon">to appear</span>';
+        if (forthcoming) html += ' <span class="badge badge-soon">forthcoming</span>';
         html += "</div>";
         html += '<div class="pub-meta">';
         if (link) html += '<a class="link" href="' + esc(link) + '" target="_blank" rel="noopener">' +
