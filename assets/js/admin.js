@@ -207,6 +207,21 @@
         { name: "status", label: "상태", type: "select", options: STATUS_PUB },
       ],
     },
+    projects: {
+      label: "Projects", csv: "data/projects.csv", idCol: "title",
+      sub: function (r) { return (r.status || "") + (r.period ? " · " + r.period : ""); },
+      fields: [
+        { name: "title", label: "제목 (한국어)", required: true },
+        { name: "title_en", label: "Title (English)" },
+        { name: "status", label: "상태", type: "select", options: ["current", "past"] },
+        { name: "period", label: "기간 (예: 2023.07–2030.12)" },
+        { name: "agency", label: "지원/주관 기관" },
+        { name: "role", label: "역할 (주관/공동 등)" },
+        { name: "description", label: "설명 (한국어)", type: "textarea" },
+        { name: "description_en", label: "Description (English)", type: "textarea" },
+        { name: "url", label: "링크 URL" },
+      ],
+    },
   };
 
   /* ---------------- UI ---------------- */
