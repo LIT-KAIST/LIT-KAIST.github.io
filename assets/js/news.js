@@ -54,7 +54,7 @@
   }
 
   function loadNews(csv) {
-    return fetch(csv)
+    return fetch(csv, { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error(csv + " (HTTP " + r.status + ")"); return r.text(); })
       .then(function (t) {
         return P._rowsToObjects(P._parseCSV(t))

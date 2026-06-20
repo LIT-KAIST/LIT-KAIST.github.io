@@ -15,7 +15,7 @@
   }
 
   function loadCsv(path) {
-    return fetch(path)
+    return fetch(path, { cache: "no-store" })
       .then(function (r) {
         if (!r.ok) throw new Error(path + " (HTTP " + r.status + ")");
         return r.text();
@@ -28,7 +28,7 @@
   }
 
   function loadMd(path) {
-    return fetch(path).then(function (r) {
+    return fetch(path, { cache: "no-store" }).then(function (r) {
       if (!r.ok) throw new Error(path + " (HTTP " + r.status + ")");
       return r.text();
     });

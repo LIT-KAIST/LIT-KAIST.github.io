@@ -244,7 +244,7 @@
   }
 
   function loadCsv(path) {
-    return fetch(path)
+    return fetch(path, { cache: "no-store" })
       .then((res) => { if (!res.ok) throw new Error("HTTP " + res.status + " — " + path); return res.text(); })
       .then((text) => {
         const recs = rowsToObjects(parseCSV(text)).filter((r) => (r.title || "").trim());

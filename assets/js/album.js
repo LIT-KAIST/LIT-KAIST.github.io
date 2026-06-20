@@ -36,7 +36,7 @@
 
     mount.innerHTML = '<p class="muted" style="padding:24px 0">불러오는 중…</p>';
 
-    fetch(cfg.csv)
+    fetch(cfg.csv, { cache: "no-store" })
       .then(function (r) {
         if (!r.ok) throw new Error(cfg.csv + " (HTTP " + r.status + ")");
         return r.text();
