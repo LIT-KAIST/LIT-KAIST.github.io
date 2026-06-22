@@ -131,10 +131,18 @@
     return '<div class="' + cls + ' p-noimg" aria-hidden="true"></div>';
   }
 
+  function isCoord(p) {
+    return /^(y|yes|1|true|o|예|✓)$/i.test((p["랩장"] || "").trim());
+  }
+  var COORD_BADGE =
+    '<span class="p-coord" data-ko="연구실 대표 학생" data-en="Lab Coordinator">연구실 대표 학생</span>';
+  var CROWN =
+    '<span class="p-crown" title="연구실 대표 학생 · Lab Coordinator" aria-hidden="true">👑</span>';
+
   function nameBlock(p) {
     var en = esc(p.name_english || "");
     var ko = esc(p.name_korean || "");
-    return en + (ko ? ' <span class="p-name-ko">' + ko + "</span>" : "");
+    return (isCoord(p) ? CROWN : "") + en + (ko ? ' <span class="p-name-ko">' + ko + "</span>" : "");
   }
 
   // 좌측 사진 + 우측 정보 (Faculty / Members)
@@ -144,6 +152,7 @@
       ? '<a class="p-email" href="mailto:' + esc(email) + '">' + esc(email) + "</a>"
       : "";
     var links = linkBtns(p);
+    var coord = isCoord(p) ? COORD_BADGE : "";
     return (
       '<article class="person-row reveal">' +
         '<div class="pr-photo">' + photoTag(p, "pr-img") + "</div>" +
@@ -155,7 +164,7 @@
               esc(p["관심분야"].trim()) + "</div>"
             : "") +
           (emailHtml ? '<div class="pr-email">' + emailHtml + "</div>" : "") +
-          (links ? '<div class="pr-links">' + links + "</div>" : "") +
+          ((coord || links) ? '<div class="pr-links">' + coord + links + "</div>" : "") +
         "</div>" +
       "</article>"
     );

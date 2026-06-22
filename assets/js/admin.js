@@ -140,6 +140,7 @@
         { name: "name_korean", label: "이름 (한국어)" },
         { name: "직함", label: "직함 (예: Ph.D. course)" },
         { name: "학위", label: "학위", type: "select", options: DEGREE_M },
+        { name: "랩장", label: "연구실 대표 학생 (랩장) — 이름 앞 왕관 + 배지 표시", type: "check" },
         { name: "관심분야", label: "관심 분야" },
         { name: "email", label: "이메일" },
         { name: "homepage", label: "Homepage URL" },
@@ -552,6 +553,11 @@
     if (fd.type === "textarea") {
       return '<label class="am-field">' + lab + '<textarea data-name="' + fd.name + '" rows="4">' + esc(v) + "</textarea></label>";
     }
+    if (fd.type === "check") {
+      var on = /^(y|yes|1|true|o|예|✓)$/i.test(String(v).trim());
+      return '<label class="am-field am-check"><input type="checkbox" data-name="' + fd.name + '"' +
+        (on ? " checked" : "") + "><span>" + esc(fd.label) + "</span></label>";
+    }
     if (fd.type === "md") {
       // 값은 CSV가 아니라 md 파일에서 openForm 이 비동기로 채움
       return '<label class="am-field">' + lab +
@@ -602,6 +608,11 @@
       var row = {};
       col.fields.forEach(function (fd) {
         if (fd.type === "image" || fd.type === "images" || fd.type === "file" || fd.type === "md") return;
+        if (fd.type === "check") {
+          var cb = document.querySelector('#admForm input[type=checkbox][data-name="' + fd.name + '"]');
+          row[fd.name] = cb && cb.checked ? "Y" : "";
+          return;
+        }
         row[fd.name] = formVal(fd.name);
       });
       Object.keys(imgVals).forEach(function (k) { row[k] = imgVals[k]; });
