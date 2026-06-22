@@ -367,7 +367,12 @@ a:hover { text-decoration: underline; }
 .sem-card:hover { box-shadow: 0 6px 22px rgba(0,0,0,.06); }
 .sem-term { color: var(--accent); font-size: .85rem; font-weight: 600; }
 .sem-title { margin: .2em 0 .35em; font-size: clamp(1.15rem, 2.1vw, 1.45rem); color: var(--accent-dark); line-height: 1.4; }
-.sem-intro { margin: 0 0 .7em; color: #374151; line-height: 1.6; }
+.sem-intro { margin: 0 0 .9em; color: #374151; line-height: 1.6; }
+.sem-open { display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  padding: 9px 18px; border: none; border-radius: 999px; background: var(--accent); color: #fff;
+  font: inherit; font-weight: 600; font-size: .92rem; transition: background .15s, transform .15s, box-shadow .15s; }
+.sem-open:hover { background: var(--accent-dark); transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(11,92,173,.28); text-decoration: none; }
 
 .proj-back { font: inherit; cursor: pointer; background: var(--soft); border: 1px solid var(--line);
   border-radius: 8px; padding: 7px 14px; color: var(--accent); font-weight: 600; margin: 4px 0 18px; }

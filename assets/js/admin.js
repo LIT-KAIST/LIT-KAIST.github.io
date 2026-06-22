@@ -104,12 +104,18 @@
     });
   }
   // CSV GET → transform(rows) → PUT
-  function commitCsv(csvPath, message, transform) {
+  // headerCols: 파일이 없을 때 새로 만들 헤더(예: 새 세미나의 주차 파일)
+  function commitCsv(csvPath, message, transform, headerCols) {
     return getFile(csvPath).then(function (data) {
-      if (!data) throw new Error("CSV를 찾을 수 없습니다: " + csvPath);
-      var rows = P._parseCSV(b64decode(data.content));
+      var rows, sha;
+      if (!data) {
+        if (!headerCols) throw new Error("CSV를 찾을 수 없습니다: " + csvPath);
+        rows = [headerCols.slice()]; sha = undefined; // 신규 파일
+      } else {
+        rows = P._parseCSV(b64decode(data.content)); sha = data.sha;
+      }
       transform(rows);
-      return putFile(csvPath, b64encode(serialize(rows)), message, data.sha);
+      return putFile(csvPath, b64encode(serialize(rows)), message, sha);
     });
   }
 
@@ -413,9 +419,9 @@
     var col = COLLECTIONS[curKey];
     listEl.innerHTML = '<p class="muted">목록 불러오는 중…</p>';
     fetch(csvPathOf(col) + "?z=" + Math.round(performance.now()), { cache: "no-store" })
-      .then(function (r) { return r.text(); })
+      .then(function (r) { return r.ok ? r.text() : ""; })
       .then(function (t) {
-        rowsCache = P._rowsToObjects(P._parseCSV(t));
+        rowsCache = t ? P._rowsToObjects(P._parseCSV(t)) : [];
         renderList();
       })
       .catch(function (e) { listEl.innerHTML = '<div class="error">목록 로드 실패: ' + esc(e.message) + "</div>"; });
@@ -546,6 +552,8 @@
         row.date = stamp; row.year = stamp.slice(0, 4);
       }
 
+      var headerCols = col.fields.map(function (fd) { return fd.name; })
+        .filter(function (n) { return n !== "images"; });
       return commitCsv(csvPathOf(col), (editingId ? "Update " : "Add ") + col.label + ": " + msgName, function (rows) {
         var ix = colIndex(rows);
         if (editingId) {
@@ -561,7 +569,7 @@
           setCells(cells, ix, row, col);
           rows.splice(1, 0, cells); // 맨 위(최신)
         }
-      });
+      }, headerCols);
     }).then(function () {
       setFormMsg("저장 완료! 1~2분 후 사이트에 반영됩니다.", "ok");
       setTimeout(function () { closeModal(); loadList(); }, 900);
