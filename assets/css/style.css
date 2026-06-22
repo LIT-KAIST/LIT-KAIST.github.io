@@ -536,15 +536,16 @@ html[lang="en"] .lt-opt:last-child { color: #fff; }
 }
 .p-btn:hover { text-decoration: none; border-color: var(--accent); background: #fff; }
 
-/* 연구실 대표 학생(랩장) — 이름 앞 왕관 + CV 영역 앞 배지 */
-.p-crown { margin-right: 6px; font-size: .9em; line-height: 1;
-  filter: drop-shadow(0 1px 1px rgba(0,0,0,.15)); vertical-align: baseline; }
+/* 연구실 대표 학생(랩장) — 이름 앞 왕관 + CV 영역 앞 배지 (무채색) */
+.p-crown-ico { width: 1em; height: 1em; flex: none; display: inline-block; }
+.p-crown { margin-right: 6px; color: var(--fg); }
+.p-crown .p-crown-ico { width: .95em; height: .95em; vertical-align: -.12em; }
 .p-coord {
   display: inline-flex; align-items: center; font-size: .76rem; font-weight: 700; line-height: 1;
   padding: 6px 11px; border-radius: 999px; letter-spacing: .01em;
-  color: #92400e; background: #fef3c7; border: 1px solid #f59e0b;
+  color: #fff; background: #1a1d21; border: 1px solid #1a1d21;
 }
-.p-coord::before { content: "👑"; margin-right: 5px; font-size: .9em; }
+.p-coord .p-crown-ico { margin-right: 5px; }
 
 /* Faculty — 큰 사진 + 프로필 (md 기반) */
 .faculty-profile { padding: 24px 0 8px; }

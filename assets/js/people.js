@@ -134,10 +134,16 @@
   function isCoord(p) {
     return /^(y|yes|1|true|o|예|✓)$/i.test((p["랩장"] || "").trim());
   }
+  // 왕관(가운데 원형 보석은 evenodd 로 뚫린 원 → 배경색이 비쳐 보임)
+  var CROWN_SVG =
+    '<svg class="p-crown-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+    '<path fill-rule="evenodd" d="M2 8L6 12L12 5L18 12L22 8L20 19L4 19Z' +
+    'M12 11a2 2 0 1 0 0 4a2 2 0 1 0 0 -4z"></path></svg>';
   var COORD_BADGE =
-    '<span class="p-coord" data-ko="연구실 대표 학생" data-en="Lab Coordinator">연구실 대표 학생</span>';
+    '<span class="p-coord">' + CROWN_SVG +
+    '<span data-ko="연구실 대표 학생" data-en="Lab Coordinator">연구실 대표 학생</span></span>';
   var CROWN =
-    '<span class="p-crown" title="연구실 대표 학생 · Lab Coordinator" aria-hidden="true">👑</span>';
+    '<span class="p-crown" title="연구실 대표 학생 · Lab Coordinator">' + CROWN_SVG + "</span>";
 
   function nameBlock(p) {
     var en = esc(p.name_english || "");
@@ -209,18 +215,21 @@
     );
   }
 
+  // 랩장(연구실 대표 학생)을 그 그룹(박사/석사 등) 안에서 맨 위로
+  function coordFirst(a, b) { return (isCoord(b) ? 1 : 0) - (isCoord(a) ? 1 : 0); }
+
   function renderGrouped(rows, g) {
     var key = g.groupBy;
     var html = "";
     g.order.forEach(function (sec) {
       var items = rows.filter(function (r) { return (r[key] || "").trim() === sec.value; });
-      if (items.length) html += sectionHtml(sec.ko, sec.en, items, g.layout);
+      if (items.length) html += sectionHtml(sec.ko, sec.en, items.slice().sort(coordFirst), g.layout);
     });
     // order 에 없는 값들은 "기타"로 모음
     var rest = rows.filter(function (r) {
       return !g.order.some(function (s) { return s.value === (r[key] || "").trim(); });
     });
-    if (rest.length) html += sectionHtml("기타", "Others", rest, g.layout);
+    if (rest.length) html += sectionHtml("기타", "Others", rest.slice().sort(coordFirst), g.layout);
     return html;
   }
 
