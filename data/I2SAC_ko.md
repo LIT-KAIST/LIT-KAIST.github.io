@@ -3,6 +3,9 @@
 
 **부제:** 초정밀·초고용량 Integrated Intelligence, Sensing, and Communication (I²SAC) 융합 시스템 개발
 
+
+![I2SAC](assets/img/projects/i2sac.png)
+
 ## 연구원
 
 

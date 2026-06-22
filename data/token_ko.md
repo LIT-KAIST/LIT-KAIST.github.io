@@ -1,6 +1,9 @@
 # AI-Native 6G 네트워크를 위한 토큰 기반 근거리장·분산 ISAC 핵심 기술 연구
 *(Token-Based Near-Field and Distributed ISAC Technologies for AI-Native 6G Networks)*
 
+
+![token](assets/img/projects/token.png)
+
 ## 연구원
 
 

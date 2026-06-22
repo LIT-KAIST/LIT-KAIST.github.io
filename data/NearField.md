@@ -2,6 +2,9 @@
 
 **Subtitle:** Near-Field Precision Sensing & ISAC — KAIST Contribution (Co-Research Institution)
 
+
+![NearField](assets/img/projects/nearfield.png)
+
 ## Researchers
 
 

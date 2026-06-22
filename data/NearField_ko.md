@@ -3,6 +3,9 @@
 
 **부제:** 근거리장(Near-field) 정밀 센싱 및 ISAC — 한국과학기술원 담당 (공동연구개발기관)
 
+
+![NearField](assets/img/projects/nearfield.png)
+
 ## 연구원
 
 

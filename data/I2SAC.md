@@ -2,6 +2,9 @@
 
 **Subtitle:** Ultra-precise, Ultra-high-capacity Integrated Intelligence, Sensing, and Communication (I²SAC) Convergence System
 
+
+![I2SAC](assets/img/projects/i2sac.png)
+
 ## Researchers
 
 
