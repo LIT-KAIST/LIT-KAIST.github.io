@@ -320,7 +320,8 @@ a:hover { text-decoration: underline; }
 .research-area ul { margin: 0; padding-left: 1.2em; }
 .research-area li { color: #3a4452; font-size: clamp(.98rem, 1.5vw, 1.1rem); margin: .35em 0; line-height: 1.55; }
 .ra-fig { display: block; width: 100%; max-width: 760px; height: auto; margin: 16px auto 2px;
-  border: 1px solid var(--pborder); border-radius: 10px; background: #fff; }
+  border: 1px solid #d3dae3; border-radius: 10px; background: #fff; padding: 10px;
+  box-shadow: 0 4px 18px rgba(0,0,0,.07); }
 @media (max-width: 600px) { .research-area { padding: 18px 18px; } }
 
 /* ---------- research projects (간결한 연도별 목록) ---------- */
@@ -356,8 +357,8 @@ a:hover { text-decoration: underline; }
 .md-body li { margin: .35em 0; line-height: 1.65; }
 .md-body em { color: var(--muted); }
 .md-body strong { color: var(--accent-dark); }
-.md-body img { max-width: 100%; height: auto; border-radius: 10px; margin: 14px 0;
-  border: 1px solid var(--line); }
+.md-body img { display: block; max-width: 100%; height: auto; border-radius: 10px; margin: 16px auto;
+  border: 1px solid #d3dae3; background: #fff; padding: 10px; box-shadow: 0 4px 18px rgba(0,0,0,.07); }
 
 /* ---------- contact page ---------- */
 .contact-sub { color: var(--phead); font-size: 1.15rem; font-weight: 700; margin: 1.2em 0 .25em; }
@@ -396,8 +397,9 @@ a:hover { text-decoration: underline; }
 .rt-text p { color: var(--pmuted); font-size: clamp(1rem, 1.8vw, 1.15rem); line-height: 1.7; margin: 0 0 .8em; }
 .rt-text ul { margin: 0; padding-left: 1.2em; }
 .rt-text li { color: var(--pfg); margin: .35em 0; line-height: 1.55; }
-.rt-img { aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #f4f6f9;
-  border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; }
+.rt-img { aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #ffffff;
+  border: 1px solid #d3dae3; box-shadow: 0 4px 18px rgba(0,0,0,.07); padding: 12px;
+  display: flex; align-items: center; justify-content: center; }
 .rt-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
 @media (max-width: 720px) { .rt-panel.active { grid-template-columns: 1fr; } .rt-img { order: -1; } }
 
