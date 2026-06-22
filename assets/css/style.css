@@ -20,8 +20,8 @@
 
 * { box-sizing: border-box; }
 
-/* 전체 글자를 한 단계 크게: 루트를 키우면 rem 기반 크기가 모두 확대됨 (16 → 18px) */
-html { -webkit-text-size-adjust: 100%; font-size: 112.5%; }
+/* 전체 글자를 한 단계 크게: 루트를 키우면 rem 기반 크기가 모두 확대됨 (16 → 17px) */
+html { -webkit-text-size-adjust: 100%; font-size: 106.25%; }
 
 body {
   margin: 0;
