@@ -1,97 +1,97 @@
-﻿과제명,지원기관,유형,시작,종료,종료연도,원본상태
-새로운 자원을 활용한 beyond 5G 이동통신 변혁기술 개발,IITP,,2018.07,2025.12,2025,active
-Development of communication/computing-integrated revolutionary technologies for superintelligent services,,,2020.07,2025.12,2025,Current(상세글)
-Development of low-latency/high-reliability sensing and management technology for NAND flash memory reflecting variation between chips,,,2020.09,2025.09,2025,Current(상세글)
-Massive MIMO Systems with Multi-numerology,,,2020.04,2025.04,2025,Current(상세글)
-Development of Intelligent THz beamforming technology realizing 6G  mobile communications,,,2020.09,2023.02,2023,Current(상세글)
-동시 무선 정보 및 전력 전송 기술 연구,과학기술정보통신부,,2017.04,2021.12,2021,active
-다중 안테나 기반 동일 자원을 활용한 정보 및 전력 동시 전송 시스템 개발,IITP,,2017.04,2021.12,2021,active
-Virtual Presence in Moving Objects through 5G (PriMO-5G),IITP,,2019.10,2021.06,2021,complete
-이동체간 가상현실을 위한 5G 이동통신 기술 연구,IITP,,2018.06,2021.05,2021,active
-Massive MIMO Systems with Multi-numerology (SNIC),Samsung Electronics,,2020.04,2021.04,2021,active
-저지연 고신뢰 NAND 플래시 메모리를 위한 기계학습 기반 sensing 및 management 기술 연구,Samsung Electronics,,2018.09,2020.06,2020,complete
-3차원 무선 네트워크에서 최적의 중계기술 연구,NRF,,2017.03,2020.02,2020,complete
-200Gbps 근거리 무선통신용 초고속 MIMO RF 프론트엔드 구현,IITP,,2017.04,2019.12,2019,complete
-5G초고주파 기반 고속이동체 환경에서의 채널특성 및 성능평가 국제 공동연구,과학기술정보통신부,,2017.10,2019.09,2019,complete
-SDR (Software Defined Radio) 플랫폼을 통한 인덱스 코딩을 사용한 무선 캐싱 시스템 개발,IITP,,2016.04,2019.03,2019,complete
-개방형 5G 표준 모델 개발,IITP,,2017.05,2019.02,2019,complete
-저장매체를 무선 통신 자원으로 활용하는 신개념 통신 시스템 연구,IITP,,2016.04,2018.02,2018,complete
-4차 산업혁명 사회의 통신시스템을 지원하는 폴라코딩 기술 연구,KAIST,,2017.06,2017.12,2017,complete
-초고속 분산 네트워크를 위한 부호화 기술,IITP,,2017.04,2017.12,2017,complete
-간섭환경에서의 고성능 차량용 멀티모드 레이더 개발,NESSLAB,,2015.02,2017.06,2017,complete
-밀리미터파 5G 이동통신 시스템 개발,Giga KOREA,,2013.09,2017.04,2017,complete
-5G 이동통신 시스템을 위한 비직교 다중접속 기술 연구,KAIST,,2016.03,2016.08,2016,complete
-Adhoc 중계 기능을 갖는 고속 LMR의 무선 전송 방식 연구,NESSLAB,,2014.04,2016.02,2016,complete
-5세대 이동통신을 위한 Post-OFDM 및 mmWave 대역 원천기술 개발,Samsung Electronics,,2014.11,2015.10,2015,complete
-클라우드 네트워크 환경에서 업링크 동기화를 위한 최적화된 프런트홀 압축방법에 대한 연구,KUSTAR-KAIST,,2014.08,2015.07,2015,complete
-인지 정보 기반 인텔리젼트 다중 라디오 기술,KCA,,2012.03,2015.02,2015,complete
-IEEE 802.11ac MU-MIMO downlink beamforming algorithm 및 scheduler 개발,I&C Technology,,2012.10,2015.02,2015,complete
-차세대 무선랜용 In-band Full duplexer 연구,KAIST,,2014.05,2014.12,2014,complete
-Wireless Chip to Chip 전송,Samsung Electronics,,2013.09,2014.10,2014,complete
-무선 데이터 통신망을 위한 전송 기술 연구,NESSLAB,,2012.07,2014.06,2014,complete
-5G 이동형 개인셀 용량 증대 기술 개발,KCA,,2013.04,2014.03,2014,complete
-Network coding을 이용한 광대역 무선-PON 결합 기술 개발,KCA,,2009.05,2014.02,2014,complete
-Adaptive 빔 형성,NRF,,2011.03,2014.02,2014,complete
-PAC 물리계층 방식 연구,ETRI,,2013.09,2014.01,2014,complete
-계층간 상호작용을 고려한 고효율 에너지 클라우드 네트워크,KUSTAR-KAIST,,2012.10,2013.10,2013,complete
-냉매 배관을 이용한 신호전송 가능성 검토 연구,LG Electronics,,2012.11,2013.04,2013,complete
-스핀트로닉 나노 라디오 구현,NRF,,2011.07,2013.02,2013,complete
-Beam Jittering 기술의 실효성 검증을 위한 환경 구축 및 테스트,ETRI,,2012.06,2013.01,2013,complete
-다중 셀 환경에서 다중사용자를 지원하는 지능형 중계기 시스템 개발,NRF,,2009.05,2012.04,2012,complete
-LTE-Advanced Multiple Antenna Interference Cancellation 알고리즘 개발,Innowireless,,2011.07,2012.03,2012,complete
-온라인 전기버스용 급.집전 시스템 기술 개발,KEIT,,2010.05,2012.02,2012,complete
-지능형 RF 연구센터,NRF,,2010.03,2012.02,2012,complete
-LTE-Advanced Uplink MIMO Channel Estimator 알고리즘 개발,Innowireless,,2011.07,2011.12,2011,complete
-채널 상황을 고려한 Wi-Fi Frame Aggregation 기술 개발,SK Telecom,,2011.03,2011.12,2011,complete
-그린셀 핵심기술 연구,Samsung Electronics,,2011.05,2011.11,2011,complete
-3GPP LTE Link Level Simulator 개발,ETRI,,2011.07,2011.11,2011,complete
-3GPP LTE TDD 요소 기술 개발,Innowireless,,2010.04,2011.03,2011,complete
-Switched 빔 형성,NRF,,2008.03,2011.02,2011,complete
-차세대 디지털 케이블 전송 시스템의 고효율 채널 부복호화 시뮬레이터 구현,ETRI,,2010.08,2011.01,2011,complete
-차세대 디지털 케이블 전송 시스템의 고효율 변복조 시뮬레이터 구현,ETRI,,2010.07,2011.01,2011,complete
-차세대 디지털 케이블 전송 시스템의 가변대역 전송 시뮬레이터 구현,ETRI,,2010.07,2011.01,2011,complete
-무선기반 개인용 측위 솔루션,ETRI,,2010.06,2011.01,2011,complete
-3GPP LTE TDD 성능 개선 알고리즘 개발,Innowireless,,2010.04,2010.09,2010,complete
-5G 기술 탐색 및 성장 기회 발굴,SK Telecom,,2009.08,2010.07,2010,complete
-DC-HSPA의 Optimal Scheduling Algorithm,Samsung Electronics,,2009.08,2010.05,2010,complete
-LTE 다운링크 MS 중심 레퍼런스 C-모델 개발,ETRI,,2009.09,2010.01,2010,complete
-MU-MIMO 최적화 알고리즘 연구,ETRI,,2009.05,2010.01,2010,complete
-미래개인 이동적응망 연구,MMRC,,2005.09,2009.12,2009,complete
-다중 사용자 환경에서 다중 사용자 간섭 완화 기술 개발,KT,,2009.05,2009.11,2009,complete
-Cognitive Radio 및 4G 핵심기술 개발,KT,,2009.05,2009.11,2009,complete
-3GPP LTE 요소 기술 구현,Innowireless,,2008.07,2009.06,2009,complete
-환경적응형 최적 전송기법 연구,ETRI,,2008.06,2009.01,2009,complete
-IMT-Advanced 단말 핵심기술 연구,KT,,2008.04,2008.11,2008,complete
-4G 이동통신 시스템 연구개발,Samsung Electronics,,2005.07,2008.06,2008,complete
-3GPP LTE의 요소기술 및 WiMAX 규격의 closed MIMO 구현,Innowireless,,2007.07,2008.06,2008,complete
-Reconfigurable radio 시스템/보정 알고리즘/지능형 통신시스템 연구,KOSEF,,2005.06,2008.02,2008,complete
-60 GHz 대역 통신 시스템 요소 기술 연구,SAIT,,2007.07,2008.01,2008,complete
-Satellite-RAS를 고려한 MIMO OFDM 전송 방식 연구,ETRI,,2007.05,2007.12,2007,complete
-차세대 무선통신 채널 모델링 및 대역 최적화 연구,KT,,2006.04,2007.12,2007,complete
-이동 환경에서의 다이버시티 기법 연구,ETRI,,2007.05,2007.11,2007,complete
-SOP Algorithm Development for Chaotic Wireless Stereo Headset,SAIT,,2006.04,2007.03,2007,complete
-다중 사용자 MIMO에서 수신 방식 연구,ETRI,,2006.05,2007.02,2007,complete
-NLOS 환경에서의 페이딩 극복 방안 연구,ETRI,,2006.06,2006.12,2006,complete
-저전력 터보 복호기 구현에 관한 연구,ETRI,,2006.04,2006.12,2006,complete
-WiBro용 Channel Encoder/Decoder 구현 및 무결성 검증,Innowireless,,2005.04,2006.03,2006,complete
-MIMO 저전력 알고리즘 연구,ETRI,,2005.06,2006.01,2006,complete
-Home Coax backbone 환경에서의 UWB-OFDM Channel 분석 및 최적화 기술,Samsung Electronics,,2005.05,2006.01,2006,complete
-차세대 이동통신용 Channel Codec에 관한 연구,ETRI,,2005.05,2005.12,2005,complete
-다중 안테나/다중 캐리어 CDMA 방식용?무선전송 시스템 및 기반기술 연구,ETRI,,2005.05,2005.11,2005,complete
-FH-OFDMA/TDD & FH-OFDMA/FDD 기반 시스템을 위한 FEC 설계,SAIT,,2004.11,2005.10,2005,complete
-차세대 WPAN 기술에 관한 연구,SAIT,,2004.10,2005.09,2005,complete
-대용량 비대칭 무선 데이터 전송 시스템을 위한 다차원 시공간 처리 기술,KOSEF,,2002.09,2005.08,2005,complete
-High Speed Transmission Techniques for Ad Hoc WLAN,MMRC,,2002.08,2005.07,2005,complete
-다중안테나/다중캐리어 CDMA 기반 무선 전송 요소기술,ETRI,,2004.06,2005.02,2005,complete
-Key Technology for 4th Generation Wireless Communications,RERC,,2003.03,2005.02,2005,complete
-IEEE 802.11a 모뎀 SoC 상용화에 대한 연구,I&C Technology,,2004.01,2004.12,2004,complete
-E-xVSB FEC 성능 개선을 위한 연구,ETRI,,2004.06,2004.11,2004,complete
-차세대 무선 통신 시스템의 성능 향상을 위한 channel coding,SAIT,,2003.10,2004.09,2004,complete
-OFDM모뎀용 동기 및 채널 추정기법에 관한 연구,I&C Technology,,2004.03,2004.06,2004,complete
-차세대 channel codec 기반 기술에 관한 연구 개발,Samsung Electronics,,2002.09,2004.06,2004,complete
-이동위성 변복조 방식 및 성능 분석 연구,ETRI,,2003.07,2003.11,2003,complete
-저전력 OFDMA 복조기에서의 동기 최적화 기법 및 구조 연구,ETRI,,2003.05,2003.11,2003,complete
-IEEE 802.11g용 CCK모뎀 개발에 관한 연구,Samsung Electronics,,2002.07,2003.06,2003,complete
-초고속 광 무선랜의 물리계층 연구,KRF,,2002.07,2003.06,2003,complete
-PAPR Reduction in OFDM system,ETRI,,2002.06,2002.11,2002,complete
-Efficient Payload Design for Communication Satellite,ETRI,,2001.04,2001.11,2001,complete
+﻿과제명,지원기관,유형,시작,종료,종료연도,원본상태,과제명_en
+새로운 자원을 활용한 beyond 5G 이동통신 변혁기술 개발,IITP,,2018.07,2025.12,2025,active,
+Development of communication/computing-integrated revolutionary technologies for superintelligent services,,,2020.07,2025.12,2025,Current(상세글),
+Development of low-latency/high-reliability sensing and management technology for NAND flash memory reflecting variation between chips,,,2020.09,2025.09,2025,Current(상세글),
+Massive MIMO Systems with Multi-numerology,,,2020.04,2025.04,2025,Current(상세글),
+Development of Intelligent THz beamforming technology realizing 6G  mobile communications,,,2020.09,2023.02,2023,Current(상세글),
+동시 무선 정보 및 전력 전송 기술 연구,과학기술정보통신부,,2017.04,2021.12,2021,active,
+다중 안테나 기반 동일 자원을 활용한 정보 및 전력 동시 전송 시스템 개발,IITP,,2017.04,2021.12,2021,active,
+Virtual Presence in Moving Objects through 5G (PriMO-5G),IITP,,2019.10,2021.06,2021,complete,
+이동체간 가상현실을 위한 5G 이동통신 기술 연구,IITP,,2018.06,2021.05,2021,active,
+Massive MIMO Systems with Multi-numerology (SNIC),Samsung Electronics,,2020.04,2021.04,2021,active,
+저지연 고신뢰 NAND 플래시 메모리를 위한 기계학습 기반 sensing 및 management 기술 연구,Samsung Electronics,,2018.09,2020.06,2020,complete,
+3차원 무선 네트워크에서 최적의 중계기술 연구,NRF,,2017.03,2020.02,2020,complete,
+200Gbps 근거리 무선통신용 초고속 MIMO RF 프론트엔드 구현,IITP,,2017.04,2019.12,2019,complete,
+5G초고주파 기반 고속이동체 환경에서의 채널특성 및 성능평가 국제 공동연구,과학기술정보통신부,,2017.10,2019.09,2019,complete,
+SDR (Software Defined Radio) 플랫폼을 통한 인덱스 코딩을 사용한 무선 캐싱 시스템 개발,IITP,,2016.04,2019.03,2019,complete,
+개방형 5G 표준 모델 개발,IITP,,2017.05,2019.02,2019,complete,
+저장매체를 무선 통신 자원으로 활용하는 신개념 통신 시스템 연구,IITP,,2016.04,2018.02,2018,complete,
+4차 산업혁명 사회의 통신시스템을 지원하는 폴라코딩 기술 연구,KAIST,,2017.06,2017.12,2017,complete,
+초고속 분산 네트워크를 위한 부호화 기술,IITP,,2017.04,2017.12,2017,complete,
+간섭환경에서의 고성능 차량용 멀티모드 레이더 개발,NESSLAB,,2015.02,2017.06,2017,complete,
+밀리미터파 5G 이동통신 시스템 개발,Giga KOREA,,2013.09,2017.04,2017,complete,
+5G 이동통신 시스템을 위한 비직교 다중접속 기술 연구,KAIST,,2016.03,2016.08,2016,complete,
+Adhoc 중계 기능을 갖는 고속 LMR의 무선 전송 방식 연구,NESSLAB,,2014.04,2016.02,2016,complete,
+5세대 이동통신을 위한 Post-OFDM 및 mmWave 대역 원천기술 개발,Samsung Electronics,,2014.11,2015.10,2015,complete,
+클라우드 네트워크 환경에서 업링크 동기화를 위한 최적화된 프런트홀 압축방법에 대한 연구,KUSTAR-KAIST,,2014.08,2015.07,2015,complete,
+인지 정보 기반 인텔리젼트 다중 라디오 기술,KCA,,2012.03,2015.02,2015,complete,
+IEEE 802.11ac MU-MIMO downlink beamforming algorithm 및 scheduler 개발,I&C Technology,,2012.10,2015.02,2015,complete,
+차세대 무선랜용 In-band Full duplexer 연구,KAIST,,2014.05,2014.12,2014,complete,
+Wireless Chip to Chip 전송,Samsung Electronics,,2013.09,2014.10,2014,complete,
+무선 데이터 통신망을 위한 전송 기술 연구,NESSLAB,,2012.07,2014.06,2014,complete,
+5G 이동형 개인셀 용량 증대 기술 개발,KCA,,2013.04,2014.03,2014,complete,
+Network coding을 이용한 광대역 무선-PON 결합 기술 개발,KCA,,2009.05,2014.02,2014,complete,
+Adaptive 빔 형성,NRF,,2011.03,2014.02,2014,complete,
+PAC 물리계층 방식 연구,ETRI,,2013.09,2014.01,2014,complete,
+계층간 상호작용을 고려한 고효율 에너지 클라우드 네트워크,KUSTAR-KAIST,,2012.10,2013.10,2013,complete,
+냉매 배관을 이용한 신호전송 가능성 검토 연구,LG Electronics,,2012.11,2013.04,2013,complete,
+스핀트로닉 나노 라디오 구현,NRF,,2011.07,2013.02,2013,complete,
+Beam Jittering 기술의 실효성 검증을 위한 환경 구축 및 테스트,ETRI,,2012.06,2013.01,2013,complete,
+다중 셀 환경에서 다중사용자를 지원하는 지능형 중계기 시스템 개발,NRF,,2009.05,2012.04,2012,complete,
+LTE-Advanced Multiple Antenna Interference Cancellation 알고리즘 개발,Innowireless,,2011.07,2012.03,2012,complete,
+온라인 전기버스용 급.집전 시스템 기술 개발,KEIT,,2010.05,2012.02,2012,complete,
+지능형 RF 연구센터,NRF,,2010.03,2012.02,2012,complete,
+LTE-Advanced Uplink MIMO Channel Estimator 알고리즘 개발,Innowireless,,2011.07,2011.12,2011,complete,
+채널 상황을 고려한 Wi-Fi Frame Aggregation 기술 개발,SK Telecom,,2011.03,2011.12,2011,complete,
+그린셀 핵심기술 연구,Samsung Electronics,,2011.05,2011.11,2011,complete,
+3GPP LTE Link Level Simulator 개발,ETRI,,2011.07,2011.11,2011,complete,
+3GPP LTE TDD 요소 기술 개발,Innowireless,,2010.04,2011.03,2011,complete,
+Switched 빔 형성,NRF,,2008.03,2011.02,2011,complete,
+차세대 디지털 케이블 전송 시스템의 고효율 채널 부복호화 시뮬레이터 구현,ETRI,,2010.08,2011.01,2011,complete,
+차세대 디지털 케이블 전송 시스템의 고효율 변복조 시뮬레이터 구현,ETRI,,2010.07,2011.01,2011,complete,
+차세대 디지털 케이블 전송 시스템의 가변대역 전송 시뮬레이터 구현,ETRI,,2010.07,2011.01,2011,complete,
+무선기반 개인용 측위 솔루션,ETRI,,2010.06,2011.01,2011,complete,
+3GPP LTE TDD 성능 개선 알고리즘 개발,Innowireless,,2010.04,2010.09,2010,complete,
+5G 기술 탐색 및 성장 기회 발굴,SK Telecom,,2009.08,2010.07,2010,complete,
+DC-HSPA의 Optimal Scheduling Algorithm,Samsung Electronics,,2009.08,2010.05,2010,complete,
+LTE 다운링크 MS 중심 레퍼런스 C-모델 개발,ETRI,,2009.09,2010.01,2010,complete,
+MU-MIMO 최적화 알고리즘 연구,ETRI,,2009.05,2010.01,2010,complete,
+미래개인 이동적응망 연구,MMRC,,2005.09,2009.12,2009,complete,
+다중 사용자 환경에서 다중 사용자 간섭 완화 기술 개발,KT,,2009.05,2009.11,2009,complete,
+Cognitive Radio 및 4G 핵심기술 개발,KT,,2009.05,2009.11,2009,complete,
+3GPP LTE 요소 기술 구현,Innowireless,,2008.07,2009.06,2009,complete,
+환경적응형 최적 전송기법 연구,ETRI,,2008.06,2009.01,2009,complete,
+IMT-Advanced 단말 핵심기술 연구,KT,,2008.04,2008.11,2008,complete,
+4G 이동통신 시스템 연구개발,Samsung Electronics,,2005.07,2008.06,2008,complete,
+3GPP LTE의 요소기술 및 WiMAX 규격의 closed MIMO 구현,Innowireless,,2007.07,2008.06,2008,complete,
+Reconfigurable radio 시스템/보정 알고리즘/지능형 통신시스템 연구,KOSEF,,2005.06,2008.02,2008,complete,
+60 GHz 대역 통신 시스템 요소 기술 연구,SAIT,,2007.07,2008.01,2008,complete,
+Satellite-RAS를 고려한 MIMO OFDM 전송 방식 연구,ETRI,,2007.05,2007.12,2007,complete,
+차세대 무선통신 채널 모델링 및 대역 최적화 연구,KT,,2006.04,2007.12,2007,complete,
+이동 환경에서의 다이버시티 기법 연구,ETRI,,2007.05,2007.11,2007,complete,
+SOP Algorithm Development for Chaotic Wireless Stereo Headset,SAIT,,2006.04,2007.03,2007,complete,
+다중 사용자 MIMO에서 수신 방식 연구,ETRI,,2006.05,2007.02,2007,complete,
+NLOS 환경에서의 페이딩 극복 방안 연구,ETRI,,2006.06,2006.12,2006,complete,
+저전력 터보 복호기 구현에 관한 연구,ETRI,,2006.04,2006.12,2006,complete,
+WiBro용 Channel Encoder/Decoder 구현 및 무결성 검증,Innowireless,,2005.04,2006.03,2006,complete,
+MIMO 저전력 알고리즘 연구,ETRI,,2005.06,2006.01,2006,complete,
+Home Coax backbone 환경에서의 UWB-OFDM Channel 분석 및 최적화 기술,Samsung Electronics,,2005.05,2006.01,2006,complete,
+차세대 이동통신용 Channel Codec에 관한 연구,ETRI,,2005.05,2005.12,2005,complete,
+다중 안테나/다중 캐리어 CDMA 방식용?무선전송 시스템 및 기반기술 연구,ETRI,,2005.05,2005.11,2005,complete,
+FH-OFDMA/TDD & FH-OFDMA/FDD 기반 시스템을 위한 FEC 설계,SAIT,,2004.11,2005.10,2005,complete,
+차세대 WPAN 기술에 관한 연구,SAIT,,2004.10,2005.09,2005,complete,
+대용량 비대칭 무선 데이터 전송 시스템을 위한 다차원 시공간 처리 기술,KOSEF,,2002.09,2005.08,2005,complete,
+High Speed Transmission Techniques for Ad Hoc WLAN,MMRC,,2002.08,2005.07,2005,complete,
+다중안테나/다중캐리어 CDMA 기반 무선 전송 요소기술,ETRI,,2004.06,2005.02,2005,complete,
+Key Technology for 4th Generation Wireless Communications,RERC,,2003.03,2005.02,2005,complete,
+IEEE 802.11a 모뎀 SoC 상용화에 대한 연구,I&C Technology,,2004.01,2004.12,2004,complete,
+E-xVSB FEC 성능 개선을 위한 연구,ETRI,,2004.06,2004.11,2004,complete,
+차세대 무선 통신 시스템의 성능 향상을 위한 channel coding,SAIT,,2003.10,2004.09,2004,complete,
+OFDM모뎀용 동기 및 채널 추정기법에 관한 연구,I&C Technology,,2004.03,2004.06,2004,complete,
+차세대 channel codec 기반 기술에 관한 연구 개발,Samsung Electronics,,2002.09,2004.06,2004,complete,
+이동위성 변복조 방식 및 성능 분석 연구,ETRI,,2003.07,2003.11,2003,complete,
+저전력 OFDMA 복조기에서의 동기 최적화 기법 및 구조 연구,ETRI,,2003.05,2003.11,2003,complete,
+IEEE 802.11g용 CCK모뎀 개발에 관한 연구,Samsung Electronics,,2002.07,2003.06,2003,complete,
+초고속 광 무선랜의 물리계층 연구,KRF,,2002.07,2003.06,2003,complete,
+PAPR Reduction in OFDM system,ETRI,,2002.06,2002.11,2002,complete,
+Efficient Payload Design for Communication Satellite,ETRI,,2001.04,2001.11,2001,complete,

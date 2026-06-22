@@ -57,7 +57,8 @@
         return recs.filter(function (r) { return (r["과제명"] || "").trim(); }).map(function (r) {
           var s = (r["시작"] || "").trim(), e = (r["종료"] || "").trim();
           var intro = lang() === "en" ? ((r["소개_en"] || "").trim() || (r["소개"] || "").trim()) : (r["소개"] || "").trim();
-          return { title: (r["과제명"] || "").trim(), agency: (r["지원기관"] || "").trim(),
+          var title = lang() === "en" ? ((r["과제명_en"] || "").trim() || (r["과제명"] || "").trim()) : (r["과제명"] || "").trim();
+          return { title: title, agency: (r["지원기관"] || "").trim(),
                    period: s && e ? s + " ~ " + e : (e || s || ""), slug: (r["slug"] || "").trim(), intro: intro };
         });
       },
@@ -67,7 +68,8 @@
       rows: function (recs) {
         return recs.filter(function (r) { return (r["과제명"] || "").trim(); }).map(function (r) {
           var s = (r["시작"] || "").trim(), e = (r["종료"] || "").trim();
-          return { title: (r["과제명"] || "").trim(), agency: (r["지원기관"] || "").trim(),
+          var title = lang() === "en" ? ((r["과제명_en"] || "").trim() || (r["과제명"] || "").trim()) : (r["과제명"] || "").trim();
+          return { title: title, agency: (r["지원기관"] || "").trim(),
                    period: s && e ? s + "–" + e : (e || s || ""), year: (r["종료연도"] || "").trim() };
         });
       },

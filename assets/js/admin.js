@@ -224,7 +224,8 @@
       label: "Projects (진행중)", csv: "data/projects_current.csv", idCol: "과제명",
       sub: function (r) { return [r["지원기관"], (r["시작"] || "") + (r["종료"] ? "~" + r["종료"] : "")].filter(function (x) { return (x || "").trim(); }).join(" · "); },
       fields: [
-        { name: "과제명", label: "과제명", required: true },
+        { name: "과제명", label: "과제명 (한국어)", required: true },
+        { name: "과제명_en", label: "과제명 (English)" },
         { name: "지원기관", label: "지원기관" },
         { name: "유형", label: "유형" },
         { name: "시작", label: "시작 (예: 2026.04)" },
@@ -238,13 +239,14 @@
       ],
       // 기간 종료 시 완료(Past)로 이동: 공통 컬럼만 옮기고 현재 목록에서 제거
       moveTo: { csv: "data/projects_past.csv", label: "→ Past",
-        cols: ["과제명", "지원기관", "유형", "시작", "종료", "종료연도", "원본상태"] },
+        cols: ["과제명", "과제명_en", "지원기관", "유형", "시작", "종료", "종료연도", "원본상태"] },
     },
     projects_past: {
       label: "Projects (완료)", csv: "data/projects_past.csv", idCol: "과제명",
       sub: function (r) { return [r["종료연도"], r["지원기관"]].filter(function (x) { return (x || "").trim(); }).join(" · "); },
       fields: [
-        { name: "과제명", label: "과제명", required: true },
+        { name: "과제명", label: "과제명 (한국어)", required: true },
+        { name: "과제명_en", label: "과제명 (English)" },
         { name: "지원기관", label: "지원기관" },
         { name: "유형", label: "유형" },
         { name: "시작", label: "시작" },
