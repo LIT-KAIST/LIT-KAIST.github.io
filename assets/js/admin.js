@@ -288,6 +288,30 @@
         { name: "en", label: "English", type: "textarea" },
       ],
     },
+    hero: {
+      label: "Hero (홈 슬라이드)", csv: "data/hero.csv", idCol: "image",
+      title: function (r) { return r.title || r.image || ""; },
+      sub: function (r) { return r.image || ""; },
+      fields: [
+        { name: "image", label: "이미지 (넓은 가로형 권장)", type: "image", accept: "image/*",
+          dir: function () { return "assets/img/hero"; },
+          filename: function (file) { return safeName(file.name).replace(/\.\w+$/, "") + ".jpg"; } },
+        { name: "title", label: "제목 (한국어)" },
+        { name: "title_en", label: "Title (English)" },
+        { name: "sub", label: "부제 (한국어)" },
+        { name: "sub_en", label: "Subtitle (English)" },
+      ],
+    },
+    highlights: {
+      label: "Highlights (대표성과)", csv: "data/highlights.csv", idCol: "title",
+      title: function (r) { return r.title || ""; },
+      sub: function (r) { return r.source || ""; },
+      fields: [
+        { name: "source", label: "출처 (출판물 종류)", type: "select",
+          options: ["journal_international", "journal_domestic", "conference_international", "conference_domestic", "patent_international", "patent_domestic"] },
+        { name: "title", label: "논문 제목 (출판물 목록의 제목과 똑같이)", required: true },
+      ],
+    },
   };
 
   function safeName(n) {
@@ -609,7 +633,9 @@
       var files = pendingFiles[fd.name];
       if (fd.type === "image") {
         if (files && files[0]) {
-          var base = col.imgDir + slug(formVal("name_english") || formVal("title") || "photo") + ".jpg";
+          var base = fd.dir
+            ? fd.dir().replace(/\/$/, "") + "/" + (fd.filename ? fd.filename(files[0]) : safeName(files[0].name))
+            : col.imgDir + slug(formVal("name_english") || formVal("title") || "photo") + ".jpg";
           jobs.push(fileToB64(files[0], true).then(function (b64) {
             return uploadImage(base, b64, "Upload image: " + base).then(function () { result[fd.name] = base; });
           }));
