@@ -333,6 +333,7 @@ a:hover { text-decoration: underline; }
 /* Current 과제 카드 */
 .curproj { border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px;
   padding: 20px 22px; margin: 0 0 16px; background: var(--bg); }
+.curproj:first-child { margin-top: 24px; }
 .curproj:hover { box-shadow: 0 6px 22px rgba(0,0,0,.06); }
 .cp-title { margin: 0 0 .35em; font-size: clamp(1.15rem, 2.1vw, 1.45rem); color: var(--accent-dark); line-height: 1.4; }
 .cp-meta { color: var(--accent); font-size: .9rem; margin-bottom: .5em; }
