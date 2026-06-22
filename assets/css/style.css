@@ -61,7 +61,7 @@ a:hover { text-decoration: underline; }
 .site-header .wrap {
   display: flex; align-items: stretch; justify-content: space-between;
   flex-wrap: wrap; gap: 8px; min-height: 66px; padding-top: 0; padding-bottom: 0;
-  max-width: 1180px; /* 메뉴를 한 줄에 담기 위해 헤더는 본문(920)보다 넓게 */
+  max-width: 1020px; /* 메뉴 한 줄은 유지하되, 로고와 메뉴가 과하게 벌어지지 않게 */
 }
 .brand { font-weight: 700; font-size: 1.15rem; color: var(--fg); letter-spacing: .02em; display: flex; align-items: center; }
 .brand span { color: var(--accent); }
