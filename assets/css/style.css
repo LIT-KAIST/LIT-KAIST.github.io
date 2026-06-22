@@ -845,13 +845,28 @@ a:hover { text-decoration: underline; }
   border-top: 1px solid var(--line); margin-top: 40px; padding: 24px 0 48px;
   color: var(--muted); font-size: .85rem;
 }
-.footer-inner { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.footer-logo { height: 28px; width: auto; display: block; opacity: .9; }
-/* 언어에 따라 학부/대학 로고 전환 (i18n 이 <html lang> 갱신) */
-html[lang="en"] .footer-logo.lang-ko { display: none; }
-html[lang="ko"] .footer-logo.lang-en { display: none; }
-.footer-inner span { margin-left: auto; }
-@media (max-width: 600px) { .footer-inner span { margin-left: 0; } }
+/* 공용 푸터 (footer.js 가 주입) */
+.footer-grid { display: flex; flex-direction: column; gap: 14px; }
+.f-logos { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.footer-logo { height: 26px; width: auto; display: block; opacity: .9; }
+.f-logos a:hover .footer-logo { opacity: 1; }
+.f-links { display: flex; flex-wrap: wrap; gap: 6px 18px; padding-top: 4px; border-top: 1px solid var(--line); }
+.f-links a { color: var(--fg); font-weight: 500; }
+.f-contact { color: var(--muted); line-height: 1.7; }
+.f-ext { margin-top: 2px; }
+.f-ext a { color: var(--accent); font-weight: 600; }
+.f-copy { color: var(--muted); }
+/* 언어에 따라 학부/대학 로고·텍스트 전환 (i18n 이 <html lang> 갱신) */
+html[lang="en"] .lang-ko { display: none; }
+html[lang="ko"] .lang-en { display: none; }
+/* 맨 위로 버튼 */
+.to-top { position: fixed; right: 18px; bottom: 18px; width: 44px; height: 44px;
+  border: none; border-radius: 50%; cursor: pointer; background: var(--accent); color: #fff;
+  font-size: 1.25rem; line-height: 1; box-shadow: 0 6px 18px rgba(0,0,0,.22);
+  opacity: 0; pointer-events: none; transform: translateY(8px);
+  transition: opacity .2s, transform .2s, background .15s; z-index: 50; }
+.to-top.show { opacity: 1; pointer-events: auto; transform: none; }
+.to-top:hover { background: var(--accent-dark); }
 
 @media (max-width: 600px) {
   .hero h1 { font-size: 1.7rem; }
