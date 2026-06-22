@@ -6,13 +6,14 @@
   // ▼ 외부 링크 — 값이 있으면 표시, 비우면 숨김.
   var LINKS = {
     email: "hcpark@kaist.ac.kr",
-    tel: "+82-42-350-6817",
+    tel: "+82-42-350-7520",
+    fax: "+82-42-350-7620",
     coe: "https://engineering.kaist.ac.kr/",   // 공과대학
     ee: "https://ee.kaist.ac.kr/",             // 전기및전자공학부
     scholar: "https://scholar.google.com/citations?user=j9EJaOsAAAAJ&hl=en", // 지도교수
     github: "",                                // 연구실 GitHub URL (있으면 입력)
   };
-  var V = "?v=20260620zz";
+  var V = "?v=20260622a";
 
   var f = document.getElementById("siteFooter");
   if (!f) return;
@@ -32,7 +33,8 @@
   ];
 
   var ext = [];
-  if (LINKS.tel) ext.push('<a href="tel:' + LINKS.tel.replace(/[^+\d]/g, "") + '">' + LINKS.tel + "</a>");
+  if (LINKS.tel) ext.push('<a href="tel:' + LINKS.tel.replace(/[^+\d]/g, "") + '" data-ko="전화 ' + LINKS.tel + '" data-en="Tel ' + LINKS.tel + '">전화 ' + LINKS.tel + "</a>");
+  if (LINKS.fax) ext.push('<span data-ko="팩스 ' + LINKS.fax + '" data-en="Fax ' + LINKS.fax + '">팩스 ' + LINKS.fax + "</span>");
   if (LINKS.email) ext.push('<a href="mailto:' + LINKS.email + '">' + LINKS.email + "</a>");
   if (LINKS.scholar) ext.push('<a href="' + LINKS.scholar + '" target="_blank" rel="noopener">Google Scholar</a>');
   if (LINKS.github) ext.push('<a href="' + LINKS.github + '" target="_blank" rel="noopener">GitHub</a>');

@@ -847,7 +847,7 @@ a:hover { text-decoration: underline; }
 }
 /* 공용 푸터 (footer.js 가 주입) */
 .footer-grid { display: flex; flex-direction: column; gap: 14px; }
-.f-logos { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.f-logos { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; min-height: 31px; }
 .footer-logo { width: auto; display: block; opacity: .9; }
 .f-logos a:hover .footer-logo { opacity: 1; }
 /* 로고마다 여백이 달라 'KAIST' 글자 크기가 같아지도록 높이를 개별 보정 */
