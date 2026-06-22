@@ -360,6 +360,35 @@ a:hover { text-decoration: underline; }
 .md-body img { display: block; max-width: 100%; height: auto; border-radius: 10px; margin: 16px auto;
   border: 1.5px solid #9aa7b8; background: #fff; padding: 10px; box-shadow: 0 4px 18px rgba(0,0,0,.07); }
 
+/* ---------- seminar page ---------- */
+.sem-list { display: flex; flex-direction: column; gap: 16px; padding: 22px 0 8px; }
+.sem-card { border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px;
+  padding: 18px 22px; background: var(--bg); }
+.sem-card:hover { box-shadow: 0 6px 22px rgba(0,0,0,.06); }
+.sem-term { color: var(--accent); font-size: .85rem; font-weight: 600; }
+.sem-title { margin: .2em 0 .35em; font-size: clamp(1.15rem, 2.1vw, 1.45rem); color: var(--accent-dark); line-height: 1.4; }
+.sem-intro { margin: 0 0 .7em; color: #374151; line-height: 1.6; }
+
+.proj-back { font: inherit; cursor: pointer; background: var(--soft); border: 1px solid var(--line);
+  border-radius: 8px; padding: 7px 14px; color: var(--accent); font-weight: 600; margin: 4px 0 18px; }
+.proj-back:hover { border-color: var(--accent); }
+.sem-detail .sem-term { font-size: .9rem; }
+.sem-dtitle { margin: .2em 0 .4em; font-size: clamp(1.5rem, 3vw, 2.1rem); color: var(--accent-dark); }
+.sem-dintro { color: #374151; line-height: 1.7; max-width: 70ch; }
+.sem-h { font-size: 1.2rem; color: var(--accent-dark); margin: 1.4em 0 .5em;
+  padding-bottom: 6px; border-bottom: 2px solid var(--line); }
+.sem-pdf { display: inline-block; font-weight: 600; background: var(--soft); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 14px; }
+.sem-pdf:hover { border-color: var(--accent); text-decoration: none; }
+.sem-refs { margin: .3em 0; padding-left: 1.3em; }
+.sem-refs li { margin: .3em 0; }
+.sem-weeks { overflow-x: auto; }
+.sem-weeks table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+.sem-weeks th, .sem-weeks td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.sem-weeks th { color: var(--accent-dark); font-weight: 700; white-space: nowrap; background: var(--soft); }
+.sem-weeks td:first-child, .sem-weeks th:first-child { width: 56px; text-align: center; }
+.sem-note { color: var(--muted); font-size: .88rem; }
+
 /* ---------- contact page ---------- */
 .contact-sub { color: var(--phead); font-size: 1.15rem; font-weight: 700; margin: 1.2em 0 .25em; }
 .contact-ul { list-style: disc; padding-left: 1.3em; margin: .2em 0 0; }
