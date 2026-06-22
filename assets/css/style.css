@@ -806,6 +806,8 @@ html[lang="en"] .lt-opt:last-child { color: #fff; }
 .am-field input, .am-field textarea, .am-field select {
   width: 100%; font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft); }
 .am-field input:focus, .am-field textarea:focus { outline: none; border-color: var(--accent); background: #fff; }
+.am-field textarea.am-md { min-height: 260px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .85rem; line-height: 1.55; white-space: pre-wrap; }
 .am-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .am-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
 .am-remember { font-size: .85rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }

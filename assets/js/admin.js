@@ -118,6 +118,12 @@
       return putFile(csvPath, b64encode(serialize(rows)), message, sha);
     });
   }
+  // 임의의 텍스트 파일 커밋 (있으면 덮어쓰기) — 프로젝트 상세 md 등
+  function commitText(path, text, message) {
+    return getFile(path).then(function (cur) {
+      return putFile(path, b64encode(text), message, cur && cur.sha);
+    });
+  }
 
   /* ---------------- 컬렉션 정의 ---------------- */
   var DEGREE_M = ["박사", "석사", "연구원", "방문연구원"];
@@ -226,6 +232,8 @@
         { name: "slug", label: "상세 md 파일명 (예: I2SAC)" },
         { name: "소개", label: "한 줄 소개 (한국어)", type: "textarea" },
         { name: "소개_en", label: "한 줄 소개 (English)", type: "textarea" },
+        { name: "본문_ko", label: "상세 본문 (한국어, 마크다운) — data/<slug>_ko.md", type: "md", mdLang: "ko" },
+        { name: "본문_en", label: "상세 본문 (English, Markdown) — data/<slug>.md", type: "md", mdLang: "en" },
       ],
       // 기간 종료 시 완료(Past)로 이동: 공통 컬럼만 옮기고 현재 목록에서 제거
       moveTo: { csv: "data/projects_past.csv", label: "→ Past",
@@ -516,6 +524,18 @@
         pendingFiles[inp.getAttribute("data-name")] = inp.files;
       });
     });
+    // 상세 본문(md): 편집 시 기존 파일 내용을 textarea 에 채움 (slug 기준)
+    var mds = col.fields.filter(function (fd) { return fd.type === "md"; });
+    if (mds.length && row && (row.slug || "").trim()) {
+      var sv = row.slug.trim();
+      mds.forEach(function (fd) {
+        var path = "data/" + sv + (fd.mdLang === "en" ? "" : "_ko") + ".md";
+        getFile(path).then(function (d) {
+          var ta = f.querySelector('textarea[data-name="' + fd.name + '"]');
+          if (ta && d) ta.value = b64decode(d.content);
+        }).catch(function () {});
+      });
+    }
     document.getElementById("admFormMsg").textContent = "";
     openModal();
   }
@@ -531,6 +551,12 @@
     }
     if (fd.type === "textarea") {
       return '<label class="am-field">' + lab + '<textarea data-name="' + fd.name + '" rows="4">' + esc(v) + "</textarea></label>";
+    }
+    if (fd.type === "md") {
+      // 값은 CSV가 아니라 md 파일에서 openForm 이 비동기로 채움
+      return '<label class="am-field">' + lab +
+        '<textarea class="am-md" data-name="' + fd.name + '" rows="14" ' +
+        'placeholder="마크다운으로 작성:  # 큰제목   ## 소제목   **굵게**   - 목록   ![설명](assets/img/projects/그림.png)   [링크텍스트](URL)"></textarea></label>';
     }
     if (fd.type === "image") {
       return '<label class="am-field">' + lab +
@@ -575,7 +601,7 @@
       // 2) row 객체 구성
       var row = {};
       col.fields.forEach(function (fd) {
-        if (fd.type === "image" || fd.type === "images" || fd.type === "file") return;
+        if (fd.type === "image" || fd.type === "images" || fd.type === "file" || fd.type === "md") return;
         row[fd.name] = formVal(fd.name);
       });
       Object.keys(imgVals).forEach(function (k) { row[k] = imgVals[k]; });
@@ -586,8 +612,9 @@
         row.date = stamp; row.year = stamp.slice(0, 4);
       }
 
-      var headerCols = col.fields.map(function (fd) { return fd.name; })
-        .filter(function (n) { return n !== "images"; });
+      var headerCols = col.fields
+        .filter(function (fd) { return fd.type !== "images" && fd.type !== "md"; })
+        .map(function (fd) { return fd.name; });
       return commitCsv(csvPathOf(col), (editingId ? "Update " : "Add ") + col.label + ": " + msgName, function (rows) {
         var ix = colIndex(rows);
         if (editingId) {
@@ -603,7 +630,7 @@
           setCells(cells, ix, row, col);
           rows.splice(1, 0, cells); // 맨 위(최신)
         }
-      }, headerCols);
+      }, headerCols).then(function () { return commitDetailMd(col); });
     }).then(function () {
       setFormMsg("저장 완료! 1~2분 후 사이트에 반영됩니다.", "ok");
       setTimeout(function () { closeModal(); loadList(); }, 900);
@@ -623,6 +650,22 @@
       if (ix.date != null) cells[ix.date] = row.date;
       if (ix.year != null) cells[ix.year] = row.year;
     }
+  }
+
+  // 프로젝트 상세 본문(md) 커밋: 본문_ko → data/<slug>_ko.md, 본문_en → data/<slug>.md
+  function commitDetailMd(col) {
+    var mds = col.fields.filter(function (fd) { return fd.type === "md"; });
+    var slugVal = formVal("slug");
+    if (!mds.length || !slugVal) return Promise.resolve();
+    return mds.reduce(function (chain, fd) {
+      return chain.then(function () {
+        var ta = document.querySelector('#admForm textarea[data-name="' + fd.name + '"]');
+        if (!ta || !ta.value.trim()) return; // 비어 있으면 건너뜀(기존 파일 보존)
+        var text = ta.value.replace(/\s+$/, "") + "\n";
+        var path = "data/" + slugVal + (fd.mdLang === "en" ? "" : "_ko") + ".md";
+        return commitText(path, text, "Update project detail: " + slugVal + " (" + fd.mdLang + ")");
+      });
+    }, Promise.resolve());
   }
 
   // 폼의 이미지 필드들을 업로드하고 경로 값 반환
