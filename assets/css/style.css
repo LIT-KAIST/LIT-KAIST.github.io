@@ -8,7 +8,7 @@
   --line: #e5e7eb;
   --accent: #0b5cad;      /* KAIST-ish blue */
   --accent-dark: #073f78;
-  --nav-active: #0a2f5e;  /* 상단 메뉴 선택 배경 (진한 남색) */
+  --nav-active: #073f78;  /* 상단 메뉴 선택 배경 = 페이지 제목 색(accent-dark) */
   --soft: #f6f8fa;
   --badge: #b45309;
   --max: 920px;
@@ -68,7 +68,7 @@ a:hover { text-decoration: underline; }
 @media (max-width: 600px) { .brand-logo { height: 32px; } }
 .nav { display: flex; gap: 4px; flex-wrap: wrap; align-items: stretch; }
 .nav a {
-  color: var(--fg); padding: 0 14px; border-radius: 0; font-size: .95rem;
+  color: var(--fg); padding: 0 14px; border-radius: 0; font-size: 15.2px; /* 루트 확대와 무관하게 원래 크기 유지 */
   display: flex; align-items: center;
 }
 .nav a:hover { background: var(--soft); text-decoration: none; }
@@ -87,7 +87,7 @@ a:hover { text-decoration: underline; }
 .lt-switch { position: relative; display: inline-flex; }
 .lt-opt {
   position: relative; z-index: 1; width: 30px; text-align: center;
-  font-size: .76rem; font-weight: 700; line-height: 20px; color: var(--muted);
+  font-size: 12.2px; font-weight: 700; line-height: 20px; color: var(--muted);
   transition: color .2s; letter-spacing: .02em;
 }
 .lt-knob {
@@ -114,7 +114,7 @@ html[lang="en"] .lt-opt:last-child { color: #fff; }
 .dropdown:focus-within .dropdown-menu { display: block; }
 .dropdown-menu a {
   display: block; padding: 8px 12px; border-radius: 0; color: var(--fg);
-  font-size: .92rem; white-space: nowrap;
+  font-size: 14.7px; white-space: nowrap;
 }
 .dropdown-menu a:hover { background: var(--soft); text-decoration: none; }
 
@@ -125,7 +125,7 @@ html[lang="en"] .lt-opt:last-child { color: #fff; }
 .dm-head { font-weight: 700; color: var(--fg); }
 .dm-head.active { color: var(--accent); }
 .dm-group > a:not(.dm-head) {
-  padding-left: 24px; font-size: .88rem; color: var(--muted);
+  padding-left: 24px; font-size: 14.1px; color: var(--muted);
 }
 .dm-group > a:not(.dm-head):hover { color: var(--fg); }
 
