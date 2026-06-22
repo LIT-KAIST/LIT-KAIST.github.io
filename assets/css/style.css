@@ -245,7 +245,7 @@ html[lang="en"] .lt-opt:last-child { color: #fff; }
   flex-wrap: wrap;
 }
 .tab {
-  font: inherit; background: none; border: none; cursor: pointer;
+  font: inherit; font-family: var(--font-head); background: none; border: none; cursor: pointer;
   padding: 10px 16px; color: var(--muted); border-bottom: 2px solid transparent;
   margin-bottom: -1px; border-radius: 6px 6px 0 0;
 }
@@ -328,7 +328,7 @@ html[lang="en"] .lt-opt:last-child { color: #fff; }
 .panel .highlight-list a { color: var(--plink); }
 
 /* 패널 색상 */
-.panel.c-navy { --pbg: #073f78; --pfg:#eaf1fb; --phead:#fff; --pmuted:#c4d4ea; --plink:#9fccff; --pborder:rgba(255,255,255,.22); }
+.panel.c-navy { --pbg: linear-gradient(150deg, #0a4884, #073f78 55%, #06365f); --pfg:#eaf1fb; --phead:#fff; --pmuted:#c4d4ea; --plink:#9fccff; --pborder:rgba(255,255,255,.22); }
 .panel.c-white { --pbg:#ffffff; --pfg:#28323f; --phead:#073f78; --pmuted:#5b6675; --plink:#073f78; --pborder:#e5e7eb; }
 .panel.c-gray { --pbg:#f3f5f8; --pfg:#28323f; --phead:#073f78; --pmuted:#5b6675; --plink:#073f78; --pborder:#e2e7ee; }
 

@@ -53,7 +53,9 @@ data/   CSV/MD (사실상의 DB)
 - **사진 업로드**: 폼에서 파일 선택 → 자동으로 폭 1600px 리사이즈 후 커밋
 - **PDF/PPT 업로드**: Seminar의 syllabus·발표자료는 리사이즈 없이 그대로 업로드(같은 경로면 덮어쓰기)
 - **Members → Alumni 이동**: 졸업 처리(사진까지 이동)
+- **랩장(연구실 대표 학생) 지정**: Members 폼의 체크박스를 켜면 People 목록에서 이름 앞 **👑 왕관 + "연구실 대표 학생 / Lab Coordinator" 배지**가 붙고, 소속 그룹(박사/석사) 맨 위로 정렬됩니다. (보통 한 명만)
 - **Projects 진행중 → 완료(→ Past)**: 기간 종료 과제를 완료 목록으로 이동
+- **Projects 상세 본문(md)**: 진행중 폼의 **"상세 본문(한국어/English)"** 칸에 마크다운을 쓰면 메타데이터(CSV)와 함께 `data/<slug>_ko.md`·`data/<slug>.md` 로 한 번에 저장됩니다. (지원: `#`제목 · `**굵게**` · `*기울임*` · `- 목록` · `![설명](경로)` · `[글자](URL)`) ⚠️ **slug 는 파일명과 대소문자까지 일치**해야 상세가 열립니다(예: `I2SAC`, `SINC`).
 - **Seminar 주차**: 상단에서 세미나를 고르면 그 세미나(`seminar_<slug>.csv`)의 주차를 관리. 새 세미나의 주차 파일은 첫 주차 추가 시 자동 생성됩니다.
 - **Site Text**: 홈 환영 문구·About 소개 등 자유 텍스트(`site_text.csv`)를 한/영으로 편집. (키는 코드와 연결되니 값만 수정)
 - **Hero**: 홈 히어로 슬라이드(`hero.csv`) 추가·삭제 + 이미지 업로드(순서 = CSV 순서)
@@ -77,12 +79,12 @@ data/   CSV/MD (사실상의 DB)
 ### 데이터별 주요 컬럼
 | 파일 | 핵심 컬럼 |
 |---|---|
-| `people_members.csv` | `name_korean`,`name_english`,`직함`,`학위`,`관심분야`,`email`,`homepage`,`scholar`,`github`,`cv`,`photo_path` |
+| `people_members.csv` | `name_korean`,`name_english`,`직함`,`학위`,`관심분야`,`email`,`homepage`,`scholar`,`github`,`cv`,`photo_path`,`랩장`(`Y`=랩장) |
 | `people_alumni.csv` | …`학위`,`졸업논문`,`current_position`,`photo_path` |
 | `journal/conference/patent_*.csv` | `title`,`author`,`journal`/`booktitle`,`volume`,`number`,`pages`,`date`,`doi`,`abstract`,`status`(forthcoming 시 배지),`note` |
 | `album.csv` | `date`,`year`,`title`,`content`,`status`,`thumbnail_file`,`image_files`(`\|` 구분) |
 | `news.csv` | `date`,`year`,`forum`,`title`,`title_en`,`content`,`content_en`,`links`,`status` |
-| `projects_current.csv` | `과제명`,`지원기관`,`유형`,`시작`,`종료`,`종료연도`,`원본상태`,`slug`,`소개`,`소개_en` |
+| `projects_current.csv` | `과제명`,`지원기관`,`유형`,`시작`,`종료`,`종료연도`,`원본상태`,`slug`,`소개`,`소개_en` · 상세 본문은 `data/<slug>_ko.md`/`<slug>.md` (slug=파일명, 대소문자 일치) |
 | `projects_past.csv` | `과제명`,`지원기관`,`유형`,`시작`,`종료`,`종료연도`,`원본상태` |
 | `seminars.csv` | `slug`,`title`,`title_en`,`term`,`term_en`,`intro`,`intro_en`,`syllabus`(pdf 경로),`refs`(`라벨::URL\|…`),`status` |
 | `seminar_<slug>.csv` | `week`,`date`,`topic`,`topic_en`,`presenter`,`material`(pdf/ppt 경로),`note` |
