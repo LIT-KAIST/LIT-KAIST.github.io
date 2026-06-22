@@ -35,12 +35,14 @@
       });
 
     document.querySelectorAll("[data-lang-toggle]").forEach(function (btn) {
-      // 버튼 라벨은 "전환될 언어"를 보여줍니다.
-      btn.textContent = lang === "ko" ? "EN" : "한국어";
       btn.setAttribute(
         "aria-label",
         lang === "ko" ? "Switch to English" : "한국어로 전환"
       );
+      // 슬라이드 스위치(.lt-switch) 가 없을 때만 텍스트 라벨로 폴백
+      if (!btn.querySelector(".lt-switch")) {
+        btn.textContent = lang === "ko" ? "EN" : "한국어";
+      }
     });
   }
 

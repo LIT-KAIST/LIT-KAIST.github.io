@@ -72,14 +72,31 @@ a:hover { text-decoration: underline; }
 .nav a:hover { background: var(--soft); text-decoration: none; }
 .nav a.active { background: var(--accent); color: #fff; border-radius: 0; }
 
-/* language toggle button */
+/* language toggle — 지구본 + 슬라이드 스위치 (KO/EN) */
 .lang-toggle {
-  font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer;
-  color: var(--accent); background: var(--soft);
-  border: 1px solid var(--line); border-radius: 999px;
-  padding: 5px 14px; margin-left: 6px; min-width: 64px; align-self: center;
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+  background: var(--soft); border: 1px solid var(--line); border-radius: 999px;
+  padding: 4px 9px; margin-left: 6px; align-self: center; font: inherit;
+  transition: border-color .15s, background .15s;
 }
 .lang-toggle:hover { border-color: var(--accent); background: #fff; }
+.lt-globe { color: var(--muted); flex: none; transition: color .15s; }
+.lang-toggle:hover .lt-globe { color: var(--accent); }
+.lt-switch { position: relative; display: inline-flex; }
+.lt-opt {
+  position: relative; z-index: 1; width: 30px; text-align: center;
+  font-size: .76rem; font-weight: 700; line-height: 20px; color: var(--muted);
+  transition: color .2s; letter-spacing: .02em;
+}
+.lt-knob {
+  position: absolute; top: 0; left: 0; width: 30px; height: 20px;
+  background: var(--accent); border-radius: 999px; z-index: 0;
+  transition: transform .22s ease;
+}
+html[lang="ko"] .lt-knob { transform: translateX(0); }
+html[lang="en"] .lt-knob { transform: translateX(30px); }
+html[lang="ko"] .lt-opt:first-child,
+html[lang="en"] .lt-opt:last-child { color: #fff; }
 
 /* nav dropdown (Journal/Conferences/Patents → International / Domestic) */
 .dropdown { position: relative; display: flex; align-items: stretch; }
