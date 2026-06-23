@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Home v3 (프리뷰) — LIT @ KAIST</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20260623a" />
+  <script src="assets/js/theme.js?v=20260623a"></script>
+  <style>
+    /* 스크롤 스냅: 한 화면씩 집중 */
+    html { scroll-snap-type: y mandatory; scroll-padding-top: 0; }  /* 한 번 스크롤 = 한 칸 */
+    .snap { min-height: 100vh; scroll-snap-align: start; scroll-snap-stop: always; display: flex; align-items: center; }
+
+    /* 히어로 */
+    .v3hero { position: relative; min-height: 100vh; overflow: hidden; background: var(--header-bg); color: var(--header-fg); display:flex; align-items:center; scroll-snap-align: start; scroll-snap-stop: always; }
+    #v3canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; opacity: 0; transition: opacity 2.4s ease; }
+    /* 좌측 음영(텍스트 가독성) */
+    .v3hero::before { content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background: linear-gradient(90deg, rgba(0,0,0,.5), rgba(0,0,0,0) 58%); }
+    /* 카피: 왼쪽 정렬, 시작점 동일 */
+    .v3hero .wrap { position: relative; z-index: 2; max-width: none; margin: 0; padding-left: clamp(24px, 8vw, 120px); padding-right: 24px; text-align: left; }
+    /* 첫 화면에선 헤더 숨김 → 스크롤 후 등장 (fixed 라 상단 빈 줄 없음) */
+    .site-header { position: fixed; left: 0; right: 0; top: 0; transform: translateY(-100%); opacity: 0; transition: transform .35s ease, opacity .35s ease; }
+    .site-header.show { transform: none; opacity: 1; }
+    /* 헤더 없을 때: 중앙에 LIT 로고 (연구실 표시) */
+    .v3-toplogo { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); height: 46px; width: auto; z-index: 6; filter: brightness(0) invert(1); opacity: 0; transition: opacity 1.6s ease; }
+    .v3-toplogo.in { opacity: .95; }
+    .v3-toplogo.hide { opacity: 0; pointer-events: none; }
+    /* 헤더 숨김 상태에서도 언어 토글은 미리 노출 */
+    .v3-toplang { position: fixed; top: 15px; right: 20px; z-index: 7; transition: opacity .35s ease; }
+    .v3-toplang.hide { opacity: 0; pointer-events: none; }
+    .v3-eyebrow { font-family: var(--font-head); letter-spacing: .22em; text-transform: uppercase; font-size: .82rem; opacity: .8; margin: 0 0 18px; }
+    .v3-title { font-family: var(--font-head); font-weight: 700; font-size: clamp(2.4rem, 6.5vw, 5rem); line-height: 1.06; margin: 0; letter-spacing: .01em; }
+    .v3-title .ln { display: block; }
+    .v3-sub { font-size: clamp(1.05rem, 2vw, 1.4rem); opacity: .92; margin: 22px 0 0; }
+    .v3-cta { margin-top: 34px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .v3-btn { font-family: var(--font-head); font-weight: 600; font-size: 1rem; padding: 12px 22px; border-radius: 999px; cursor: pointer; text-decoration: none; }
+    .v3-btn.primary { background: var(--header-active-bg); color: var(--header-active-fg); }
+    .v3-btn.ghost { border: 1px solid currentColor; color: var(--header-fg); }
+    .v3-btn:hover { text-decoration: none; transform: translateY(-1px); }
+    .v3-scroll { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 2; font-family: var(--font-head); font-size: .75rem; letter-spacing: .18em; text-transform: uppercase; opacity: .7; animation: v3bob 1.8s ease-in-out infinite; }
+    @keyframes v3bob { 0%,100%{transform:translate(-50%,0)} 50%{transform:translate(-50%,7px)} }
+
+    /* 연구 분야 풀스크린 섹션 */
+    .area .wrap { width: 100%; }
+    .area-idx { font-family: var(--font-head); font-weight: 700; font-size: clamp(3rem, 10vw, 7rem); line-height: 1; opacity: .14; margin: 0 0 -.1em; }
+    .area h2 { font-size: clamp(2rem, 5vw, 3.2rem); margin: 0 0 .3em; line-height: 1.1; }
+    .area .lead { font-size: clamp(1.1rem, 2vw, 1.45rem); max-width: 60ch; line-height: 1.7; margin: 0 0 1em; }
+    .area ul { margin: 0; padding-left: 1.1em; max-width: 60ch; }
+    .area li { font-size: clamp(1rem, 1.7vw, 1.2rem); margin: .35em 0; line-height: 1.5; }
+
+    /* 갤러리: 부채꼴(팬) 카드 */
+    .fan { position: relative; height: min(50vw, 330px); max-width: 940px; margin: 34px auto 1.1em; display: flex; align-items: center; justify-content: center; user-select: none; touch-action: pan-y; }
+    .fan-stage { position: relative; width: 100%; height: 100%; }
+    .fan-card { position: absolute; left: 50%; top: 50%; width: min(48vw, 320px); height: min(33vw, 215px);
+      margin-left: calc(min(48vw, 320px) / -2); margin-top: calc(min(33vw, 215px) / -2);
+      border-radius: 14px; overflow: hidden; box-shadow: 0 14px 34px rgba(0,0,0,.28); cursor: pointer;
+      transform-origin: 50% 50%; transition: transform .5s cubic-bezier(.2,.7,.2,1), opacity .45s ease, filter .45s ease; }
+    .fan-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .fan-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 200; width: 46px; height: 46px;
+      border-radius: 50%; border: 1px solid var(--line); background: var(--soft); color: var(--accent); font-size: 1.5rem; line-height: 1; cursor: pointer; }
+    .fan-nav.prev { left: 0; } .fan-nav.next { right: 0; }
+    .fan-nav:hover { background: #fff; }
+
+    /* 스크롤 등장 */
+    .ru { opacity: 0; transform: translateY(34px); transition: opacity .8s ease, transform .8s ease; }
+    .ru.in { opacity: 1; transform: none; }
+    .ru.d1{transition-delay:.08s}.ru.d2{transition-delay:.16s}.ru.d3{transition-delay:.24s}
+    /* 히어로 진입: 글자를 더 느리고 늦게 */
+    .v3hero .ru { transition-duration: 1.6s; transition-delay: .4s; }
+    .v3hero .ru.d1 { transition-delay: .8s; }
+    .v3hero .ru.d2 { transition-delay: 1.2s; }
+    .v3hero .ru.d3 { transition-delay: 1.6s; }
+    @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} .ru{opacity:1;transform:none} .v3-scroll{animation:none} }
+  </style>
+</head>
+<body>
+  <header class="site-header"><div class="wrap">
+    <a class="brand" href="index.html"><img class="brand-logo" src="assets/lit-logo.png?v=20260623a" alt="LIT"></a>
+    <nav class="nav">
+      <a href="index.html" class="active">Home</a>
+      <a href="about.html">About</a>
+      <a href="people.html">People</a>
+      <a href="journal.html">Publications</a>
+      <a href="projects.html">Projects</a>
+      <a href="contact.html">Contact</a>
+      <button class="lang-toggle" type="button" data-lang-toggle aria-label="Switch to English"><svg class="lt-globe" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3c2.6 2.8 2.6 15.2 0 18M12 3c-2.6 2.8-2.6 15.2 0 18"></path></svg><span class="lt-switch"><span class="lt-opt">KO</span><span class="lt-opt">EN</span><span class="lt-knob" aria-hidden="true"></span></span></button>
+    </nav>
+  </div></header>
+
+  <img class="v3-toplogo" src="assets/lit-logo.png?v=20260623a" alt="LIT — Laboratory for Information Transmission">
+  <div class="v3-toplang"><button class="lang-toggle" type="button" data-lang-toggle aria-label="Switch to English"><svg class="lt-globe" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3c2.6 2.8 2.6 15.2 0 18M12 3c-2.6 2.8-2.6 15.2 0 18"></path></svg><span class="lt-switch"><span class="lt-opt">KO</span><span class="lt-opt">EN</span><span class="lt-knob" aria-hidden="true"></span></span></button></div>
+
+  <!-- 히어로 -->
+  <section class="v3hero">
+    <canvas id="v3canvas"></canvas>
+    <div class="wrap">
+      <p class="v3-eyebrow ru">Laboratory for Information Transmission</p>
+      <h1 class="v3-title ru d1">
+        <span class="ln" data-ko="6G의 전송을," data-en="Reimagining">6G의 전송을,</span>
+        <span class="ln" data-ko="다시 설계합니다" data-en="transmission for 6G">다시 설계합니다</span>
+      </h1>
+      <p class="v3-sub ru d2" data-ko="통신 · 센싱 · 인공지능" data-en="Communication · Sensing · AI">통신 · 센싱 · 인공지능</p>
+      <div class="v3-cta ru d3">
+        <a class="v3-btn primary" href="#area1" data-ko="연구 보기" data-en="Explore research">연구 보기</a>
+        <a class="v3-btn ghost" href="contact.html" data-ko="합류하기" data-en="Join us">합류하기</a>
+      </div>
+    </div>
+    <div class="v3-scroll">Scroll ↓</div>
+  </section>
+
+  <!-- 연구 분야 (한 화면씩) -->
+  <section class="snap panel c-white area" id="area1"><div class="wrap panel-content">
+    <p class="area-idx ru">01</p>
+    <h2 class="ru" data-ko="통신 — 전송의 한계를 넓히다" data-en="Communication — pushing transmission limits">통신 — 전송의 한계를 넓히다</h2>
+    <p class="lead ru d1" data-ko="Massive MIMO·빔포밍·부호화 등 무선 전송의 핵심 이론과 설계를 연구해 더 빠르고 신뢰도 높은 통신을 만듭니다." data-en="We study the core theory and design of wireless transmission — massive MIMO, beamforming, coding — for faster, more reliable communication.">Massive MIMO·빔포밍·부호화 등 무선 전송의 핵심 이론과 설계를 연구해 더 빠르고 신뢰도 높은 통신을 만듭니다.</p>
+    <ul class="ru d2">
+      <li data-ko="Massive MIMO 하이브리드 빔포밍" data-en="Hybrid beamforming for massive MIMO">Massive MIMO 하이브리드 빔포밍</li>
+      <li data-ko="셀-프리(Cell-free) 네트워크" data-en="Cell-free networks">셀-프리(Cell-free) 네트워크</li>
+      <li data-ko="CSI 피드백 경량화" data-en="Lightweight CSI feedback">CSI 피드백 경량화</li>
+    </ul>
+  </div></section>
+
+  <section class="snap panel c-gray area" id="area2"><div class="wrap panel-content">
+    <p class="area-idx ru">02</p>
+    <h2 class="ru" data-ko="센싱 — 전파로 세상을 보다" data-en="Sensing — seeing the world with radio">센싱 — 전파로 세상을 보다</h2>
+    <p class="lead ru d1" data-ko="통신과 센싱을 하나의 시스템에서 통합(ISAC)하고, 근거리장(near-field) 환경에서 표적을 추정하는 6G 원천 기술을 연구합니다." data-en="We integrate communication and sensing in one system (ISAC) and estimate targets in near-field regimes — core 6G technologies.">통신과 센싱을 하나의 시스템에서 통합(ISAC)하고, 근거리장(near-field) 환경에서 표적을 추정하는 6G 원천 기술을 연구합니다.</p>
+    <ul class="ru d2">
+      <li data-ko="ISAC 통합 센싱·통신" data-en="ISAC: integrated sensing & communication">ISAC 통합 센싱·통신</li>
+      <li data-ko="Near-field 확장 표적 추정" data-en="Near-field extended-target estimation">Near-field 확장 표적 추정</li>
+      <li data-ko="ISAC을 위한 robust 빔포밍" data-en="Robust beamforming for ISAC">ISAC을 위한 robust 빔포밍</li>
+    </ul>
+  </div></section>
+
+  <section class="snap panel c-navy area" id="area3"><div class="wrap panel-content">
+    <p class="area-idx ru">03</p>
+    <h2 class="ru" data-ko="인공지능 — 통신을 학습하다" data-en="AI — learning to communicate">인공지능 — 통신을 학습하다</h2>
+    <p class="lead ru d1" data-ko="딥러닝으로 채널 추정·압축·자원 할당을 새롭게 설계하고, 토큰 기반 통신 등 AI-native 6G를 탐구합니다." data-en="We redesign channel estimation, compression, and resource allocation with deep learning, and explore AI-native 6G such as token-based communication.">딥러닝으로 채널 추정·압축·자원 할당을 새롭게 설계하고, 토큰 기반 통신 등 AI-native 6G를 탐구합니다.</p>
+    <ul class="ru d2">
+      <li data-ko="멀티모달 AI 채널 추정" data-en="Multi-modal AI channel estimation">멀티모달 AI 채널 추정</li>
+      <li data-ko="토큰 기반 통신" data-en="Token-based communication">토큰 기반 통신</li>
+      <li data-ko="분산·강화학습 자원 최적화" data-en="Distributed & RL resource optimization">분산·강화학습 자원 최적화</li>
+    </ul>
+  </div></section>
+
+  <!-- 갤러리: 연구실 분위기 (앨범에서 자동 로드) -->
+  <section class="snap panel c-white area" id="gallery"><div class="wrap panel-content">
+    <p class="area-idx ru">04</p>
+    <h2 class="ru" data-ko="연구실 이야기" data-en="Lab life">연구실 이야기</h2>
+    <p class="lead ru d1" data-ko="세미나·학회·행사까지 — 함께 연구하고 함께 즐기는 LIT의 일상입니다." data-en="Seminars, conferences, and gatherings — everyday life at LIT.">세미나·학회·행사까지 — 함께 연구하고 함께 즐기는 LIT의 일상입니다.</p>
+    <div class="fan ru d2" id="fan">
+      <button class="fan-nav prev" type="button" aria-label="이전">‹</button>
+      <div class="fan-stage" id="fanStage">
+        <div class="fan-card"><img loading="lazy" src="assets/img/album/2026/05/ICC-scaled.jpg" alt="2026 IEEE ICC"></div>
+        <div class="fan-card"><img loading="lazy" src="assets/img/album/2026/04/isac_1-scaled.jpg" alt="ITRC 인재양성대전"></div>
+        <div class="fan-card"><img loading="lazy" src="assets/img/album/2026/05/HC_5-scaled.jpg" alt="홈커밍데이"></div>
+        <div class="fan-card"><img loading="lazy" src="assets/img/album/2026/04/2026_4_1-scaled.jpg" alt="연구실 행사"></div>
+        <div class="fan-card"><img loading="lazy" src="assets/img/album/2026/04/isac_2-scaled.jpg" alt="ITRC 포스터"></div>
+        <div class="fan-card"><img loading="lazy" src="assets/img/album/2026/05/db_2.png" alt="생일파티"></div>
+      </div>
+      <button class="fan-nav next" type="button" aria-label="다음">›</button>
+    </div>
+    <p class="ru d3"><a class="about-morelink" href="album.html" data-ko="앨범 전체 보기 →" data-en="See all photos →">앨범 전체 보기 →</a></p>
+  </div></section>
+
+  <section class="snap panel c-navy area" id="join"><div class="wrap panel-content" style="text-align:center">
+    <h2 class="ru" data-ko="함께 연구할 사람을 찾습니다" data-en="Join our lab">함께 연구할 사람을 찾습니다</h2>
+    <p class="lead ru d1" style="margin-left:auto;margin-right:auto" data-ko="6G 전송 기술에 관심 있는 대학원생·연구원을 모집합니다." data-en="We are recruiting graduate students and researchers interested in 6G transmission.">6G 전송 기술에 관심 있는 대학원생·연구원을 모집합니다.</p>
+    <p class="ru d2"><a class="v3-btn primary" style="background:var(--accent);color:#fff" href="contact.html" data-ko="지원·문의하기 →" data-en="Get in touch →">지원·문의하기 →</a></p>
+  </div></section>
+
+  <script src="assets/js/i18n.js?v=20260623a"></script>
+  <script>
+  /* 풀페이지: 휠/키/링크로 한 칸씩 천천히(1.3s) 이동 — 인덱스 상태로 제어해 흔들림 없음 */
+  (function(){
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var secs=[].slice.call(document.querySelectorAll('.v3hero, .snap'));
+    if(!secs.length) return;
+    document.documentElement.style.scrollSnapType='none';   // JS 가 전환을 제어
+    var DUR=1300, lock=false, idx=0;
+    function ease(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;}
+    (function(){var y=window.pageYOffset+innerHeight/2,bd=1e9;secs.forEach(function(s,i){var c=s.offsetTop+s.offsetHeight/2,d=Math.abs(c-y);if(d<bd){bd=d;idx=i;}});})();
+    function goTo(i){i=Math.max(0,Math.min(secs.length-1,i));if(lock||i===idx)return;lock=true;idx=i;
+      var s=window.pageYOffset,y=secs[i].getBoundingClientRect().top+window.pageYOffset,d=y-s,st=null;
+      function step(ts){if(st===null)st=ts;var p=Math.min((ts-st)/DUR,1);window.scrollTo(0,s+d*ease(p));
+        if(p<1)requestAnimationFrame(step);else setTimeout(function(){lock=false;},200);}
+      requestAnimationFrame(step);}
+    window.addEventListener('wheel',function(e){
+      if(Math.abs(e.deltaX)>Math.abs(e.deltaY)) return;   // 수평 스크롤은 무시(팬/가로용)
+      e.preventDefault(); if(lock||Math.abs(e.deltaY)<8) return;
+      goTo(idx+(e.deltaY>0?1:-1));
+    },{passive:false});
+    window.addEventListener('keydown',function(e){var t=(e.target.tagName||'');if(t==='INPUT'||t==='TEXTAREA')return;
+      if(e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){e.preventDefault();goTo(idx+1);}
+      else if(e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();goTo(idx-1);}});
+    document.querySelectorAll('a[href^="#"]').forEach(function(a){a.addEventListener('click',function(e){
+      var el=document.getElementById(a.getAttribute('href').slice(1));if(!el)return;e.preventDefault();
+      var i=secs.indexOf(el);if(i<0)secs.forEach(function(s,k){if(s.contains(el))i=k;});goTo(i<0?idx:i);});});
+  })();
+  /* 갤러리: 부채꼴(팬) — 이미지 위에서 패드를 좌우로 움직이면 중앙 전환 (+클릭/버튼) */
+  (function(){
+    var fan=document.getElementById('fan'), stage=document.getElementById('fanStage'); if(!fan||!stage) return;
+    var cards=[].slice.call(stage.querySelectorAll('.fan-card')), n=cards.length, active=Math.floor(n/2);
+    function layout(){cards.forEach(function(c,i){var off=i-active, ax=Math.abs(off);
+      var sc = off===0 ? 1.3 : Math.max(0.7, 0.84 - (ax-1)*0.05);   // 중앙만 크게
+      c.style.transform='translateX('+(off*42)+'px) translateY('+(ax*10)+'px) rotate('+(off*9)+'deg) scale('+sc+')';
+      c.style.zIndex=String(100-ax);
+      c.style.opacity=ax>3?'0':'1';
+      c.style.filter=off===0?'none':'brightness(.5)';
+      c.style.pointerEvents=ax>3?'none':'auto';});}
+    function set(i){i=Math.max(0,Math.min(n-1,i)); if(i!==active){active=i;layout();}}
+    // 패드 좌우 이동(커서 가로 위치)으로 중앙 선택
+    stage.addEventListener('pointermove',function(e){var r=stage.getBoundingClientRect();var f=(e.clientX-r.left)/r.width;f=Math.max(0,Math.min(1,f));set(Math.round(f*(n-1)));});
+    cards.forEach(function(c,i){c.addEventListener('click',function(){set(i);});});
+    fan.querySelector('.fan-nav.prev').addEventListener('click',function(){set(active-1);});
+    fan.querySelector('.fan-nav.next').addEventListener('click',function(){set(active+1);});
+    layout();
+  })();
+  /* 스크롤 등장 */
+  (function(){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)e.target.classList.add('in');});},{threshold:.18});
+    document.querySelectorAll('.ru').forEach(function(el){io.observe(el);});
+  })();
+  /* 헤더: 히어로에선 숨김 → 스크롤하면 등장 */
+  (function(){
+    var header=document.querySelector('.site-header'), hero=document.querySelector('.v3hero'), toplogo=document.querySelector('.v3-toplogo'), toplang=document.querySelector('.v3-toplang');
+    if(!header||!hero) return;
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){
+      var shown=e.intersectionRatio < 0.55;
+      header.classList.toggle('show', shown);
+      if(toplogo) toplogo.classList.toggle('hide', shown);   // 헤더 뜨면 중앙 로고 숨김
+      if(toplang) toplang.classList.toggle('hide', shown);   // 헤더 뜨면 떠있던 언어토글 숨김(헤더 것 사용)
+    });},{threshold:[0,0.55,1]});
+    io.observe(hero);
+    if(toplogo) setTimeout(function(){ toplogo.classList.add('in'); }, 550); // 진입 시 로고 천천히 등장
+  })();
+  /* 히어로 배경: 마우스를 따라오는 동심원 리플 (인터랙티브) */
+  (function(){
+    var canvas=document.getElementById('v3canvas'), ctx=canvas.getContext('2d');
+    var cs=getComputedStyle(document.documentElement);
+    function h2(h){h=h.replace('#','').trim();return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+    var rgb=h2((cs.getPropertyValue('--header-active-bg')||'#bde8f5').trim()); // 계절의 밝은 톤
+    var hero=document.querySelector('.v3hero'), W,H,DPR;
+    function resize(){DPR=Math.min(window.devicePixelRatio||1,2);W=canvas.clientWidth;H=canvas.clientHeight;canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+    window.addEventListener('resize',resize);
+    var cx,cy,tx,ty,have=false;
+    window.addEventListener('pointermove',function(e){var r=hero.getBoundingClientRect();tx=e.clientX-r.left;ty=e.clientY-r.top;have=true;});
+    window.addEventListener('pointerleave',function(){have=false;});
+    var t0=null, rings=10;
+    function frame(ts){if(t0===null)t0=ts;var t=(ts-t0)/1000;
+      if(cx===undefined){cx=W*0.32;cy=H*0.52;tx=cx;ty=cy;}
+      if(!have){tx=W*0.32+Math.sin(t*0.5)*W*0.05;ty=H*0.52+Math.cos(t*0.4)*H*0.07;}
+      cx+=(tx-cx)*0.07; cy+=(ty-cy)*0.07;
+      ctx.clearRect(0,0,W,H);
+      ctx.globalCompositeOperation='lighter';
+      var maxR=Math.hypot(W,H)*0.8, sp=0.14;
+      for(var i=0;i<rings;i++){var frac=((t*sp+i/rings)%1), rad=frac*maxR, a=(1-frac);
+        ctx.beginPath(); ctx.arc(cx,cy,rad,0,Math.PI*2);
+        ctx.strokeStyle='rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+(a*0.42).toFixed(3)+')';
+        ctx.lineWidth=7; ctx.stroke();}
+      requestAnimationFrame(frame);
+    }
+    resize(); requestAnimationFrame(frame);
+    setTimeout(function(){ canvas.style.opacity='1'; }, 1000); // 동심원은 조금 더 빨리 시작, 천천히 떠오름(2.4s)
+  })();
+  </script>
+</body>
+</html>
