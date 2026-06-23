@@ -47,10 +47,6 @@
     <button class="opt" data-s="isac-track">11a 추적+데이터</button>
     <button class="opt" data-s="isac-dual">11b 레이더 스윕</button>
   </div>
-  <div class="grp"><b>토큰 / 구</b>
-    <button class="opt" data-s="token-sphere">12a 토큰 구</button>
-    <button class="opt" data-s="token-shells">12b 궤도 토큰</button>
-  </div>
 </div>
 <div class="panel" id="pals">
   <b>팔레트 (계절)</b>
@@ -118,55 +114,6 @@ group.rotation.set(0,0,0);
 /* ============================ 씬들 ============================ */
 var SCENES={};
 
-/* 12a 토큰 구 */
-SCENES["token-sphere"]=function(){
-  var N=340,R=1.7,GA=Math.PI*(3-Math.sqrt(5));
-  var base=new Float32Array(N*3),spiral=new Float32Array(N*3),disp=new Float32Array(N*3);
-  for(var i=0;i<N;i++){var y=1-(i/(N-1))*2,r=Math.sqrt(1-y*y),th=i*GA;
-    base[i*3]=Math.cos(th)*r*R;base[i*3+1]=y*R;base[i*3+2]=Math.sin(th)*r*R;
-    var a=i*0.5,rd=0.15+(i/N)*3;spiral[i*3]=Math.cos(a)*rd;spiral[i*3+1]=(i/N-.5)*5;spiral[i*3+2]=Math.sin(a)*rd;}
-  var edges=[],cosT=Math.cos(0.34);
-  for(var p=0;p<N;p++)for(var q=p+1;q<N;q++){var d=(base[p*3]*base[q*3]+base[p*3+1]*base[q*3+1]+base[p*3+2]*base[q*3+2])/(R*R);if(d>cosT)edges.push(p,q);}
-  var P=layerP(N,pal.dot,.09,.95),L=layerL(edges.length,pal.line,.18);
-  var T=70,tok=[];for(var k=0;k<T;k++)tok.push({e:(Math.random()*edges.length/2|0)*2,t:Math.random(),s:.004+Math.random()*.01});
-  var TK=layerP(T,pal.c1,.16,1);
-  group.rotation.set(0,0,0);
-  return {update:function(t){var ip=Math.min(t/2.2,1);ip=1-Math.pow(1-ip,3);
-    var ang=t*0.16,cy=Math.cos(.35),sy=Math.sin(.35),ca=Math.cos(ang),sa=Math.sin(ang);var m=mouseWorld(t);
-    for(var i=0;i<N;i++){var x=spiral[i*3]+(base[i*3]-spiral[i*3])*ip,y=spiral[i*3+1]+(base[i*3+1]-spiral[i*3+1])*ip,z=spiral[i*3+2]+(base[i*3+2]-spiral[i*3+2])*ip;
-      var y1=y*cy-z*sy,z1=y*sy+z*cy,xr=x*ca+z1*sa,zr=-x*sa+z1*ca,yr=y1;
-      var tx=0,ty=0,tz=0;_v.set(xr,yr,zr).project(camera);var dx=_v.x-m.mx,dy=_v.y-m.my,dd=Math.hypot(dx,dy);
-      if(dd<.22){var f=1-dd/.22;f*=f;var inv=dd>1e-4?1/dd:0;tx=dx*inv*.55*f;ty=dy*inv*.55*f;tz=Math.sin(t*6+i)*.08*f;}
-      disp[i*3]+=(tx-disp[i*3])*.18;disp[i*3+1]+=(ty-disp[i*3+1])*.18;disp[i*3+2]+=(tz-disp[i*3+2])*.18;
-      P.pos[i*3]=xr+disp[i*3];P.pos[i*3+1]=yr+disp[i*3+1];P.pos[i*3+2]=zr+disp[i*3+2];}
-    P.flush();
-    for(var e=0;e<edges.length;e+=2){var a=edges[e]*3,b=edges[e+1]*3,o=e*3;
-      L.pos[o]=P.pos[a];L.pos[o+1]=P.pos[a+1];L.pos[o+2]=P.pos[a+2];L.pos[o+3]=P.pos[b];L.pos[o+4]=P.pos[b+1];L.pos[o+5]=P.pos[b+2];}
-    L.flush();
-    for(var j=0;j<T;j++){var tk=tok[j];tk.t+=tk.s;if(tk.t>1){tk.t=0;tk.e=(Math.random()*edges.length/2|0)*2;}
-      var ea=edges[tk.e]*3,eb=edges[tk.e+1]*3;TK.pos[j*3]=P.pos[ea]+(P.pos[eb]-P.pos[ea])*tk.t;
-      TK.pos[j*3+1]=P.pos[ea+1]+(P.pos[eb+1]-P.pos[ea+1])*tk.t;TK.pos[j*3+2]=P.pos[ea+2]+(P.pos[eb+2]-P.pos[ea+2])*tk.t;}
-    TK.flush();}};
-};
-
-/* 12b 궤도 토큰 (여러 회전 고리) */
-SCENES["token-shells"]=function(){
-  var rings=[{n:90,r:2.2,tx:.2,sp:.18},{n:70,r:1.55,tx:-.5,sp:-.26},{n:50,r:.95,tx:.9,sp:.4}];
-  var total=0;rings.forEach(function(R){R.a0=[];for(var i=0;i<R.n;i++)R.a0.push(i/R.n*Math.PI*2);total+=R.n;});
-  var P=layerP(total,pal.dot,.08,.92);
-  var T=24,tok=[];for(var k=0;k<T;k++)tok.push({from:rand3(),to:rand3(),t:Math.random(),s:.01+Math.random()*.02});
-  function rand3(){return {ri:Math.random()*3|0,ai:Math.random()};}
-  var TK=layerP(T,pal.c1,.16,1);
-  function ringPos(R,ang,tilt){var cx=Math.cos(ang)*R.r,cz=Math.sin(ang)*R.r,cy=0;
-    var c=Math.cos(tilt),s=Math.sin(tilt);return [cx, cy*c-cz*s, cy*s+cz*c];}
-  return {update:function(t){var m=mouseWorld(t);group.rotation.y+= ((m.mx*0.6)-group.rotation.y)*0.05; group.rotation.x+=((-m.my*0.4)-group.rotation.x)*0.05;
-    var idx=0;rings.forEach(function(R){for(var i=0;i<R.n;i++){var ang=R.a0[i]+t*R.sp;var p=ringPos(R,ang,R.tx);
-      P.pos[idx*3]=p[0];P.pos[idx*3+1]=p[1];P.pos[idx*3+2]=p[2];idx++;}});P.flush();
-    for(var k=0;k<T;k++){var tk=tok[k];tk.t+=tk.s;if(tk.t>1){tk.t=0;tk.from=tk.to;tk.to=rand3();}
-      var Ra=rings[tk.from.ri],Rb=rings[tk.to.ri];var pa=ringPos(Ra,tk.from.ai*6.28+t*Ra.sp,Ra.tx),pb=ringPos(Rb,tk.to.ai*6.28+t*Rb.sp,Rb.tx);
-      var e=tk.t*tk.t*(3-2*tk.t);TK.pos[k*3]=pa[0]+(pb[0]-pa[0])*e;TK.pos[k*3+1]=pa[1]+(pb[1]-pa[1])*e;TK.pos[k*3+2]=pa[2]+(pb[2]-pa[2])*e;}TK.flush();}};
-};
-
 /* 2a 빔포밍 로브: 신호가 멀리서 점으로 날아와(수신) → 빔 형성 + 빛 방출(송신).
    조향 -90~90°, 급격한 각도 변화 시 딜레이 */
 SCENES["beam-lobe"]=function(){
@@ -216,16 +163,36 @@ SCENES["beam-lobe"]=function(){
   }};
 };
 
-/* 2b 위상배열 파동 (간섭 필드) */
+/* 2b 위상배열 파동: 멀리서 날아와 배열 형성 → 파동 높이에 따라 연결선 색이 밝음↔어두움 */
 SCENES["beam-wave"]=function(){
-  var cols=58,rows=32,N=cols*rows; var F=layerP(N,null,.07,.95,true);
-  var gx=[],gy=[];for(var r=0;r<rows;r++)for(var c=0;c<cols;c++){gx.push(-3.2+ (c/(cols-1))*6.4);gy.push(-1.8+(r/(rows-1))*3.6);}
-  var M=5,ex=[];for(var e=0;e<M;e++)ex.push(-1.2+e*0.6);var ey=-1.85;
-  var base=col(pal.dot); for(var i=0;i<N;i++){F.pos[i*3]=gx[i];F.pos[i*3+1]=gy[i];}
-  return {update:function(t){var m=mouseWorld(t);var alpha=Math.atan2(0,1); alpha=(m.mx)*0.9; var grad=alpha*3.0;
+  var cols=46,rows=24,N=cols*rows;
+  var gx=[],gy=[],sx=[],sy=[];
+  for(var r=0;r<rows;r++)for(var c=0;c<cols;c++){gx.push(-3.2+(c/(cols-1))*6.4);gy.push(-1.8+(r/(rows-1))*3.6);
+    var a=0.1+Math.random()*(Math.PI-0.2),rr=5+Math.random()*3.5;sx.push(Math.cos(a)*rr);sy.push(-1.7+Math.sin(a)*rr);}
+  var M=5,ex=[];for(var e=0;e<M;e++)ex.push(-1.2+e*0.6);var ey=-1.95;
+  // 연결선(가로·세로) — 정점 색을 파동 높이로 결정
+  var edges=[];for(var r2=0;r2<rows;r2++)for(var c2=0;c2<cols;c2++){var id=r2*cols+c2;if(c2<cols-1)edges.push(id,id+1);if(r2<rows-1)edges.push(id,id+cols);}
+  var E=edges.length/2;
+  var lp=new Float32Array(E*6),lc=new Float32Array(E*6),lgeo=new THREE.BufferGeometry();
+  lgeo.setAttribute("position",new THREE.BufferAttribute(lp,3));lgeo.setAttribute("color",new THREE.BufferAttribute(lc,3));
+  group.add(new THREE.LineSegments(lgeo,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.95,depthWrite:false,blending:THREE.AdditiveBlending})));
+  var P=layerP(N,null,.05,.9,true); // 마루(crest)에 작은 반짝임
+  var npx=new Float32Array(N),npy=new Float32Array(N),npz=new Float32Array(N),nr=new Float32Array(N),ng=new Float32Array(N),nb=new Float32Array(N);
+  var low=col(pal.line), high=col(pal.dot); // 낮음=어두운 톤 → 높음=밝은 톤
+  return {update:function(t){var m=mouseWorld(t);var grad=m.mx*2.6;
+    var conv=Math.min(t/1.6,1),ec=1-Math.pow(1-conv,3);
     for(var i=0;i<N;i++){var s=0;for(var e=0;e<M;e++){var dx=gx[i]-ex[e],dy=gy[i]-ey,d=Math.sqrt(dx*dx+dy*dy);s+=Math.sin(d*6-t*4+e*grad);}
-      var v=(s/M+1)/2; v=v*v; F.pos[i*3+2]=v*0.5-0.25; F.colArr[i*3]=base.r*v;F.colArr[i*3+1]=base.g*v;F.colArr[i*3+2]=base.b*v;}
-    F.flush();}};
+      var v=(s/M+1)/2; v*=v;                       // 0..1 (마루=1)
+      npx[i]=sx[i]+(gx[i]-sx[i])*ec; npy[i]=sy[i]+(gy[i]-sy[i])*ec; npz[i]=(v-0.5)*1.1*ec;
+      var b=0.10+0.90*v;                            // 높이에 따른 밝기
+      nr[i]=(low.r+(high.r-low.r)*v)*b; ng[i]=(low.g+(high.g-low.g)*v)*b; nb[i]=(low.b+(high.b-low.b)*v)*b;
+      P.pos[i*3]=npx[i];P.pos[i*3+1]=npy[i];P.pos[i*3+2]=npz[i];
+      var pv=v*v;P.colArr[i*3]=high.r*pv;P.colArr[i*3+1]=high.g*pv;P.colArr[i*3+2]=high.b*pv;}
+    P.flush();
+    for(var k=0;k<E;k++){var a=edges[k*2],b2=edges[k*2+1],o=k*6;
+      lp[o]=npx[a];lp[o+1]=npy[a];lp[o+2]=npz[a];lp[o+3]=npx[b2];lp[o+4]=npy[b2];lp[o+5]=npz[b2];
+      lc[o]=nr[a];lc[o+1]=ng[a];lc[o+2]=nb[a];lc[o+3]=nr[b2];lc[o+4]=ng[b2];lc[o+5]=nb[b2];}
+    lgeo.attributes.position.needsUpdate=true;lgeo.attributes.color.needsUpdate=true;}};
 };
 
 /* 11a ISAC 추적+데이터 */
@@ -302,7 +269,7 @@ SCENES["net-pulse"]=function(){
 };
 
 /* ============================ 런타임 ============================ */
-var cur=null, curName="token-sphere", t0=null;
+var cur=null, curName="beam-wave", t0=null;
 function setScene(name){curName=name;clearGroup();group.rotation.set(0,0,0);t0=null;cur=SCENES[name]();
   document.querySelectorAll("#scenes .opt").forEach(function(b){b.classList.toggle("on",b.dataset.s===name);});}
 function setPal(name){palName=name;pal=PALS[name];applyBg();setScene(curName);
@@ -316,7 +283,7 @@ function loop(ts){if(t0===null)t0=ts;var t=(ts-t0)/1000;if(cur)cur.update(t);ren
 // 쿼리 파라미터 (?scene=, ?palette=)
 var qs=new URLSearchParams(location.search);
 setPal(PALS[qs.get("palette")]?qs.get("palette"):"navy");
-setScene(SCENES[qs.get("scene")]?qs.get("scene"):"token-sphere");
+setScene(SCENES[qs.get("scene")]?qs.get("scene"):"beam-wave");
 requestAnimationFrame(loop);
 })();
 </script>
