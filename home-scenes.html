@@ -178,16 +178,22 @@ SCENES["beam-lobe"]=function(){
   var IN=90, isx=[],isy=[];
   for(var i2=0;i2<IN;i2++){var a=0.15+Math.random()*(Math.PI-0.3),rr=5+Math.random()*3.5;isx.push(base[0]+Math.cos(a)*rr);isy.push(base[1]+Math.sin(a)*rr);}
   var indot=layerP(IN,pal.dot,.1,1);
-  var LG=80, lt=[],loff=[]; for(var i3=0;i3<LG;i3++){lt.push(Math.random());loff.push(Math.random()-0.5);}
-  var lightP=layerP(LG,pal.c1,.14,1);
+  // 송신 빔: 가운데 밝은 직선(코어) + 은은하게 퍼지는 광채(콘)
+  var core=layerL(1,pal.c1,0);
+  var coneN=28, cv=coneN*3, c1col=col(pal.c1);
+  var cgeo=new THREE.BufferGeometry();
+  var cpos=new Float32Array(cv*3), ccol=new Float32Array(cv*3);
+  cgeo.setAttribute("position",new THREE.BufferAttribute(cpos,3));
+  cgeo.setAttribute("color",new THREE.BufferAttribute(ccol,3));
+  group.add(new THREE.Mesh(cgeo,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:1,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide})));
   var phi=0, delayT=0, slewing=false, last=0;
   return {update:function(t){var dt=Math.min(Math.max(t-last,0.001),0.05);last=t;var m=mouseWorld(t);
     // 목표 각(수직=broadside 기준), -90~90°로 제한
     var dx=m.x-base[0], dy=Math.max(m.y-base[1],0.0001), tp=Math.atan2(dx,dy);
     tp=Math.max(-1.5708,Math.min(1.5708,tp));
     var d=tp-phi;
-    if(Math.abs(d)>0.5 && delayT<=0 && !slewing){ delayT=0.3+Math.min(Math.abs(d),3.14)*0.18; slewing=true; } // 급변 딜레이
-    if(delayT>0){ delayT-=dt; } else { var step=1.7*dt; if(Math.abs(d)<=step){phi=tp;slewing=false;} else phi+=(d>0?1:-1)*step; }
+    if(Math.abs(d)>0.5 && delayT<=0 && !slewing){ delayT=0.08+Math.min(Math.abs(d),3.14)*0.05; slewing=true; } // 급변 시 짧은 딜레이
+    if(delayT>0){ delayT-=dt; } else { var step=3.6*dt; if(Math.abs(d)<=step){phi=tp;slewing=false;} else phi+=(d>0?1:-1)*step; }
     var thetaMain=Math.PI/2-phi;
     var conv=Math.min(t/1.5,1), ec=1-Math.pow(1-conv,3);
     var lobeOp=Math.max(0,Math.min((t-1.2)/1.0,1));
@@ -202,11 +208,23 @@ SCENES["beam-lobe"]=function(){
       SP.pos[k2*6]=base[0];SP.pos[k2*6+1]=base[1];SP.pos[k2*6+2]=0;SP.pos[k2*6+3]=bx;SP.pos[k2*6+4]=by;SP.pos[k2*6+5]=0;
       OUT.pos[k2*6]=prevx;OUT.pos[k2*6+1]=prevy;OUT.pos[k2*6+2]=0;OUT.pos[k2*6+3]=bx;OUT.pos[k2*6+4]=by;OUT.pos[k2*6+5]=0;prevx=bx;prevy=by;}
     SP.mat.opacity=0.12*lobeOp;OUT.mat.opacity=0.55*lobeOp;SP.flush();OUT.flush();
-    // 송신: 빔 방향으로 나가는 빛
-    lightP.mat.opacity=lobeOp;
-    for(var j=0;j<LG;j++){lt[j]+=0.012;if(lt[j]>1)lt[j]-=1;var ang=Math.max(0.03,Math.min(Math.PI-0.03,thetaMain+loff[j]*0.5));var dist=lt[j]*3.4;
-      lightP.pos[j*3]=base[0]+Math.cos(ang)*dist;lightP.pos[j*3+1]=base[1]+Math.sin(ang)*dist;lightP.pos[j*3+2]=0;}
-    lightP.flush();
+    // 송신: 코어 직선 + 광채 콘 (은은하게 퍼짐)
+    var L=3.7, spread=0.17, pulse=0.85+0.15*Math.sin(t*3);
+    var tipx=base[0]+Math.cos(thetaMain)*L, tipy=base[1]+Math.sin(thetaMain)*L;
+    core.mat.opacity=0.9*lobeOp;
+    core.pos[0]=base[0];core.pos[1]=base[1];core.pos[2]=0;core.pos[3]=tipx;core.pos[4]=tipy;core.pos[5]=0;core.count(1);core.flush();
+    for(var s=0;s<coneN;s++){var o0=((s/coneN)-0.5)*2*spread,o1=(((s+1)/coneN)-0.5)*2*spread;
+      var a0=thetaMain+o0,a1=thetaMain+o1,ci=s*9;
+      cpos[ci]=base[0];cpos[ci+1]=base[1];cpos[ci+2]=0;
+      cpos[ci+3]=base[0]+Math.cos(a0)*L;cpos[ci+4]=base[1]+Math.sin(a0)*L;cpos[ci+5]=0;
+      cpos[ci+6]=base[0]+Math.cos(a1)*L;cpos[ci+7]=base[1]+Math.sin(a1)*L;cpos[ci+8]=0;
+      var apexB=0.55*lobeOp*pulse;
+      var w0=Math.pow(Math.cos((o0/spread)*1.5708),2)*0.4*lobeOp*pulse;
+      var w1=Math.pow(Math.cos((o1/spread)*1.5708),2)*0.4*lobeOp*pulse;
+      ccol[ci]=c1col.r*apexB;ccol[ci+1]=c1col.g*apexB;ccol[ci+2]=c1col.b*apexB;
+      ccol[ci+3]=c1col.r*w0;ccol[ci+4]=c1col.g*w0;ccol[ci+5]=c1col.b*w0;
+      ccol[ci+6]=c1col.r*w1;ccol[ci+7]=c1col.g*w1;ccol[ci+8]=c1col.b*w1;}
+    cgeo.attributes.position.needsUpdate=true;cgeo.attributes.color.needsUpdate=true;
   }};
 };
 
