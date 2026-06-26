@@ -38,7 +38,7 @@
     .site-header { position: fixed; left: 0; right: 0; top: 0; transform: translateY(-100%); opacity: 0; transition: transform .35s ease, opacity .35s ease; }
     .site-header.show { transform: none; opacity: 1; }
     /* 헤더 없을 때: 중앙에 LIT 로고 (연구실 표시) */
-    .v3-toplogo { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); height: 46px; width: auto; z-index: 6; filter: brightness(0) invert(1); opacity: 0; transition: opacity 1.6s ease; }
+    .v3-toplogo { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); height: 40px; width: auto; z-index: 6; filter: brightness(0) invert(1); opacity: 0; transition: opacity 1.6s ease; }
     .v3-toplogo.in { opacity: .95; }
     .v3-toplogo.hide { opacity: 0; pointer-events: none; }
     /* 헤더 숨김 상태에서도 언어 토글은 미리 노출 */
@@ -53,6 +53,14 @@
     .v3-btn.primary { background: var(--header-active-bg); color: var(--header-active-fg); }
     .v3-btn.ghost { border: 1px solid currentColor; color: var(--header-fg); }
     .v3-btn:hover { text-decoration: none; transform: translateY(-1px); }
+    /* 옵션1: 지구를 드래그/클릭할 수 있도록 텍스트 레이어는 통과(버튼만 클릭) */
+    .v3hero .wrap { pointer-events: none; }
+    .v3hero .v3-cta a, .v3hero .v3-eyebrow a { pointer-events: auto; }
+    /* 옵션1: 대륙/균일 토글 */
+    .opt1-ctl { position: absolute; top: 84px; left: clamp(20px, 8vw, 110px); z-index: 4; display: flex; gap: 6px; }
+    .opt1-ctl button { font: inherit; font-size: .8rem; cursor: pointer; color: var(--header-fg); background: rgba(255,255,255,.1); border: 1px solid currentColor; border-radius: 999px; padding: 5px 12px; opacity: .85; }
+    .opt1-ctl button.on { background: var(--header-active-bg); color: var(--header-active-fg); border-color: var(--header-active-bg); opacity: 1; font-weight: 700; }
+    .opt1-ctl button:disabled { opacity: .35; cursor: not-allowed; }
     .v3-scroll { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 2; font-family: var(--font-head); font-size: .75rem; letter-spacing: .18em; text-transform: uppercase; opacity: .7; animation: v3bob 1.8s ease-in-out infinite; }
     @keyframes v3bob { 0%,100%{transform:translate(-50%,0)} 50%{transform:translate(-50%,7px)} }
 
@@ -211,6 +219,14 @@
     <p class="ru d2"><a class="v3-btn primary" style="background:var(--accent);color:#fff" href="contact.html" data-ko="지원·문의하기 →" data-en="Get in touch →">지원·문의하기 →</a></p>
   </div></section>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+  <script src="assets/js/globe-land.js?v=20260623d"></script>
   <script src="assets/js/pubs.js?v=20260623d"></script>
   <script src="assets/js/i18n.js?v=20260623d"></script>
   <script>
@@ -300,31 +316,122 @@
     io.observe(hero);
     if(toplogo) setTimeout(function(){ toplogo.classList.add('in'); }, 550); // 진입 시 로고 천천히 등장
   })();
-  /* 히어로 배경: 동심원 리플 — 화면 우측·'합류하기' 버튼 높이에 고정 */
+  /* 히어로 배경(옵션1): 회전 지구 네트워크. 대륙/균일 토글, 앞면 노드만 선택, 호버=노란 글로우, 빛=선이 발광 후 소멸 */
   (function(){
-    var canvas=document.getElementById('v3canvas'), ctx=canvas.getContext('2d');
+    if(!window.THREE) return;
+    var canvas=document.getElementById('v3canvas');
     var cs=getComputedStyle(document.documentElement);
-    function h2(h){h=h.replace('#','').trim();return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
-    var rgb=h2((cs.getPropertyValue('--header-active-bg')||'#bde8f5').trim()); // 계절의 밝은 톤
-    var hero=document.querySelector('.v3hero'), cta=document.querySelector('.v3-cta'), W,H,DPR, cx, cy;
-    function recenter(){ cx=W*0.70; var hr=hero.getBoundingClientRect();
-      if(cta){var cr=cta.getBoundingClientRect(); cy=(cr.top-hr.top)+cr.height/2-42;} else { cy=H*0.58; } }
-    function resize(){DPR=Math.min(window.devicePixelRatio||1,2);W=canvas.clientWidth;H=canvas.clientHeight;canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);recenter();}
-    window.addEventListener('resize',resize);
-    var t0=null, rings=10;
-    function frame(ts){if(t0===null)t0=ts;var t=(ts-t0)/1000;
-      ctx.clearRect(0,0,W,H);
-      ctx.globalCompositeOperation='lighter';
-      var maxR=Math.hypot(W,H)*0.95, sp=0.14;
-      for(var i=0;i<rings;i++){var frac=((t*sp+i/rings)%1), rad=frac*maxR, a=(1-frac);
-        ctx.beginPath(); ctx.arc(cx,cy,rad,0,Math.PI*2);
-        ctx.strokeStyle='rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+(a*0.42).toFixed(3)+')';
-        ctx.lineWidth=7; ctx.stroke();}
+    var nodeCol=new THREE.Color((cs.getPropertyValue('--header-active-bg')||'#bde8f5').trim());
+    var YEL=new THREE.Color('#ffcf45'); // 노란 빛
+    var renderer=new THREE.WebGLRenderer({canvas:canvas,alpha:true,antialias:true});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    var scene=new THREE.Scene(); scene.background=new THREE.Color((cs.getPropertyValue('--header-bg')||'#073f78').trim()); // 배경=히어로색(불투명, bloom용)
+    var camera=new THREE.PerspectiveCamera(45,1,0.1,100); camera.position.z=5.4;
+    var group=new THREE.Group(); scene.add(group); group.rotation.x=0.32;
+    // 후처리: UnrealBloom (빛 번짐) — 스크립트 로드 실패 시 일반 렌더로 폴백
+    var composer=null;
+    if(THREE.EffectComposer && THREE.UnrealBloomPass && THREE.RenderPass){
+      composer=new THREE.EffectComposer(renderer);
+      composer.addPass(new THREE.RenderPass(scene,camera));
+      composer.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(1,1), 0.85, 0.5, 0.56)); // strength, radius, threshold
+    }
+    var tex=(function(){var c=document.createElement('canvas');c.width=c.height=64;var g=c.getContext('2d');
+      var gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'#fff');gr.addColorStop(.4,'rgba(255,255,255,.9)');gr.addColorStop(1,'rgba(255,255,255,0)');
+      g.fillStyle=gr;g.beginPath();g.arc(32,32,32,0,7);g.fill();var t=new THREE.Texture(c);t.needsUpdate=true;return t;})();
+    var R=1.85, GA=Math.PI*(3-Math.sqrt(5));
+    // 지구 점: 균일(uniform) + 대륙(land, 마스크 비동기 로드)
+    var DOTS=820, uniformPos=new Float32Array(DOTS*3);
+    for(var i=0;i<DOTS;i++){var y=1-(i/(DOTS-1))*2,r=Math.sqrt(1-y*y),th=i*GA;uniformPos[i*3]=Math.cos(th)*r*R;uniformPos[i*3+1]=y*R;uniformPos[i*3+2]=Math.sin(th)*r*R;}
+    var landPos=null, curMode='land', landFailed=false;
+    var dgeo=new THREE.BufferGeometry(); dgeo.setAttribute('position',new THREE.BufferAttribute(uniformPos,3));
+    // 대륙 점은 더 진한 색(채도↑·명도↓)으로 → 구분 용이
+    var dotCol=nodeCol.clone(); var _hsl={}; dotCol.getHSL(_hsl); dotCol.setHSL(_hsl.h, Math.min(1,_hsl.s+0.45), Math.max(0.4,_hsl.l-0.18));
+    group.add(new THREE.Points(dgeo,new THREE.PointsMaterial({size:0.028,map:tex,color:dotCol,transparent:true,opacity:0.7,sizeAttenuation:true,depthWrite:false,blending:THREE.AdditiveBlending})));
+    function applyDots(){ var arr=(curMode==='land'&&landPos)?landPos:uniformPos; dgeo.setAttribute('position',new THREE.BufferAttribute(arr,3)); dgeo.attributes.position.needsUpdate=true; }
+    // 육지 좌표는 빌드시 미리 계산(assets/js/globe-land.js) → 런타임 이미지 샘플링 불필요(어디서나 동작)
+    if(window.GLOBE_LAND && window.GLOBE_LAND.length){
+      var Ld=window.GLOBE_LAND; landPos=new Float32Array(Ld.length);
+      for(var li=0;li<Ld.length;li++) landPos[li]=Ld[li]*R;
+      applyDots();
+    } else { landFailed=true; curMode='uniform'; applyDots(); }
+    // 네트워크 노드 + 엣지(인접에 엣지 인덱스 포함)
+    var N=74, npos=[]; for(var i=0;i<N;i++){var y=1-(i+0.5)/N*2,r=Math.sqrt(1-y*y),th=(i+0.5)*GA;npos.push([Math.cos(th)*r*R,y*R,Math.sin(th)*r*R]);}
+    var nF=new Float32Array(N*3); npos.forEach(function(p,i){nF[i*3]=p[0];nF[i*3+1]=p[1];nF[i*3+2]=p[2];});
+    var ngeo=new THREE.BufferGeometry();ngeo.setAttribute('position',new THREE.BufferAttribute(nF,3));
+    var nodePts=new THREE.Points(ngeo,new THREE.PointsMaterial({size:0.135,map:tex,color:nodeCol,transparent:true,opacity:0.9,sizeAttenuation:true,depthWrite:false,blending:THREE.AdditiveBlending}));
+    group.add(nodePts);
+    var edges=[], adj=[]; for(var i=0;i<N;i++)adj.push([]);
+    var cosT=Math.cos(0.52);
+    for(var a=0;a<N;a++)for(var b=a+1;b<N;b++){var dd=(npos[a][0]*npos[b][0]+npos[a][1]*npos[b][1]+npos[a][2]*npos[b][2])/(R*R);
+      if(dd>cosT){var ei=edges.length/2;edges.push(a,b);adj[a].push({o:b,e:ei});adj[b].push({o:a,e:ei});}}
+    var E=edges.length/2, lp=new Float32Array(E*6);
+    for(var e=0;e<E;e++){var a=edges[e*2],b=edges[e*2+1];lp[e*6]=npos[a][0];lp[e*6+1]=npos[a][1];lp[e*6+2]=npos[a][2];lp[e*6+3]=npos[b][0];lp[e*6+4]=npos[b][1];lp[e*6+5]=npos[b][2];}
+    var lgeo=new THREE.BufferGeometry();lgeo.setAttribute('position',new THREE.BufferAttribute(lp,3));
+    var lmat=new THREE.LineBasicMaterial({color:nodeCol,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending});
+    group.add(new THREE.LineSegments(lgeo,lmat));
+    // 빛: 광섬유처럼 선을 따라 흐르는 가는 빛줄기(그라데이션 스트릭)
+    var TRAIL=24, SPC=0.03, BRIGHT=2.35, MAXSEG=6000, gpos=new Float32Array(MAXSEG*6), gcolA=new Float32Array(MAXSEG*6);
+    var glowGeo=new THREE.BufferGeometry();
+    glowGeo.setAttribute('position',new THREE.BufferAttribute(gpos,3));
+    glowGeo.setAttribute('color',new THREE.BufferAttribute(gcolA,3));
+    group.add(new THREE.LineSegments(glowGeo,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:1,depthWrite:false,blending:THREE.AdditiveBlending})));
+    // 호버 노란 글로우(노드 위)
+    var hgeo=new THREE.BufferGeometry(); hgeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(3),3));
+    var hmat=new THREE.PointsMaterial({size:0.17,map:tex,color:YEL,transparent:true,opacity:0,sizeAttenuation:true,depthWrite:false,blending:THREE.AdditiveBlending});
+    var hPts=new THREE.Points(hgeo,hmat); group.add(hPts); var hOp=0;
+    // 빛 전파: 노드에서 시작해 선을 따라 흐르고(레벨1), 도착 노드에서 한 번 더(레벨2)까지만
+    var flows=[];
+    function emit(node){ adj[node].forEach(function(nb){ if(flows.length<300) flows.push({a:node,b:nb.o,t:0,sp:0.007+Math.random()*0.003,lvl:1,done:false,life:1}); }); }
+    // 피킹(앞면만) / 드래그
+    var ray=new THREE.Raycaster(); ray.params.Points.threshold=0.10;
+    var mouse=new THREE.Vector2(99,99), inside=false, _wv=new THREE.Vector3();
+    function setMouse(e){var r=canvas.getBoundingClientRect();mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1;inside=true;}
+    function frontPick(){ group.updateMatrixWorld(); ray.setFromCamera(mouse,camera); var hit=ray.intersectObject(nodePts);
+      for(var i=0;i<hit.length;i++){ var idx=hit[i].index; _wv.set(npos[idx][0],npos[idx][1],npos[idx][2]).applyMatrix4(group.matrixWorld); if(_wv.z>0.25) return idx; } return -1; }
+    var dragging=false, pxv=0, pyv=0, moved=false, lastHover=-1, hoverCD=0, curHover=-1;
+    canvas.style.cursor='grab';
+    canvas.addEventListener('pointerdown',function(e){dragging=true;moved=false;pxv=e.clientX;pyv=e.clientY;canvas.style.cursor='grabbing';setMouse(e);});
+    window.addEventListener('pointerup',function(e){ if(dragging&&!moved){ setMouse(e); var p=frontPick(); if(p>=0) emit(p); } dragging=false;canvas.style.cursor='grab';});
+    window.addEventListener('pointermove',function(e){ setMouse(e);
+      if(dragging){var dx=e.clientX-pxv,dy=e.clientY-pyv;pxv=e.clientX;pyv=e.clientY; if(Math.abs(dx)+Math.abs(dy)>3)moved=true;
+        group.rotation.y+=dx*0.005; group.rotation.x=Math.max(-0.9,Math.min(0.9,group.rotation.x+dy*0.003)); } });
+    canvas.addEventListener('pointerleave',function(){inside=false;});
+    function resize(){var w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();if(composer)composer.setSize(canvas.width,canvas.height);}
+    window.addEventListener('resize',resize);resize();
+    // 토글 버튼
+    function syncBtns(){ document.querySelectorAll('.opt1-ctl [data-globe]').forEach(function(b){ b.classList.toggle('on',b.dataset.globe===curMode); b.disabled=(b.dataset.globe==='land'&&landFailed);}); }
+    document.querySelectorAll('.opt1-ctl [data-globe]').forEach(function(b){ b.addEventListener('click',function(){ if(b.dataset.globe==='land'&&landFailed)return; curMode=b.dataset.globe; applyDots(); syncBtns(); }); });
+    syncBtns();
+    var t0=null, nowT=0;
+    function frame(ts){if(t0===null)t0=ts; nowT=(ts-t0)/1000; var t=nowT;
+      lmat.opacity=Math.min(t/2.6,1)*0.18;
+      if(!dragging) group.rotation.y+=0.0006;            // 더 느린 자동 회전
+      // 호버: 앞면 노드 → 노란 글로우 + 빛 방출
+      if(!dragging&&inside){ var p=frontPick(); curHover=p; hoverCD--; if(p>=0&&p!==lastHover&&hoverCD<=0){emit(p);lastHover=p;hoverCD=26;} if(p<0)lastHover=-1; } else curHover=-1;
+      var tgt=(curHover>=0)?1:0; hOp+=(tgt-hOp)*0.2; hmat.opacity=hOp*0.9;
+      if(curHover>=0){ var hp=hgeo.attributes.position.array; hp[0]=npos[curHover][0];hp[1]=npos[curHover][1];hp[2]=npos[curHover][2]; hgeo.attributes.position.needsUpdate=true; }
+      // 빛 흐름: 선을 따라 이동(느리게) + 트레일 그라데이션 글로우 + 천천히 소멸
+      var gi=0;
+      for(var fi=flows.length-1;fi>=0;fi--){ var fl=flows[fi];
+        if(!fl.done){ fl.t+=fl.sp; if(fl.t>=1){ fl.t=1; fl.done=true;
+          if(fl.lvl<2){ adj[fl.b].forEach(function(nb){ if(nb.o!==fl.a&&flows.length<300) flows.push({a:fl.b,b:nb.o,t:0,sp:fl.sp,lvl:fl.lvl+1,done:false,life:1}); }); } } }
+        else { fl.life*=0.97; if(fl.life<0.04){ flows.splice(fi,1); continue; } }   // 천천히 감쇠
+        var A=npos[fl.a], B=npos[fl.b], lifeF=fl.done?fl.life:1, ppx,ppy,ppz,pbr=0;
+        for(var s=0;s<TRAIL;s++){ var pr=fl.t-s*SPC; if(pr<0)break;
+          var br=Math.pow(1-s/TRAIL,1.3)*lifeF*BRIGHT;                              // head 밝고 tail 어둡게(그라데이션) + 밝기
+          var x=A[0]+(B[0]-A[0])*pr, y=A[1]+(B[1]-A[1])*pr, z=A[2]+(B[2]-A[2])*pr;
+          if(s>0 && gi<MAXSEG){ var o=gi*6;
+            gpos[o]=ppx;gpos[o+1]=ppy;gpos[o+2]=ppz; gpos[o+3]=x;gpos[o+4]=y;gpos[o+5]=z;
+            gcolA[o]=YEL.r*pbr;gcolA[o+1]=YEL.g*pbr;gcolA[o+2]=YEL.b*pbr; gcolA[o+3]=YEL.r*br;gcolA[o+4]=YEL.g*br;gcolA[o+5]=YEL.b*br; gi++; }
+          ppx=x;ppy=y;ppz=z;pbr=br; }
+      }
+      glowGeo.setDrawRange(0,gi*2); glowGeo.attributes.position.needsUpdate=true; glowGeo.attributes.color.needsUpdate=true;
+      if(composer) composer.render(); else renderer.render(scene,camera);
       requestAnimationFrame(frame);
     }
-    resize(); requestAnimationFrame(frame);
-    setTimeout(recenter, 2300); // 인트로(글자 등장) 후 CTA 위치로 보정
-    setTimeout(function(){ canvas.style.opacity='1'; }, 1500);
+    requestAnimationFrame(frame);
+    setTimeout(function(){ canvas.style.opacity='1'; }, 700);
+    setTimeout(function(){ emit(0); emit((N/2)|0); }, 2600);
   })();
   </script>
 </body>
