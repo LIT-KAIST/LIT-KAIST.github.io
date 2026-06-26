@@ -411,8 +411,9 @@
         group.rotation.y+=dx*0.005; group.rotation.x=Math.max(-0.9,Math.min(0.9,group.rotation.x+dy*0.003)); } });
     canvas.addEventListener('pointerleave',function(){inside=false;});
     function resize(){var w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();if(composer)composer.setSize(canvas.width,canvas.height);
-      // 노드/호버 글로우 크기를 화면 높이에 반비례시켜 큰 화면에서 과하게 커지지 않게
-      nodePts.material.size=Math.min(0.15, 105/Math.max(440,h)); hmat.size=nodePts.material.size*1.95; }
+      // 화면 높이에 반비례 + 저밀도(외장모니터 DPR1)에서 더 작게(맥북 레티나는 그대로)
+      var pr=Math.min(window.devicePixelRatio||1,2);
+      nodePts.material.size=Math.min(0.15, 105/Math.max(440,h))*(0.7+0.3*(pr-1)); hmat.size=nodePts.material.size*1.95; }
     window.addEventListener('resize',resize);resize();
     // 토글 버튼
     function syncBtns(){ document.querySelectorAll('.opt1-ctl [data-globe]').forEach(function(b){ b.classList.toggle('on',b.dataset.globe===curMode); b.disabled=(b.dataset.globe==='land'&&landFailed);}); }
