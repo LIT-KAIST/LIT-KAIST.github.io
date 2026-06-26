@@ -6,7 +6,7 @@
 ## Contact
 - **Address:** 291 Daehak-ro (373-1 Guseong-dong, KAIST), Yuseong-gu, Daejeon, 305-701, KOREA
 - **Office:** Room 101, Woojung Research Center (W7)
-- **Tel:** 042-350-7420  |  **Fax:** 042-350-7620
+- **Tel:** 042-350-7420
 - **E-mail:** hcpark@kaist.ac.kr
 
 ---
