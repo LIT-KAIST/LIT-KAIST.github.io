@@ -66,10 +66,11 @@
 
     /* 연구 분야 풀스크린 섹션 */
     .area .wrap { width: 100%; }
-    .area-head { display: flex; align-items: baseline; gap: .4em; margin: 0 0 .12em; flex-wrap: wrap; }
-    .area-idx { font-family: var(--font-head); font-weight: 700; font-size: clamp(2.6rem, 8vw, 5.5rem); line-height: 1; opacity: .16; }
-    .area-cat { font-family: var(--font-head); font-weight: 700; font-size: clamp(1.3rem, 3.4vw, 2.4rem); letter-spacing: .03em; line-height: 1; color: var(--phead); }
-    .area h2 { font-size: clamp(1.9rem, 4.6vw, 3.2rem); margin: 0 0 .4em; line-height: 1.12; }
+    .area-head { display: flex; align-items: baseline; gap: .9em; margin: 0 0 .14em; flex-wrap: wrap; }
+    /* 숫자 = 제목 크기 동일, 분야명은 그 이상으로(중요 강조) */
+    .area-idx { font-family: var(--font-head); font-weight: 700; font-size: clamp(2rem, 4.8vw, 3.3rem); line-height: 1; opacity: .22; }
+    .area-cat { font-family: var(--font-head); font-weight: 700; font-size: clamp(2.2rem, 5.2vw, 3.7rem); letter-spacing: .02em; line-height: 1; color: var(--phead); }
+    .area h2 { font-size: clamp(2rem, 4.8vw, 3.3rem); margin: 0 0 .4em; line-height: 1.12; }
     .area .lead { font-size: clamp(1.1rem, 2vw, 1.45rem); max-width: 60ch; line-height: 1.7; margin: 0 0 1em; }
     .area ul { margin: 0; padding-left: 1.1em; max-width: 60ch; }
     .area li { font-size: clamp(1rem, 1.7vw, 1.2rem); margin: .35em 0; line-height: 1.5; }
@@ -409,7 +410,9 @@
       if(dragging){var dx=e.clientX-pxv,dy=e.clientY-pyv;pxv=e.clientX;pyv=e.clientY; if(Math.abs(dx)+Math.abs(dy)>3)moved=true;
         group.rotation.y+=dx*0.005; group.rotation.x=Math.max(-0.9,Math.min(0.9,group.rotation.x+dy*0.003)); } });
     canvas.addEventListener('pointerleave',function(){inside=false;});
-    function resize(){var w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();if(composer)composer.setSize(canvas.width,canvas.height);}
+    function resize(){var w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();if(composer)composer.setSize(canvas.width,canvas.height);
+      // 노드/호버 글로우 크기를 화면 높이에 반비례시켜 큰 화면에서 과하게 커지지 않게
+      nodePts.material.size=Math.min(0.15, 105/Math.max(440,h)); hmat.size=nodePts.material.size*1.95; }
     window.addEventListener('resize',resize);resize();
     // 토글 버튼
     function syncBtns(){ document.querySelectorAll('.opt1-ctl [data-globe]').forEach(function(b){ b.classList.toggle('on',b.dataset.globe===curMode); b.disabled=(b.dataset.globe==='land'&&landFailed);}); }
