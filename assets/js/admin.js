@@ -44,7 +44,7 @@
   function repo() {
     var h = (global.location.hostname || "").toLowerCase();
     if (/\.github\.io$/.test(h)) return h.replace(/\.github\.io$/, "") + "/" + h;
-    return "12-Season/12-Season.github.io";
+    return "LIT-KAIST/LIT-KAIST.github.io";
   }
   function token() { return (localStorage.getItem("lit-gh-token") || "").trim(); }
 

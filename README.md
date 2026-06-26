@@ -115,7 +115,7 @@ python3 -m http.server 8000   # http://localhost:8000
 ## 7. 배포 (GitHub Pages)
 `main` 에 push → 자동 반영(1~2분). 저장소 이름이 `<계정>.github.io` 여야 사용자 페이지로 동작.
 - 다른 계정 이전 시: 저장소를 `<새계정>.github.io` 로 만들면 admin이 저장소를 **자동 감지**(코드 수정 불필요).
-- **커스텀 도메인(lit.kaist.ac.kr)** 사용 시: `assets/js/admin.js` 의 `REPO_OVERRIDE` 에 `"owner/repo"` 입력 + 각 HTML의 `og:url`/`og:image` 도메인 교체.
+- **커스텀 도메인(lit.kaist.ac.kr)** 사용 시: 호스트명 자동감지가 안 되므로 `admin.js`·`news.js` 의 폴백 저장소(`LIT-KAIST/LIT-KAIST.github.io`)가 쓰입니다(이미 설정됨). 새 OG 도메인도 반영 완료.
 
 ## 8. 캐시 / 이미지 메모
 - CSS·JS는 `?v=YYYYMMDDx` 쿼리로 캐시 관리. **CSS/JS를 수정해 배포할 땐 모든 HTML의 `?v=` 값을 새 값으로** 바꿔야 방문자에게 적용됩니다. (데이터 CSV/MD·업로드 파일은 `no-store`라 버전 안 바꿔도 반영)
@@ -128,8 +128,8 @@ python3 -m http.server 8000   # http://localhost:8000
   (토큰은 GitHub Settings에서 새로 발급하거나 기존 것을 재사용)
 - **코드/구조 수정**(HTML·CSS·JS): 그 컴퓨터에 저장소를 한 번 받아오세요.
   ```bash
-  git clone https://github.com/12-Season/12-Season.github.io.git
-  cd 12-Season.github.io
+  git clone https://github.com/LIT-KAIST/LIT-KAIST.github.io.git
+  cd LIT-KAIST.github.io
   # 수정 후
   git add -A && git commit -m "..." && git push
   ```

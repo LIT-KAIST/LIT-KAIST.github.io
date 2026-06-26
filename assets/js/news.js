@@ -21,7 +21,7 @@
     if (REPO_OVERRIDE) return REPO_OVERRIDE;
     var h = (global.location.hostname || "").toLowerCase();
     if (/\.github\.io$/.test(h)) return h.replace(/\.github\.io$/, "") + "/" + h;
-    return "12-Season/12-Season.github.io"; // 로컬/커스텀도메인 fallback
+    return "LIT-KAIST/LIT-KAIST.github.io"; // 로컬/커스텀도메인 fallback
   }
   var COLS = ["date", "year", "forum", "title", "title_en", "content", "content_en", "links", "status"];
 
