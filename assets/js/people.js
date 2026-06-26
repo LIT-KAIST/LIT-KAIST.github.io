@@ -134,21 +134,13 @@
   function isCoord(p) {
     return /^(y|yes|1|true|o|예|✓)$/i.test((p["랩장"] || "").trim());
   }
-  // 왕관(가운데 원형 보석은 evenodd 로 뚫린 원 → 배경색이 비쳐 보임)
-  var CROWN_SVG =
-    '<svg class="p-crown-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
-    '<path fill-rule="evenodd" d="M2 8L6 12L12 5L18 12L22 8L20 19L4 19Z' +
-    'M12 11a2 2 0 1 0 0 4a2 2 0 1 0 0 -4z"></path></svg>';
   var COORD_BADGE =
-    '<span class="p-coord">' + CROWN_SVG +
-    '<span data-ko="연구실 대표 학생" data-en="Lab Coordinator">연구실 대표 학생</span></span>';
-  var CROWN =
-    '<span class="p-crown" title="연구실 대표 학생 · Lab Coordinator">' + CROWN_SVG + "</span>";
+    '<span class="p-coord"><span data-ko="연구실 대표 학생" data-en="Lab Coordinator">연구실 대표 학생</span></span>';
 
   function nameBlock(p) {
     var en = esc(p.name_english || "");
     var ko = esc(p.name_korean || "");
-    return (isCoord(p) ? CROWN : "") + en + (ko ? ' <span class="p-name-ko">' + ko + "</span>" : "");
+    return en + (ko ? ' <span class="p-name-ko">' + ko + "</span>" : "");
   }
 
   // 좌측 사진 + 우측 정보 (Faculty / Members)
@@ -181,6 +173,11 @@
     var pos = (p.current_position || "").trim();
     var thesis = (p["졸업논문"] || "").trim();
     var links = linkBtns(p);
+    var email = (p.email || "").trim();
+    // mailto → OS 기본 메일 앱(Windows: Microsoft Mail / Mac: Mail)으로 연결
+    var emailBtn = email
+      ? '<a class="p-btn p-btn-email" href="mailto:' + esc(email) + '">Email</a>'
+      : "";
     return (
       '<article class="person-card reveal">' +
         '<div class="pc-photo">' + photoTag(p, "pc-img") + "</div>" +
@@ -194,7 +191,7 @@
           ? '<div class="pc-thesis"><span class="pc-label" data-ko="학위논문" data-en="Thesis">학위논문</span>' +
             '<span class="pc-thesis-t">' + esc(thesis) + "</span></div>"
           : "") +
-        (links ? '<div class="pc-links">' + links + "</div>" : "") +
+        ((emailBtn || links) ? '<div class="pc-links">' + emailBtn + links + "</div>" : "") +
       "</article>"
     );
   }

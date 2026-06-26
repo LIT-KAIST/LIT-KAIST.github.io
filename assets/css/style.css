@@ -541,6 +541,8 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
   color: var(--accent); background: var(--soft);
 }
 .p-btn:hover { text-decoration: none; border-color: var(--accent); background: #fff; }
+.p-btn-email { background: var(--accent); color: #fff; border-color: var(--accent); }
+.p-btn-email:hover { background: var(--accent-dark); color: #fff; border-color: var(--accent-dark); }
 
 /* 연구실 대표 학생(랩장) — 이름 앞 왕관 + CV 영역 앞 배지 (무채색) */
 .p-crown-ico { width: 1em; height: 1em; flex: none; display: inline-block; }
