@@ -48,14 +48,20 @@
     setBi($("officeSpan"), r.office_ko, r.office_en);
     var tel = (r.tel || "").trim();
     var ts = $("telSpan"); if (ts && tel) ts.textContent = tel;
-    // 4) 지도
+    // 4) 지도 — '위도,경도' 면 ll 로 정확히 고정, 아니면 장소명 검색
     var q = (r.map_query || "").trim();
     if (q) {
-      var enc = encodeURIComponent(q);
-      var fr = $("mapFrame");
-      if (fr) { fr.src = "https://www.google.com/maps?q=" + enc + "&hl=ko&z=18&output=embed"; fr.title = q + " 지도"; }
-      var lk = $("mapLink");
-      if (lk) lk.href = "https://www.google.com/maps/search/?api=1&query=" + enc;
+      var fr = $("mapFrame"), lk = $("mapLink");
+      var isCoord = /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(q);
+      if (isCoord) {
+        var c = q.replace(/\s/g, "");
+        if (fr) { fr.src = "https://maps.google.com/maps?ll=" + c + "&q=" + c + "&z=18&hl=ko&output=embed"; fr.title = "지도"; }
+        if (lk) lk.href = "https://www.google.com/maps/search/?api=1&query=" + c;
+      } else {
+        var enc = encodeURIComponent(q);
+        if (fr) { fr.src = "https://maps.google.com/maps?q=" + enc + "&z=17&hl=ko&output=embed"; fr.title = q + " 지도"; }
+        if (lk) lk.href = "https://www.google.com/maps/search/?api=1&query=" + enc;
+      }
     }
     // i18n 재적용(추가된 data-ko/data-en 반영)
     if (global.LitI18n) global.LitI18n.apply(global.LitI18n.get());
