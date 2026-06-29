@@ -12,7 +12,7 @@
     scholar: "https://scholar.google.com/citations?user=j9EJaOsAAAAJ&hl=en", // 지도교수
     github: "",                                // 연구실 GitHub URL (있으면 입력)
   };
-  var V = "?v=20260623j";
+  var V = "?v=20260623k";
 
   var f = document.getElementById("siteFooter");
   if (!f) return;
@@ -49,7 +49,7 @@
         quick.map(function (l) { return '<a href="' + l[0] + '">' + l[1] + "</a>"; }).join("") +
       "</nav>" +
       '<div class="f-contact">' +
-        '<div data-ko="대전광역시 유성구 대학로 291, 한국과학기술원 우정연구동(W7) 101호" data-en="Room 101, Woojung Research Bldg (W7), KAIST, 291 Daehak-ro, Yuseong-gu, Daejeon">대전광역시 유성구 대학로 291, 한국과학기술원 우정연구동(W7) 101호</div>' +
+        '<div data-ko="대전광역시 유성구 대학로 291, 한국과학기술원 LG이노베이션홀(N24) 3111호" data-en="Room 3111, LG Innovation Hall (N24), KAIST, 291 Daehak-ro, Yuseong-gu, Daejeon">대전광역시 유성구 대학로 291, 한국과학기술원 LG이노베이션홀(N24) 3111호</div>' +
         (ext.length ? '<div class="f-ext">' + ext.join(" · ") + "</div>" : "") +
       "</div>" +
       '<div class="f-copy">© <span id="yr"></span> LIT Laboratory, KAIST. All rights reserved.</div>' +

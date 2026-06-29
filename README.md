@@ -48,7 +48,7 @@ data/   CSV/MD (사실상의 DB)
 `https://<사이트>/admin.html` → **GitHub 토큰** 입력 → 탭에서 추가·수정·삭제.
 변경은 GitHub에 자동 커밋되고 **1~2분 뒤 사이트에 반영**됩니다.
 
-관리 탭: **Members · Alumni · Album · Publications · News · Projects(진행중) · Projects(완료) · Seminar 목록 · Seminar 주차 · Site Text · Hero · Highlights**
+관리 탭: **Members · Alumni · Album · Publications · News · Projects(진행중) · Projects(완료) · Seminar 목록 · Seminar 주차 · Site Text · Hero · Highlights · Contact(연락처·모집)**
 
 - **사진 업로드**: 폼에서 파일 선택 → 자동으로 폭 1600px 리사이즈 후 커밋
 - **PDF/PPT 업로드**: Seminar의 syllabus·발표자료는 리사이즈 없이 그대로 업로드(같은 경로면 덮어쓰기)

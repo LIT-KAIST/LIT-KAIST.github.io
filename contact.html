@@ -16,18 +16,18 @@
   <meta name="twitter:title" content="Contact — LIT @ KAIST" />
   <meta name="twitter:description" content="LIT 연구실 연락처 · 오시는 길 · 대학원생 모집" />
   <meta name="twitter:image" content="https://lit.kaist.ac.kr/assets/og.jpg?v=1" />
-  <link rel="icon" type="image/png" href="assets/favicon-256.png?v=20260623j" />
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=20260623j" />
+  <link rel="icon" type="image/png" href="assets/favicon-256.png?v=20260623k" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=20260623k" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20260623j" />
-  <script src="assets/js/theme.js?v=20260623j"></script>
+  <link rel="stylesheet" href="assets/css/style.css?v=20260623k" />
+  <script src="assets/js/theme.js?v=20260623k"></script>
 </head>
 <body>
   <header class="site-header">
     <div class="wrap">
-      <a class="brand" href="index.html"><img class="brand-logo" src="assets/lit-logo.png?v=20260623j" alt="LIT — Laboratory for Information Transmission"></a>
+      <a class="brand" href="index.html"><img class="brand-logo" src="assets/lit-logo.png?v=20260623k" alt="LIT — Laboratory for Information Transmission"></a>
       <nav class="nav">
         <a href="index.html">Home</a>
         <a href="about.html">About</a>
@@ -97,7 +97,7 @@
           LIT는 석·박사 과정 학생을 모집하고 있습니다. 연구 주제로는 기계학습을 활용한 무선 통신 및 통신-센싱 융합(Integrated Sensing and Communication, ISAC) 등이 있습니다. 해당 분야에 관심이 있고 우리 연구실에 참여하고 싶은 학생은 아래 학생 모집 담당자를 통해 문의해 주세요.
         </p>
         <h3 class="contact-sub" data-ko="현재 모집 중" data-en="Currently recruiting">현재 모집 중</h3>
-        <ul class="contact-ul">
+        <ul class="contact-ul" id="recruitList">
           <li data-ko="석사 과정" data-en="M.S. students">석사 과정</li>
           <li data-ko="박사 과정" data-en="Ph.D. students">박사 과정</li>
         </ul>
@@ -109,9 +109,9 @@
 
         <div class="contact-card">
           <div class="cc-label" data-ko="학생 모집 담당자" data-en="Student Recruitment Manager">학생 모집 담당자</div>
-          <div class="cc-name" data-ko="황민영" data-en="Minyoung Hwang">황민영</div>
-          <a class="cc-mail" href="mailto:robco@kaist.ac.kr">robco@kaist.ac.kr</a>
-          <p><a class="about-morelink" href="mailto:robco@kaist.ac.kr"
+          <div class="cc-name" id="ccName" data-ko="황민영" data-en="Minyoung Hwang">황민영</div>
+          <a class="cc-mail" id="ccMail" href="mailto:robco@kaist.ac.kr">robco@kaist.ac.kr</a>
+          <p><a class="about-morelink" id="ccMailLink" href="mailto:robco@kaist.ac.kr"
                 data-ko="이메일로 문의하기 →" data-en="Email the manager →">이메일로 문의하기 →</a></p>
         </div>
       </div>
@@ -124,21 +124,21 @@
         <div class="contact-cols">
           <ul class="about-list">
             <li><strong data-ko="소속" data-en="Affiliation">소속</strong>:
-              <span data-ko="KAIST 전기및전자공학부" data-en="School of Electrical Engineering, KAIST">KAIST 전기및전자공학부</span></li>
+              <span id="affilSpan" data-ko="KAIST 전기및전자공학부" data-en="School of Electrical Engineering, KAIST">KAIST 전기및전자공학부</span></li>
             <li><strong data-ko="주소" data-en="Address">주소</strong>:
-              <span data-ko="대전광역시 유성구 대학로 291 (구성동 23, 한국과학기술원), 34141" data-en="291 Daehak-ro (23 Guseong-dong, KAIST), Yuseong-gu, Daejeon 34141, Republic of Korea">대전광역시 유성구 대학로 291 (구성동 23, 한국과학기술원), 34141</span></li>
+              <span id="addressSpan" data-ko="대전광역시 유성구 대학로 291 (구성동 23, 한국과학기술원), 34141" data-en="291 Daehak-ro (23 Guseong-dong, KAIST), Yuseong-gu, Daejeon 34141, Republic of Korea">대전광역시 유성구 대학로 291 (구성동 23, 한국과학기술원), 34141</span></li>
             <li><strong data-ko="연구실" data-en="Office">연구실</strong>:
-              <span data-ko="우정연구동(W7) 101호" data-en="Room 101, Woojung Research Building (W7)">우정연구동(W7) 101호</span></li>
-            <li><strong data-ko="전화" data-en="Tel">전화</strong>: <span>+82-42-350-7520</span></li>
+              <span id="officeSpan" data-ko="LG이노베이션홀(N24) 3111호" data-en="Room 3111, LG Innovation Hall (N24)">LG이노베이션홀(N24) 3111호</span></li>
+            <li><strong data-ko="전화" data-en="Tel">전화</strong>: <span id="telSpan">+82-42-350-7520</span></li>
             <li><strong data-ko="이메일" data-en="E-mail">이메일</strong>:
-              <a href="mailto:robco@kaist.ac.kr">robco@kaist.ac.kr</a></li>
+              <a id="mailLoc" href="mailto:robco@kaist.ac.kr">robco@kaist.ac.kr</a></li>
           </ul>
           <div class="map-wrap">
-            <iframe class="map-frame" title="KAIST 우정연구동(W7) 지도"
-              src="https://www.google.com/maps?q=KAIST%20%EB%82%98%EB%88%94%EA%B4%80%20W7&hl=ko&z=17&output=embed"
+            <iframe class="map-frame" id="mapFrame" title="KAIST LG이노베이션홀(N24) 지도"
+              src="https://www.google.com/maps?q=KAIST%20LG%EC%9D%B4%EB%85%B8%EB%B2%A0%EC%9D%B4%EC%85%98%ED%99%80%20N24&hl=ko&z=17&output=embed"
               loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-            <a class="about-morelink" target="_blank" rel="noopener"
-               href="https://www.google.com/maps/search/?api=1&query=KAIST%20%EB%82%98%EB%88%94%EA%B4%80%20W7"
+            <a class="about-morelink" id="mapLink" target="_blank" rel="noopener"
+               href="https://www.google.com/maps/search/?api=1&query=KAIST%20LG%EC%9D%B4%EB%85%B8%EB%B2%A0%EC%9D%B4%EC%85%98%ED%99%80%20N24"
                data-ko="지도에서 길찾기 →" data-en="Open in Google Maps →">지도에서 길찾기 →</a>
           </div>
         </div>
@@ -148,9 +148,11 @@
 
   <footer class="site-footer" id="siteFooter"></footer>
 
-  <script src="assets/js/i18n.js?v=20260623j"></script>
-  <script src="assets/js/reveal.js?v=20260623j"></script>
-  <script src="assets/js/footer.js?v=20260623j"></script>
+  <script src="assets/js/pubs.js?v=20260623k"></script>
+  <script src="assets/js/i18n.js?v=20260623k"></script>
+  <script src="assets/js/contact.js?v=20260623k"></script>
+  <script src="assets/js/reveal.js?v=20260623k"></script>
+  <script src="assets/js/footer.js?v=20260623k"></script>
   <script>
     document.getElementById("yr").textContent = new Date().getFullYear();
   </script>

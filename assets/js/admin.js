@@ -313,6 +313,30 @@
         { name: "sub_en", label: "Subtitle (English)" },
       ],
     },
+    contact: {
+      label: "Contact (연락처·모집)", csv: "data/contact.csv", idCol: "key", singleton: true,
+      title: function () { return "연구실 연락처 · 모집 정보"; },
+      fields: [
+        { name: "key", type: "hidden" },
+        { name: "manager_ko", label: "학생 모집 담당자 (한국어)" },
+        { name: "manager_en", label: "Recruitment manager (English)" },
+        { name: "email", label: "담당자/연구실 이메일" },
+        { name: "r_intern",  label: "현재 모집: 기간제연구원", type: "check" },
+        { name: "r_urp",     label: "현재 모집: 학부연구생", type: "check" },
+        { name: "r_msc",     label: "현재 모집: 석사 과정", type: "check" },
+        { name: "r_phd",     label: "현재 모집: 박사 과정", type: "check" },
+        { name: "r_msphd",   label: "현재 모집: 석박사통합과정", type: "check" },
+        { name: "r_postdoc", label: "현재 모집: 박사후연구원", type: "check" },
+        { name: "affil_ko", label: "소속 (한국어)" },
+        { name: "affil_en", label: "Affiliation (English)" },
+        { name: "address_ko", label: "주소 (한국어)" },
+        { name: "address_en", label: "Address (English)" },
+        { name: "office_ko", label: "연구실 위치 (한국어) — 예: LG이노베이션홀(N24) 3111호" },
+        { name: "office_en", label: "Office (English)" },
+        { name: "tel", label: "전화" },
+        { name: "map_query", label: "지도 검색어(Google Maps) — 예: KAIST LG이노베이션홀 N24" },
+      ],
+    },
     highlights: {
       label: "Highlights (대표성과·자동)", readonly: true,
     },
@@ -433,6 +457,14 @@
       if (key === "highlights") renderHighlightsInfo();
       return;
     }
+    // 단일 레코드(연락처 등): 추가/검색 숨기고 한 행만 편집
+    if (col.singleton) {
+      pubSel.innerHTML = "";
+      if (addBtn) addBtn.style.display = "none";
+      if (filt) filt.style.display = "none";
+      loadList();
+      return;
+    }
     if (addBtn) addBtn.style.display = "";
     if (filt) filt.style.display = "";
 
@@ -532,7 +564,7 @@
             (col.moveToAlumni ? '<button type="button" class="adm-mini" data-act="move" data-id="' + esc(id) + '">→ Alumni</button>' : "") +
             (col.moveTo ? '<button type="button" class="adm-mini" data-act="move2" data-id="' + esc(id) + '">' + esc(col.moveTo.label || "→ 이동") + "</button>" : "") +
             '<button type="button" class="adm-mini" data-act="edit" data-id="' + esc(id) + '">수정</button>' +
-            '<button type="button" class="adm-mini adm-danger" data-act="del" data-id="' + esc(id) + '">삭제</button>' +
+            (col.singleton ? "" : '<button type="button" class="adm-mini adm-danger" data-act="del" data-id="' + esc(id) + '">삭제</button>') +
           "</div></div>";
       }).join("");
     Array.prototype.forEach.call(listEl.querySelectorAll(".adm-mini"), function (b) {
@@ -588,6 +620,9 @@
   function fieldHtml(fd, row) {
     var v = row ? (row[fd.name] || "") : "";
     var lab = '<span>' + esc(fd.label) + (fd.required ? " *" : "") + "</span>";
+    if (fd.type === "hidden") {
+      return '<input type="hidden" data-name="' + fd.name + '" value="' + esc(v) + '">';
+    }
     if (fd.type === "select") {
       return '<label class="am-field">' + lab + '<select data-name="' + fd.name + '">' +
         fd.options.map(function (o) {
