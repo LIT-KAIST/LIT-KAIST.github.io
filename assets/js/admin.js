@@ -612,7 +612,14 @@
         });
       });
       tp.addEventListener("click", function (e) {
-        var btn = e.target.closest && e.target.closest(".tp-mv");
+        if (!e.target.closest) return;
+        var del = e.target.closest(".tp-del");
+        if (del) {
+          var it = del.closest(".tp-item");
+          if (it && global.confirm("이 사진을 이 앨범에서 제거할까요? (저장 시 반영)")) it.parentNode.removeChild(it);
+          return;
+        }
+        var btn = e.target.closest(".tp-mv");
         if (!btn) return;
         var item = btn.closest(".tp-item");
         if (btn.classList.contains("tp-l") && item.previousElementSibling) tp.insertBefore(item, item.previousElementSibling);
@@ -692,6 +699,7 @@
           : '<img src="' + esc(base + p) + '" loading="lazy">';
         return '<div class="tp-item' + (on ? " on" : "") + '" data-path="' + esc(p) + '">' +
           media +
+          '<button type="button" class="tp-del" title="이 사진 삭제">✕</button>' +
           '<div class="tp-ctl">' +
             '<button type="button" class="tp-mv tp-l" title="앞으로 이동">◀</button>' +
             '<label class="tp-pick"><input type="radio" name="__thumb" value="' + esc(p) + '"' + (on ? " checked" : "") + ">대표</label>" +
@@ -763,19 +771,32 @@
     return Array.prototype.map.call(items, function (it) { return it.getAttribute("data-path"); });
   }
 
-  // 편집 시 선택한 썸네일 해석(영상이면 첫 프레임 캡처 still). 변경 없으면 undefined.
+  // 앨범 썸네일 해석. 변경 없으면 undefined. (영상 대상이면 첫 프레임 캡처 still)
+  // 우선순위: 사용자가 '대표'로 고른 것 > (기존 썸네일이 아직 유효하면 유지) > 첫 이미지
   function resolvePickedThumb(col, imgVals) {
-    if (!col.auto || imgVals.image_files) return Promise.resolve(undefined);
+    if (!col.auto || imgVals.__thumbset) return Promise.resolve(undefined); // 새 앨범은 업로드가 지정
     var widget = document.querySelector('#admForm .am-thumbpick');
+    if (!widget) return Promise.resolve(undefined);
+    var all = (imgVals.image_files || "").split("|").map(function (s) { return s.trim(); }).filter(Boolean);
+    var cur = widget.getAttribute("data-curthumb") || "";
     var picked = document.querySelector('#admForm input[name="__thumb"]:checked');
-    if (!picked) return Promise.resolve(undefined);
-    var cur = widget ? (widget.getAttribute("data-curthumb") || "") : "";
-    var pv = picked.value;
-    if (!isVid(pv)) return Promise.resolve(pv === cur ? undefined : pv);
-    var still = pv.replace(/\.[^.]+$/, "") + "-thumb.jpg";
-    if (cur === still) return Promise.resolve(undefined); // 이미 캡처된 영상 썸네일
-    return captureFrame("assets/img/album/" + pv).then(function (b64) {
-      return b64 ? uploadVideoStill(b64, pv) : pv;
+    function stillOf(v) { return v.replace(/\.[^.]+$/, "") + "-thumb.jpg"; }
+    function valid(t) { // 현재 썸네일이 최종 목록에서 유효한가
+      if (!t) return false;
+      if (all.indexOf(t) >= 0) return true;
+      // 영상 캡처 still(<video>-thumb.jpg)이고 원본 영상이 목록에 있으면 유효
+      return all.some(function (p) { return isVid(p) && stillOf(p) === t; });
+    }
+    var target = picked ? picked.value : null;
+    if (!target) {
+      if (valid(cur)) return Promise.resolve(undefined);        // 기존 썸네일 유지
+      target = all.filter(function (p) { return !isVid(p); })[0] || all[0]; // 폴백: 첫 이미지/첫 항목
+    }
+    if (!target) return Promise.resolve(undefined);
+    if (!isVid(target)) return Promise.resolve(target === cur ? undefined : target);
+    if (cur === stillOf(target)) return Promise.resolve(undefined); // 이미 캡처됨
+    return captureFrame("assets/img/album/" + target).then(function (b64) {
+      return b64 ? uploadVideoStill(b64, target) : target;
     });
   }
 
@@ -807,11 +828,6 @@
         row[fd.name] = formVal(fd.name);
       });
       Object.keys(imgVals).forEach(function (k) { row[k] = imgVals[k]; });
-      // 앨범: 새 업로드가 없으면 미디어 매니저의 순서를 반영
-      if (col.auto && !imgVals.image_files) {
-        var ordered = readMediaOrder();
-        if (ordered && ordered.length) row.image_files = ordered.join("|");
-      }
       // 출판물 제목은 Title Case 규칙 자동 적용
       if (col.isPub && row.title && global.TitleCase) row.title = global.TitleCase(row.title);
 
@@ -900,37 +916,41 @@
           result[fd.name] = keep ? keep.value : "";
         }
       } else if (fd.type === "images") {
+        // 위젯에 남은 기존 미디어(삭제·순서 반영). 새 앨범엔 위젯이 없어 [].
+        var existing = readMediaOrder() || [];
         if (files && files.length) {
           var stamp = albumStamp();   // 입력 날짜 기준 폴더(연/월)
           var ym = stamp.slice(0, 4) + "/" + stamp.slice(5, 7);
           var paths = [];
-          // 순차 업로드
           var chain = Promise.resolve();
           Array.prototype.forEach.call(files, function (file, i) {
             chain = chain.then(function () {
-              var isVid = /\.(mp4|webm|mov|m4v)$/i.test(file.name) || /^video\//.test(file.type || "");
-              var ext = isVid ? ((file.name.match(/\.[a-z0-9]+$/i) || [".mp4"])[0].toLowerCase()) : ".jpg";
+              var isVidF = /\.(mp4|webm|mov|m4v)$/i.test(file.name) || /^video\//.test(file.type || "");
+              var ext = isVidF ? ((file.name.match(/\.[a-z0-9]+$/i) || [".mp4"])[0].toLowerCase()) : ".jpg";
               var p = "assets/img/album/" + ym + "/" + slug(formVal("title")) + "-" +
                 Math.round(performance.now()) + "-" + (i + 1) + ext;
-              return fileToB64(file, !isVid).then(function (b64) {  // 영상은 리사이즈 없이 원본 업로드
+              return fileToB64(file, !isVidF).then(function (b64) {  // 영상은 리사이즈 없이 원본
                 return uploadImage(p, b64, "Upload album media").then(function () { paths.push(p.replace("assets/img/album/", "")); });
               });
             });
           });
           jobs.push(chain.then(function () {
-            result.image_files = paths.join("|");
-            // 썸네일은 가급적 이미지(영상 아님) 우선
+            result.image_files = existing.concat(paths).join("|");   // 기존 유지 + 추가
+            if (existing.length) return;                             // 편집: 썸네일은 picker/유지 로직이 처리
+            // 새 앨범: 기본 썸네일(이미지 우선, 전부 영상이면 첫 프레임 캡처)
             var firstImg = paths.filter(function (p) { return !isVid(p); })[0];
-            if (firstImg) { result.thumbnail_file = firstImg; return; }
-            // 전부 영상 → 첫 영상의 첫 프레임을 캡처해 썸네일 still 생성(로컬 파일에서)
+            if (firstImg) { result.thumbnail_file = firstImg; result.__thumbset = true; return; }
             if (paths[0] && files[0]) {
               return captureFrame(URL.createObjectURL(files[0])).then(function (b64) {
+                result.thumbnail_file = b64 ? null : paths[0]; result.__thumbset = true;
                 if (b64) return uploadVideoStill(b64, paths[0]).then(function (s) { result.thumbnail_file = s; });
-                result.thumbnail_file = paths[0];
               });
             }
-            result.thumbnail_file = paths[0] || "";
+            result.thumbnail_file = paths[0] || ""; result.__thumbset = true;
           }));
+        } else if (existing.length) {
+          // 새 업로드 없음 → 위젯의 현재 순서/삭제만 반영
+          result.image_files = existing.join("|");
         }
       } else if (fd.type === "file") {
         if (files && files[0]) {
