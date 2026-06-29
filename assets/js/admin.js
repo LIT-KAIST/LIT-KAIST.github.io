@@ -286,9 +286,6 @@
         { name: "topic_en", label: "Topic (English)" },
         { name: "presenter", label: "발표자" },
         { name: "note", label: "비고" },
-        { name: "material", label: "발표자료 (PDF/PPT)", type: "file", accept: ".pdf,.ppt,.pptx,.key",
-          dir: function () { return "assets/files/seminar/" + (curPubTarget || "").replace(/^seminar_/, ""); },
-          filename: function (file) { return safeName(file.name); } },
       ],
     },
     site_text: {

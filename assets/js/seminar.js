@@ -2,7 +2,7 @@
    LIT @ KAIST — Internal Seminar (기록식)
    - data/seminars.csv : 세미나 목록 (slug,title,title_en,term,term_en,intro,
                           intro_en,syllabus,refs,status)
-   - data/seminar_<slug>.csv : 주차별 (week,date,topic,topic_en,presenter,material,note)
+   - data/seminar_<slug>.csv : 주차별 (week,date,topic,topic_en,presenter,note)
    목록 → 상세(소개 + 참고자료 + Syllabus PDF + 주차별 표)
    ========================================================================== */
 (function (global) {
@@ -75,14 +75,11 @@
       if (!rows.length) return '<p class="muted">' + t("주차 정보가 아직 없습니다.", "No sessions yet.") + "</p>";
       return '<div class="sem-weeks"><table><thead><tr>' +
         "<th>" + t("주차", "Week") + "</th><th>" + t("날짜", "Date") + "</th>" +
-        "<th>" + t("주제", "Topic") + "</th><th>" + t("발표자", "Presenter") + "</th>" +
-        "<th>" + t("자료", "Material") + "</th></tr></thead><tbody>" +
+        "<th>" + t("주제", "Topic") + "</th><th>" + t("발표자", "Presenter") + "</th></tr></thead><tbody>" +
         rows.map(function (w) {
-          var mat = (w.material || "").trim();
-          var matCell = mat ? '<a href="' + esc(mat) + '" target="_blank" rel="noopener">' + t("발표자료", "Slides") + "</a>" : "—";
           return "<tr><td>" + esc(w.week || "") + "</td><td>" + esc((w.date || "").slice(0, 10)) + "</td>" +
             "<td>" + esc(pick(w, "topic")) + (w.note ? ' <span class="sem-note">· ' + esc(w.note) + "</span>" : "") + "</td>" +
-            "<td>" + esc(w.presenter || "") + "</td><td>" + matCell + "</td></tr>";
+            "<td>" + esc(w.presenter || "") + "</td></tr>";
         }).join("") + "</tbody></table></div>";
     }
 
