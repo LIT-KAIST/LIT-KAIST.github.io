@@ -555,6 +555,8 @@
     if (q) list = list.filter(function (r) {
       return JSON.stringify(r).toLowerCase().indexOf(q) !== -1;
     });
+    // 앨범: 작성 순이 아니라 적힌 날짜 기준 최신→과거 정렬
+    if (col.auto) list = list.slice().sort(function (a, b) { return (b.date || "").localeCompare(a.date || ""); });
     listEl.innerHTML = '<div class="adm-count">' + list.length + "개</div>" +
       list.map(function (r) {
         var id = r[col.idCol] || r.title || "";
