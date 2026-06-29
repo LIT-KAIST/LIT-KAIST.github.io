@@ -21,6 +21,8 @@
       .filter(Boolean);
   }
 
+  function isVideo(path) { return /\.(mp4|webm|mov|m4v)$/i.test(path || ""); }
+
   function dateLabel(row) {
     // "2026-05-28 15:13:04" → "2026.05.28"
     var d = (row.date || "").trim().slice(0, 10);
@@ -88,11 +90,16 @@
     function card(row, idx) {
       var thumb = (row.thumbnail_file || imgList(row)[0] || "").trim();
       var n = imgList(row).length;
+      var media = !thumb ? ""
+        : (isVideo(thumb)
+            ? '<video class="ac-vid" src="' + esc(BASE + thumb) + '#t=0.1" muted preload="metadata" playsinline></video>' +
+              '<span class="ac-play" aria-hidden="true">▶</span>'
+            : '<img src="' + esc(BASE + thumb) + '" alt="' + esc(row.title) +
+              '" loading="lazy" onerror="this.classList.add(\'p-imgerr\')">');
       return (
         '<button class="album-card reveal" type="button" data-idx="' + idx + '">' +
           '<span class="ac-thumb">' +
-            (thumb ? '<img src="' + esc(BASE + thumb) + '" alt="' + esc(row.title) +
-              '" loading="lazy" onerror="this.classList.add(\'p-imgerr\')">' : "") +
+            media +
             (n > 1 ? '<span class="ac-count">🖼 ' + n + "</span>" : "") +
           "</span>" +
           '<span class="ac-body">' +
@@ -127,7 +134,7 @@
       mount.innerHTML = html || '<p class="muted" style="padding:24px 0">표시할 앨범이 없습니다.</p>';
       Array.prototype.forEach.call(mount.querySelectorAll(".album-card"), function (el) {
         el.addEventListener("click", function () {
-          var im = el.querySelector(".ac-thumb img");
+          var im = el.querySelector(".ac-thumb img, .ac-thumb video");
           openLightbox(+el.getAttribute("data-idx"), im ? im.getBoundingClientRect() : null);
         });
       });
@@ -135,7 +142,7 @@
     }
 
     /* ---------- 라이트박스 ---------- */
-    var lb, lbImg, lbFig, lbCap, lbCounter, lbPrev, lbNext;
+    var lb, lbImg, lbVid, lbFig, lbCap, lbCounter, lbPrev, lbNext;
     var curImgs = [], curPos = 0, curRow = null;
     var reduceMotion = global.matchMedia &&
       global.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -150,12 +157,14 @@
         '<button class="lb-nav lb-prev" type="button" aria-label="이전">&#10094;</button>' +
         '<figure class="lb-figure">' +
           '<img class="lb-img" alt="">' +
+          '<video class="lb-vid" controls playsinline preload="metadata" style="display:none"></video>' +
           '<figcaption class="lb-caption"></figcaption>' +
         "</figure>" +
         '<button class="lb-nav lb-next" type="button" aria-label="다음">&#10095;</button>' +
         '<div class="lb-counter"></div>';
       document.body.appendChild(lb);
       lbImg = lb.querySelector(".lb-img");
+      lbVid = lb.querySelector(".lb-vid");
       lbFig = lb.querySelector(".lb-figure");
       lbCap = lb.querySelector(".lb-caption");
       lbCounter = lb.querySelector(".lb-counter");
@@ -192,7 +201,15 @@
       lb.setAttribute("aria-hidden", "true");
       document.body.style.overflow = "";
       lbImg.src = "";
+      stopVideo();
       lbFig.classList.remove("is-stack");
+    }
+
+    function stopVideo() {
+      if (!lbVid) return;
+      try { lbVid.pause(); } catch (e) {}
+      lbVid.removeAttribute("src"); lbVid.load();
+      lbVid.style.display = "none";
     }
 
     function step(d) {
@@ -218,6 +235,20 @@
     // 이미지 교체 + 애니메이션 (flip=썸네일에서 다가옴, zoom=가운데서 확대, slide=좌우 이동)
     function showImg(anim) {
       var src = BASE + curImgs[curPos];
+
+      // 동영상: lb-vid 로 재생, lb-img 숨김
+      if (isVideo(curImgs[curPos])) {
+        lbImg.style.display = "none";
+        lbFig.classList.remove("is-stack");
+        if (lbVid) {
+          lbVid.style.display = "";
+          lbVid.src = src;
+          if (!reduceMotion && lbVid.animate) lbVid.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 280, easing: "ease" });
+        }
+        return;
+      }
+      stopVideo();
+      lbImg.style.display = "";
 
       if (reduceMotion || !lbImg.animate) { lbImg.src = src; return; }
 

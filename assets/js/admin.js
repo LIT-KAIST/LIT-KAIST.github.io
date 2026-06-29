@@ -177,7 +177,7 @@
         { name: "title", label: "제목", required: true },
         { name: "content", label: "설명", type: "textarea" },
         { name: "status", label: "상태", type: "select", options: STATUS_PUB },
-        { name: "images", label: "사진 (여러 장 가능, 첫 장이 썸네일)", type: "images" },
+        { name: "images", label: "사진·영상 (여러 개 가능 · 영상은 20초 이내·100MB 미만 권장 · 첫 장이 썸네일)", type: "images" },
       ],
     },
     publications: {
@@ -651,7 +651,7 @@
     }
     if (fd.type === "images") {
       return '<label class="am-field">' + lab +
-        '<input type="file" accept="image/*" multiple data-name="' + fd.name + '"></label>';
+        '<input type="file" accept="image/*,video/*" multiple data-name="' + fd.name + '"></label>';
     }
     if (fd.type === "file") {
       return '<label class="am-field">' + lab +
@@ -787,16 +787,20 @@
           var chain = Promise.resolve();
           Array.prototype.forEach.call(files, function (file, i) {
             chain = chain.then(function () {
+              var isVid = /\.(mp4|webm|mov|m4v)$/i.test(file.name) || /^video\//.test(file.type || "");
+              var ext = isVid ? ((file.name.match(/\.[a-z0-9]+$/i) || [".mp4"])[0].toLowerCase()) : ".jpg";
               var p = "assets/img/album/" + ym + "/" + slug(formVal("title")) + "-" +
-                Math.round(performance.now()) + "-" + (i + 1) + ".jpg";
-              return fileToB64(file, true).then(function (b64) {
-                return uploadImage(p, b64, "Upload album image").then(function () { paths.push(p.replace("assets/img/album/", "")); });
+                Math.round(performance.now()) + "-" + (i + 1) + ext;
+              return fileToB64(file, !isVid).then(function (b64) {  // 영상은 리사이즈 없이 원본 업로드
+                return uploadImage(p, b64, "Upload album media").then(function () { paths.push(p.replace("assets/img/album/", "")); });
               });
             });
           });
           jobs.push(chain.then(function () {
             result.image_files = paths.join("|");
-            result.thumbnail_file = paths[0] || "";
+            // 썸네일은 가급적 이미지(영상 아님) 우선
+            var firstImg = paths.filter(function (p) { return !/\.(mp4|webm|mov|m4v)$/i.test(p); })[0];
+            result.thumbnail_file = firstImg || paths[0] || "";
           }));
         }
       } else if (fd.type === "file") {
