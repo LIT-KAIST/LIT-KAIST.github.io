@@ -179,6 +179,7 @@
         { name: "status", label: "상태", type: "select", options: STATUS_PUB },
         { name: "date", label: "날짜 (예: 2024-03-15 · 비우면 오늘 · 옛 사진은 실제 날짜를 넣으면 그 시점에 정렬됨)" },
         { name: "images", label: "사진·영상 (여러 개 가능 · 영상은 20초 이내·100MB 미만 권장 · 첫 장이 썸네일)", type: "images" },
+        { name: "__thumbpick", label: "대표 사진(썸네일) 선택 — 영상을 고르면 첫 프레임이 썸네일로 저장됩니다", type: "thumbpick" },
       ],
     },
     publications: {
@@ -602,6 +603,13 @@
         pendingFiles[inp.getAttribute("data-name")] = inp.files;
       });
     });
+    // 썸네일 선택: 라디오 변경 시 선택 표시(.on) 토글
+    var tp = f.querySelector(".am-thumbpick");
+    if (tp) tp.addEventListener("change", function () {
+      Array.prototype.forEach.call(tp.querySelectorAll(".tp-item"), function (it) {
+        it.classList.toggle("on", !!it.querySelector("input:checked"));
+      });
+    });
     // 상세 본문(md): 편집 시 기존 파일 내용을 textarea 에 채움 (slug 기준)
     var mds = col.fields.filter(function (fd) { return fd.type === "md"; });
     if (mds.length && row && (row.slug || "").trim()) {
@@ -660,6 +668,24 @@
         '<input type="file"' + (fd.accept ? ' accept="' + fd.accept + '"' : "") + ' data-name="' + fd.name + '">' +
         '<input type="hidden" data-name="' + fd.name + '" value="' + esc(v) + '"></label>';
     }
+    if (fd.type === "thumbpick") {
+      var imgs = (((row && row.image_files) || "")).split("|").map(function (s) { return s.trim(); }).filter(Boolean);
+      if (!imgs.length) {
+        return '<label class="am-field">' + lab +
+          '<span class="am-cur">사진·영상을 올리고 저장한 뒤, 다시 이 항목을 수정하면 대표(썸네일)를 고를 수 있어요. (기본: 첫 사진)</span></label>';
+      }
+      var cur = row ? (row.thumbnail_file || "").trim() : "";
+      var base = "assets/img/album/";
+      var items = imgs.map(function (p) {
+        var on = (p === cur) || (!!cur && cur === p.replace(/\.[^.]+$/, "") + "-thumb.jpg");
+        var media = isVid(p)
+          ? '<video src="' + esc(base + p) + '#t=0.1" muted preload="metadata"></video><span class="tp-vid">▶</span>'
+          : '<img src="' + esc(base + p) + '" loading="lazy">';
+        return '<label class="tp-item' + (on ? " on" : "") + '">' +
+          '<input type="radio" name="__thumb" value="' + esc(p) + '"' + (on ? " checked" : "") + ">" + media + "</label>";
+      }).join("");
+      return '<label class="am-field">' + lab + '<div class="am-thumbpick">' + items + "</div></label>";
+    }
     return '<label class="am-field">' + lab + '<input type="text" data-name="' + fd.name + '" value="' + esc(v) + '"></label>';
   }
 
@@ -674,6 +700,54 @@
     if (!d) return editingId || nowStamp();
     d = d.replace("T", " ").trim();
     return /^\d{4}-\d{2}-\d{2}[ ]\d{2}:\d{2}/.test(d) ? d : (d.slice(0, 10) + " " + nowStamp().slice(11));
+  }
+
+  function isVid(p) { return /\.(mp4|webm|mov|m4v)$/i.test(p || ""); }
+
+  // 동영상 첫 프레임 캡처 → jpeg base64 (실패 시 null). url 은 로컬 objectURL 또는 서버 경로.
+  function captureFrame(url) {
+    return new Promise(function (resolve) {
+      var v = document.createElement("video");
+      v.muted = true; v.preload = "auto";
+      try { v.crossOrigin = "anonymous"; } catch (e) {}
+      var done = false, to = setTimeout(function () { finish(null); }, 10000);
+      function finish(b64) { if (done) return; done = true; clearTimeout(to); resolve(b64); }
+      function grab() {
+        try {
+          var w = v.videoWidth, h = v.videoHeight;
+          if (!w || !h) { finish(null); return; }
+          var scale = Math.min(1, MAXW / w);
+          var c = document.createElement("canvas");
+          c.width = Math.round(w * scale); c.height = Math.round(h * scale);
+          c.getContext("2d").drawImage(v, 0, 0, c.width, c.height);
+          finish(c.toDataURL("image/jpeg", JPEG_Q).split(",")[1]);
+        } catch (e) { finish(null); }
+      }
+      v.addEventListener("loadeddata", function () {
+        try { v.currentTime = Math.min(0.1, (v.duration || 1) / 2); } catch (e) { grab(); }
+      });
+      v.addEventListener("seeked", grab);
+      v.addEventListener("error", function () { finish(null); });
+      v.src = url;
+    });
+  }
+
+  // 캡처 still 을 <영상경로>-thumb.jpg 로 업로드 → (앨범 베이스 기준) 상대경로 반환
+  function uploadVideoStill(b64, videoRel) {
+    var still = videoRel.replace(/\.[^.]+$/, "") + "-thumb.jpg";
+    return uploadImage("assets/img/album/" + still, b64, "Album video first-frame thumbnail").then(function () { return still; });
+  }
+
+  // 편집 시 선택한 썸네일 해석(영상이면 첫 프레임 캡처 still). 변경 없으면 undefined.
+  function resolvePickedThumb(col, imgVals) {
+    if (!col.auto || imgVals.image_files) return Promise.resolve(undefined);
+    var picked = document.querySelector('#admForm input[name="__thumb"]:checked');
+    if (!picked) return Promise.resolve(undefined);
+    var pv = picked.value;
+    if (!isVid(pv)) return Promise.resolve(pv);
+    return captureFrame("assets/img/album/" + pv).then(function (b64) {
+      return b64 ? uploadVideoStill(b64, pv) : pv;
+    });
   }
 
   function openModal() { document.getElementById("admModal").setAttribute("aria-hidden", "false"); document.body.style.overflow = "hidden"; }
@@ -695,7 +769,7 @@
       // 2) row 객체 구성
       var row = {};
       col.fields.forEach(function (fd) {
-        if (fd.type === "image" || fd.type === "images" || fd.type === "file" || fd.type === "md") return;
+        if (fd.type === "image" || fd.type === "images" || fd.type === "file" || fd.type === "md" || fd.type === "thumbpick") return;
         if (fd.type === "check") {
           var cb = document.querySelector('#admForm input[type=checkbox][data-name="' + fd.name + '"]');
           row[fd.name] = cb && cb.checked ? "Y" : "";
@@ -714,24 +788,28 @@
       }
 
       var headerCols = col.fields
-        .filter(function (fd) { return fd.type !== "images" && fd.type !== "md"; })
+        .filter(function (fd) { return fd.type !== "images" && fd.type !== "md" && fd.type !== "thumbpick"; })
         .map(function (fd) { return fd.name; });
-      return commitCsv(csvPathOf(col), (editingId ? "Update " : "Add ") + col.label + ": " + msgName, function (rows) {
-        var ix = colIndex(rows);
-        if (editingId) {
-          var idi = ix[col.idCol], hit = false;
-          for (var i = 1; i < rows.length; i++) {
-            if ((rows[i][idi] || "").trim() === editingId) {
-              setCells(rows[i], ix, row, col); hit = true; break;
+      // 앨범 썸네일 선택(영상이면 첫 프레임 캡처) 반영 후 커밋
+      return resolvePickedThumb(col, imgVals).then(function (picked) {
+        if (picked !== undefined) row.thumbnail_file = picked;
+        return commitCsv(csvPathOf(col), (editingId ? "Update " : "Add ") + col.label + ": " + msgName, function (rows) {
+          var ix = colIndex(rows);
+          if (editingId) {
+            var idi = ix[col.idCol], hit = false;
+            for (var i = 1; i < rows.length; i++) {
+              if ((rows[i][idi] || "").trim() === editingId) {
+                setCells(rows[i], ix, row, col); hit = true; break;
+              }
             }
+            if (!hit) throw new Error("수정할 항목을 찾지 못했습니다.");
+          } else {
+            var cells = new Array((rows[0] || []).length).fill("");
+            setCells(cells, ix, row, col);
+            rows.splice(1, 0, cells); // 맨 위(최신)
           }
-          if (!hit) throw new Error("수정할 항목을 찾지 못했습니다.");
-        } else {
-          var cells = new Array((rows[0] || []).length).fill("");
-          setCells(cells, ix, row, col);
-          rows.splice(1, 0, cells); // 맨 위(최신)
-        }
-      }, headerCols).then(function () { return commitDetailMd(col); });
+        }, headerCols).then(function () { return commitDetailMd(col); });
+      });
     }).then(function () {
       setFormMsg("저장 완료! 1~2분 후 사이트에 반영됩니다.", "ok");
       setTimeout(function () { closeModal(); loadList(); }, 900);
@@ -808,8 +886,16 @@
           jobs.push(chain.then(function () {
             result.image_files = paths.join("|");
             // 썸네일은 가급적 이미지(영상 아님) 우선
-            var firstImg = paths.filter(function (p) { return !/\.(mp4|webm|mov|m4v)$/i.test(p); })[0];
-            result.thumbnail_file = firstImg || paths[0] || "";
+            var firstImg = paths.filter(function (p) { return !isVid(p); })[0];
+            if (firstImg) { result.thumbnail_file = firstImg; return; }
+            // 전부 영상 → 첫 영상의 첫 프레임을 캡처해 썸네일 still 생성(로컬 파일에서)
+            if (paths[0] && files[0]) {
+              return captureFrame(URL.createObjectURL(files[0])).then(function (b64) {
+                if (b64) return uploadVideoStill(b64, paths[0]).then(function (s) { result.thumbnail_file = s; });
+                result.thumbnail_file = paths[0];
+              });
+            }
+            result.thumbnail_file = paths[0] || "";
           }));
         }
       } else if (fd.type === "file") {
