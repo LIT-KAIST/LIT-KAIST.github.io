@@ -12,7 +12,7 @@
     scholar: "https://scholar.google.com/citations?user=j9EJaOsAAAAJ&hl=en", // 지도교수
     github: "",                                // 연구실 GitHub URL (있으면 입력)
   };
-  var V = "?v=20260623w";
+  var V = "?v=20260623x";
 
   var f = document.getElementById("siteFooter");
   if (!f) return;

@@ -562,6 +562,7 @@
           '<div class="adm-row-main"><span class="adm-row-title">' + esc(disp) + "</span>" +
           '<span class="adm-row-sub">' + esc(col.sub ? col.sub(r) : "") + "</span></div>" +
           '<div class="adm-row-act">' +
+            (col.auto ? '<button type="button" class="adm-mini" data-act="dl" data-id="' + esc(id) + '">📥 사진</button>' : "") +
             (col.moveToAlumni ? '<button type="button" class="adm-mini" data-act="move" data-id="' + esc(id) + '">→ Alumni</button>' : "") +
             (col.moveTo ? '<button type="button" class="adm-mini" data-act="move2" data-id="' + esc(id) + '">' + esc(col.moveTo.label || "→ 이동") + "</button>" : "") +
             '<button type="button" class="adm-mini" data-act="edit" data-id="' + esc(id) + '">수정</button>' +
@@ -575,9 +576,51 @@
         else if (act === "del") doDelete(id);
         else if (act === "move") openMove(findRow(id));
         else if (act === "move2") doMoveTo(findRow(id));
+        else if (act === "dl") downloadAlbumMedia(id);
       });
     });
   }
+
+  // 앨범 사진/영상을 ZIP으로 다운로드(원본, 사이트에 올라간 파일 기준)
+  function downloadAlbumMedia(id) {
+    var row = findRow(id);
+    if (!row) return;
+    var paths = (row.image_files || "").split("|").map(function (s) { return s.trim(); }).filter(Boolean);
+    if (!paths.length) { setMsg("이 앨범에는 사진이 없습니다.", "err"); return; }
+    var base = "assets/img/album/";
+    var zipName = ((row.date || "").slice(0, 10) + " " + (row.title || "album")).replace(/[\\/:*?"<>|]+/g, "_").trim() + ".zip";
+    if (typeof JSZip === "undefined") { // 라이브러리 미로드 → 개별 다운로드로 폴백
+      setMsg("개별 다운로드로 진행합니다(팝업/다중 다운로드 허용 필요).", "");
+      paths.forEach(function (p) {
+        var a = document.createElement("a"); a.href = base + p; a.download = p.split("/").pop();
+        document.body.appendChild(a); a.click(); a.remove();
+      });
+      return;
+    }
+    setMsg("사진 " + paths.length + "개 압축 중… 잠시만요.", "");
+    var zip = new JSZip(), seen = {}, okc = 0;
+    Promise.all(paths.map(function (p) {
+      return fetch(base + p + "?z=" + Date.now(), { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.blob(); })
+        .then(function (blob) {
+          var orig = p.split("/").pop();
+          seen[orig] = (seen[orig] || 0) + 1;
+          var name = orig;
+          if (seen[orig] > 1) { var d = orig.lastIndexOf("."); name = (d < 0 ? orig : orig.slice(0, d)) + "-" + seen[orig] + (d < 0 ? "" : orig.slice(d)); }
+          zip.file(name, blob); okc++;
+        })
+        .catch(function () { /* 없는 파일은 건너뜀 */ });
+    })).then(function () {
+      if (!okc) throw new Error("파일을 가져오지 못했습니다(아직 배포 전일 수 있어요).");
+      return zip.generateAsync({ type: "blob" });
+    }).then(function (blob) {
+      var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = zipName;
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+      setMsg("다운로드 시작: " + zipName + " (" + okc + "개)", "ok");
+    }).catch(function (e) { setMsg("다운로드 실패: " + e.message, "err"); });
+  }
+
   function findRow(id) {
     var col = COLLECTIONS[curKey];
     return rowsCache.filter(function (r) { return (r[col.idCol] || r.title) === id; })[0];

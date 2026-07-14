@@ -5,18 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin — LIT @ KAIST</title>
   <meta name="robots" content="noindex, nofollow" />
-  <link rel="icon" type="image/png" href="assets/favicon-256.png?v=20260623w" />
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=20260623w" />
+  <link rel="icon" type="image/png" href="assets/favicon-256.png?v=20260623x" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=20260623x" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20260623w" />
-  <script src="assets/js/theme.js?v=20260623w"></script>
+  <link rel="stylesheet" href="assets/css/style.css?v=20260623x" />
+  <script src="assets/js/theme.js?v=20260623x"></script>
 </head>
 <body>
   <header class="site-header">
     <div class="wrap">
-      <a class="brand" href="index.html"><img class="brand-logo" src="assets/lit-logo.png?v=20260623w" alt="LIT — Laboratory for Information Transmission"></a>
+      <a class="brand" href="index.html"><img class="brand-logo" src="assets/lit-logo.png?v=20260623x" alt="LIT — Laboratory for Information Transmission"></a>
       <nav class="nav">
         <a href="index.html">Home</a>
         <a href="projects.html">Projects</a>
@@ -38,10 +38,12 @@
 
   <footer class="site-footer" id="siteFooter"></footer>
 
-  <script src="assets/js/pubs.js?v=20260623w"></script>
-  <script src="assets/js/titlecase.js?v=20260623w"></script>
-  <script src="assets/js/admin.js?v=20260623w"></script>
-  <script src="assets/js/footer.js?v=20260623w"></script>
+  <script src="assets/js/pubs.js?v=20260623x"></script>
+  <script src="assets/js/titlecase.js?v=20260623x"></script>
+  <!-- 앨범 사진 ZIP 다운로드용(관리자 전용) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="assets/js/admin.js?v=20260623x"></script>
+  <script src="assets/js/footer.js?v=20260623x"></script>
   <script>
     document.getElementById("yr").textContent = new Date().getFullYear();
     Admin.init("admRoot");
