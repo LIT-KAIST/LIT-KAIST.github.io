@@ -206,6 +206,7 @@
         { name: "doi", label: "DOI" },
         { name: "abstract", label: "초록", type: "textarea" },
         { name: "status", label: "상태", type: "select", options: ["publish", "forthcoming"] },
+        { name: "__makenews", label: "📰 이 논문으로 뉴스 자동 작성 (새 논문 저장 시)", type: "check", checkedDefault: true },
       ],
     },
     news: {
@@ -703,7 +704,7 @@
       return '<label class="am-field">' + lab + '<textarea data-name="' + fd.name + '" rows="4">' + esc(v) + "</textarea></label>";
     }
     if (fd.type === "check") {
-      var on = /^(y|yes|1|true|o|예|✓)$/i.test(String(v).trim());
+      var on = row ? /^(y|yes|1|true|o|예|✓)$/i.test(String(v).trim()) : !!fd.checkedDefault;
       return '<label class="am-field am-check"><input type="checkbox" data-name="' + fd.name + '"' +
         (on ? " checked" : "") + "><span>" + esc(fd.label) + "</span></label>";
     }
@@ -1017,10 +1018,10 @@
             setCells(cells, ix, row, col);
             rows.splice(1, 0, cells); // 맨 위(최신)
           }
-        }, headerCols).then(function () { return commitDetailMd(col); });
+        }, headerCols).then(function () { return commitDetailMd(col); }).then(function () { return maybeCreateNews(col, row); });
       });
-    }).then(function () {
-      setFormMsg("저장 완료! 1~2분 후 사이트에 반영됩니다.", "ok");
+    }).then(function (madeNews) {
+      setFormMsg(madeNews ? "저장 완료! 📰 뉴스도 자동 작성했습니다. 1~2분 후 반영됩니다." : "저장 완료! 1~2분 후 사이트에 반영됩니다.", "ok");
       setTimeout(function () { closeModal(); loadList(); }, 900);
     }).catch(function (e) { setFormMsg(e.message, "err"); });
   }
@@ -1054,6 +1055,46 @@
         return commitText(path, text, "Update project detail: " + slugVal + " (" + fd.mdLang + ")");
       });
     }, Promise.resolve());
+  }
+
+  // 새 논문 저장 시 → data/news.csv 에 "게재 accept" 뉴스 자동 작성 (기존 양식 동일)
+  function maybeCreateNews(col, row) {
+    if (editingId || !col.isPub) return Promise.resolve();  // 새 논문만
+    var cb = document.querySelector('#admForm input[type=checkbox][data-name="__makenews"]');
+    if (!(cb && cb.checked)) return Promise.resolve();
+    var isIntl = /international/i.test(curPubTarget || "");
+    var venue = (row.journal || row.booktitle || "").trim();
+    var title = (row.title || "").trim();
+    if (!title || !venue) return Promise.resolve();
+    var authorsRaw = (row.author || "").trim();
+    // 국제: 약어(S. Lee)를 구성원 풀네임(Seunghun Lee)으로 변환 / 국내: 원본(한글) 유지
+    var prep = isIntl
+      ? fetch("data/people_members.csv?z=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
+          var map = { "H. Park": "Hyuncheol Park" };
+          if (t && P) P._rowsToObjects(P._parseCSV(t)).forEach(function (m) { var en = (m.name_english || "").trim(); if (en) map[abbrevName(en)] = en; });
+          return oxfordJoin(parseAuthors(authorsRaw).map(function (a) { return map[a] || a; }));
+        })
+      : Promise.resolve(authorsRaw);
+    return prep.then(function (authors) {
+      var stamp = (row.date && /^\d{4}-\d{2}-\d{2}/.test(row.date)) ? row.date : nowStamp();
+      var nd = /\d{2}:\d{2}/.test(stamp) ? stamp : (stamp.slice(0, 10) + " " + nowStamp().slice(11));
+      var nTitle = venue + " paper is accepted!";
+      var nContent, nContentEn;
+      if (isIntl) {
+        nContent = 'One paper "' + title + ' by ' + authors + '" has been accepted to ' + venue + '! Congratulations!';
+        nContentEn = nContent;
+      } else {
+        nContent = '"' + title + '(' + authors + ')"이 ' + venue + '에 accept 되었습니다. 축하드립니다!';
+        nContentEn = 'One paper "' + title + ' (' + authors + ')" has been accepted to ' + venue + '. Congratulations!';
+      }
+      var nr = { date: nd, year: nd.slice(0, 4), forum: "Board", title: nTitle, title_en: nTitle, content: nContent, content_en: nContentEn, links: "", status: "publish" };
+      return commitCsv("data/news.csv", "Auto news for accepted paper: " + title.slice(0, 60), function (rows) {
+        var ix = colIndex(rows);
+        var cells = new Array((rows[0] || []).length).fill("");
+        Object.keys(nr).forEach(function (k) { if (ix[k] != null) cells[ix[k]] = nr[k]; });
+        rows.splice(1, 0, cells);
+      });
+    });
   }
 
   // 폼의 이미지 필드들을 업로드하고 경로 값 반환
