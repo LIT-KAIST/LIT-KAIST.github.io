@@ -39,12 +39,6 @@ journal,Optical Review
 journal,Physical Communication
 journal,Scientific Reports
 journal,Telecommunications Review
-journal,전자공학회논문지
-journal,정보와통신 (한국통신학회지)
-journal,한국전자파학회논문지
-journal,한국통신학회 논문지
-journal,한국통신학회 눈문지
-journal,한국통신학회논문지
 conference,Asia Pacific Conference on Communications (APCC)
 conference,Asia and South Pacific Design Automation Conference (ASP-DAC)
 conference,ICT Triangle Forum
@@ -72,18 +66,13 @@ conference,Joint Conference on Satellite Communications (JC-SAT)
 conference,SOC Design Conference
 conference,The CDMA International Conference (CIC)
 conference,Triangle Symposium on Advanced ICT (TriSAI)
-conference,동계종합학술대회
-conference,부호 및 정보이론 연구회 제2차 워크샵
-conference,제11회 통신정보합동학술대회
-conference,제12회 통신정보합동학술대회
-conference,제13회 한국반도체학술대회
-conference,제14회 통신정보합동학술대회
-conference,제15회 통신정보합동학술대회
-conference,제16회 통신정보합동학술대회
-conference,제17회 통신정보합동학술대회
-conference,제18회 통신정보합동학술대회
-conference,제21회 통신정보합동학술대회
-conference,추계종합학술대회
-conference,추계종합학술발표회
-conference,하계종합학술대회
-conference,하계종합학술발표회
+journal,한국통신학회논문지
+journal,전자공학회논문지
+journal,한국전자파학회논문지
+journal,정보와통신 (한국통신학회지)
+conference,통신정보합동학술대회 (JCCI)
+conference,한국통신학회 하계종합학술발표회 (KICS Summer)
+conference,한국통신학회 추계종합학술발표회 (KICS Fall)
+conference,한국통신학회 동계종합학술발표회 (KICS Winter)
+conference,한국반도체학술대회
+conference,부호 및 정보이론 워크샵
