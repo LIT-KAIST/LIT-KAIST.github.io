@@ -106,6 +106,19 @@
     return /^https?:\/\//i.test(url) ? url : "";
   }
 
+  // 영문 저자 목록을 "A, B, and C"(Oxford) 형식으로 정규화. 국문(한글 포함)은 원본 유지.
+  function formatAuthors(str) {
+    str = (str || "").trim();
+    if (!str || /[가-힣]/.test(str)) return str;
+    var parts = str.split(/\s*,\s*/).map(function (s) { return s.replace(/^and\s+/i, "").trim(); }).filter(Boolean);
+    var out = [];
+    parts.forEach(function (s) { if (/\s+and\s+/i.test(s)) out.push.apply(out, s.split(/\s+and\s+/i)); else out.push(s); });
+    out = out.map(function (s) { return s.trim(); }).filter(function (s) { return s && s.toLowerCase() !== "and"; });
+    if (out.length <= 1) return out[0] || "";
+    if (out.length === 2) return out[0] + " and " + out[1];
+    return out.slice(0, -1).join(", ") + ", and " + out[out.length - 1];
+  }
+
   // Highlight the PI (H. Park / Hyuncheol Park / 박현철) in an author string.
   function highlightPI(escapedAuthors) {
     return escapedAuthors.replace(
@@ -121,7 +134,7 @@
   /* --------------------------- citation builders ------------------------- */
   // Returns the inner HTML for one entry's citation line (already escaped).
   function citation(rec, type) {
-    const authors = highlightPI(esc(rec.author || rec.editor || ""));
+    const authors = highlightPI(esc(formatAuthors(rec.author || rec.editor || "")));
     const title = esc(rec.title || "");
     let venue = "";
     let detail = "";

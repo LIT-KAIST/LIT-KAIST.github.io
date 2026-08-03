@@ -766,6 +766,24 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
   font-size: .72rem; line-height: 20px; text-align: center; cursor: pointer;
 }
 .tp-del:hover { background: #c82828; }
+/* admin 저자 위젯 */
+.au-box { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.au-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.au-chip {
+  display: inline-flex; align-items: center; gap: 1px; background: var(--soft, #eef2f7);
+  border: 1px solid var(--line, #d5dde6); border-radius: 999px; padding: 2px 4px 2px 9px; font-size: .9rem;
+}
+.au-nm { font-weight: 600; }
+.au-mv, .au-del { border: 0; background: transparent; cursor: pointer; font-size: .72rem; line-height: 1; padding: 3px 3px; color: #667; border-radius: 4px; }
+.au-mv:hover, .au-del:hover { background: rgba(0,0,0,.08); }
+.au-del { color: #c0392b; font-weight: 700; }
+.au-roster { display: flex; flex-wrap: wrap; gap: 6px; }
+.au-pick { border: 1px solid var(--line, #d5dde6); background: #fff; border-radius: 999px; padding: 4px 10px; font-size: .85rem; cursor: pointer; }
+.au-pick:hover { background: var(--soft, #eef2f7); }
+.au-ko { color: #889; font-size: .8em; }
+.au-add { display: flex; gap: 6px; }
+.au-add .au-input { flex: 1; }
+.au-preview { font-size: .85rem; }
 /* 여러 장인 앨범: 뒤에 사진이 쌓인 "뭉탱이" 느낌 */
 .lb-figure.is-stack .lb-img {
   box-shadow:

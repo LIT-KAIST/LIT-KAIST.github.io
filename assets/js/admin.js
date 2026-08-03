@@ -195,7 +195,7 @@
       sub: function (r) { return (r.author || "").slice(0, 60); },
       fields: [
         { name: "title", label: "제목", required: true },
-        { name: "author", label: "저자 (and 로 구분)" },
+        { name: "author", label: "저자 — 구성원 클릭 추가 · 직접 추가 · ◀▶ 순서 (자동으로 A, B, and C 형식 저장)", type: "authors" },
         { name: "date", label: "날짜 (YYYY-MM-DD)" },
         { name: "journal", label: "저널 (Journal)" },
         { name: "booktitle", label: "학술대회/Booktitle (Conference)" },
@@ -645,6 +645,9 @@
         pendingFiles[inp.getAttribute("data-name")] = inp.files;
       });
     });
+    // 저자 위젯(Publications)
+    var auBox = f.querySelector(".au-box");
+    if (auBox) setupAuthors(auBox);
     // 미디어 매니저: 라디오(대표) 표시 토글 + ◀▶ 순서 이동
     var tp = f.querySelector(".am-thumbpick");
     if (tp) {
@@ -752,6 +755,18 @@
       return '<label class="am-field">' + lab +
         '<div class="am-thumbpick" data-curthumb="' + esc(cur) + '">' + items + "</div></label>";
     }
+    if (fd.type === "authors") {
+      var initA = row ? (row[fd.name] || "") : "";
+      var chips = parseAuthors(initA);
+      return '<label class="am-field">' + lab +
+        '<input type="hidden" data-name="' + fd.name + '" value="' + esc(initA) + '">' +
+        '<div class="au-box">' +
+          '<div class="au-chips">' + chips.map(auChip).join("") + '</div>' +
+          '<div class="au-roster"><span class="muted" style="font-size:.85rem">구성원 불러오는 중…</span></div>' +
+          '<div class="au-add"><input type="text" class="au-input" placeholder="이름 직접 입력 후 Enter (예: J. Kim)"><button type="button" class="adm-btn au-addbtn">+ 추가</button></div>' +
+          '<div class="au-preview muted"></div>' +
+        '</div></label>';
+    }
     return '<label class="am-field">' + lab + '<input type="text" data-name="' + fd.name + '" value="' + esc(v) + '"></label>';
   }
 
@@ -769,6 +784,66 @@
   }
 
   function isVid(p) { return /\.(mp4|webm|mov|m4v)$/i.test(p || ""); }
+
+  /* ---------- 저자 위젯(Publications) ---------- */
+  function abbrevName(en) { // "Seunghun Lee" → "S. Lee"
+    var t = (en || "").trim().split(/\s+/);
+    if (t.length < 2) return (en || "").trim();
+    return t[0].charAt(0).toUpperCase() + ". " + t[t.length - 1];
+  }
+  function parseAuthors(str) { // 기존 저자 문자열 → 개별 저자 배열
+    if (!str) return [];
+    var parts = String(str).split(/\s*,\s*/).map(function (s) { return s.replace(/^and\s+/i, "").trim(); }).filter(Boolean);
+    var out = [];
+    parts.forEach(function (s) { if (/\s+and\s+/i.test(s)) out.push.apply(out, s.split(/\s+and\s+/i)); else out.push(s); });
+    return out.map(function (s) { return s.trim(); }).filter(function (s) { return s && s.toLowerCase() !== "and"; });
+  }
+  function oxfordJoin(a) { // ["A","B","C"] → "A, B, and C"
+    a = a.filter(Boolean);
+    if (a.length <= 1) return a[0] || "";
+    if (a.length === 2) return a[0] + " and " + a[1];
+    return a.slice(0, -1).join(", ") + ", and " + a[a.length - 1];
+  }
+  function auChip(name) {
+    return '<span class="au-chip" data-nm="' + esc(name) + '">' +
+      '<button type="button" class="au-mv au-l" title="앞으로">◀</button>' +
+      '<span class="au-nm">' + esc(name) + '</span>' +
+      '<button type="button" class="au-mv au-r" title="뒤로">▶</button>' +
+      '<button type="button" class="au-del" title="삭제">✕</button></span>';
+  }
+  function setupAuthors(box) {
+    var chipsEl = box.querySelector(".au-chips");
+    var hidden = box.parentNode.querySelector('input[type=hidden][data-name]');
+    var preview = box.querySelector(".au-preview");
+    var input = box.querySelector(".au-input");
+    var roster = box.querySelector(".au-roster");
+    function names() { return Array.prototype.map.call(chipsEl.querySelectorAll(".au-chip"), function (c) { return c.getAttribute("data-nm"); }); }
+    function sync() { var s = oxfordJoin(names()); if (hidden) hidden.value = s; preview.textContent = s ? ("표시: " + s) : "저자를 추가하세요"; }
+    function add(nm) { nm = (nm || "").trim(); if (!nm) return; chipsEl.insertAdjacentHTML("beforeend", auChip(nm)); sync(); }
+    // 로스터: 교수 + 현재 구성원(약어)
+    var people = [{ en: "H. Park", ko: "박현철" }];
+    fetch("data/people_members.csv?z=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
+      if (t && P) P._rowsToObjects(P._parseCSV(t)).forEach(function (m) {
+        var en = (m.name_english || "").trim(); if (en) people.push({ en: abbrevName(en), ko: (m.name_korean || "").trim() });
+      });
+      var seen = {}, uniq = [];
+      people.forEach(function (p) { if (!seen[p.en]) { seen[p.en] = 1; uniq.push(p); } });
+      roster.innerHTML = uniq.map(function (p) {
+        return '<button type="button" class="au-pick" data-nm="' + esc(p.en) + '">' + esc(p.en) + (p.ko ? ' <span class="au-ko">' + esc(p.ko) + '</span>' : '') + '</button>';
+      }).join("");
+    }).catch(function () { roster.innerHTML = ""; });
+    box.addEventListener("click", function (e) {
+      if (!e.target.closest) return;
+      var pick = e.target.closest(".au-pick"); if (pick) { add(pick.getAttribute("data-nm")); return; }
+      if (e.target.closest(".au-addbtn")) { add(input.value); input.value = ""; input.focus(); return; }
+      var chip = e.target.closest(".au-chip"); if (!chip) return;
+      if (e.target.closest(".au-del")) { chip.parentNode.removeChild(chip); sync(); }
+      else if (e.target.closest(".au-l") && chip.previousElementSibling) { chipsEl.insertBefore(chip, chip.previousElementSibling); sync(); }
+      else if (e.target.closest(".au-r") && chip.nextElementSibling) { chipsEl.insertBefore(chip.nextElementSibling, chip); sync(); }
+    });
+    input.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); add(input.value); input.value = ""; } });
+    sync();
+  }
 
   // 동영상 첫 프레임 캡처 → jpeg base64 (실패 시 null). url 은 로컬 objectURL 또는 서버 경로.
   function captureFrame(url) {
