@@ -777,12 +777,17 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .au-mv, .au-del { border: 0; background: transparent; cursor: pointer; font-size: .72rem; line-height: 1; padding: 3px 3px; color: #667; border-radius: 4px; }
 .au-mv:hover, .au-del:hover { background: rgba(0,0,0,.08); }
 .au-del { color: #c0392b; font-weight: 700; }
-.au-roster { display: flex; flex-wrap: wrap; gap: 6px; }
+.au-group { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+.au-glabel { font-size: .78rem; color: var(--muted, #667); white-space: nowrap; padding-top: 5px; min-width: 66px; }
+.au-roster, .au-favs { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+.au-pickwrap { display: inline-flex; align-items: center; }
 .au-pick { border: 1px solid var(--line, #d5dde6); background: #fff; border-radius: 999px; padding: 4px 10px; font-size: .85rem; cursor: pointer; }
 .au-pick:hover { background: var(--soft, #eef2f7); }
+.au-favdel { border: 0; background: transparent; color: #c0392b; cursor: pointer; font-size: .7rem; padding: 2px 4px; margin-left: -2px; border-radius: 4px; }
+.au-favdel:hover { background: rgba(192,57,43,.12); }
 .au-ko { color: #889; font-size: .8em; }
-.au-add { display: flex; gap: 6px; }
-.au-add .au-input { flex: 1; }
+.au-add { display: flex; gap: 6px; flex-wrap: wrap; }
+.au-add .au-input { flex: 1; min-width: 160px; }
 .au-preview { font-size: .85rem; }
 /* 여러 장인 앨범: 뒤에 사진이 쌓인 "뭉탱이" 느낌 */
 .lb-figure.is-stack .lb-img {

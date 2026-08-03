@@ -762,8 +762,9 @@
         '<input type="hidden" data-name="' + fd.name + '" value="' + esc(initA) + '">' +
         '<div class="au-box">' +
           '<div class="au-chips">' + chips.map(auChip).join("") + '</div>' +
-          '<div class="au-roster"><span class="muted" style="font-size:.85rem">구성원 불러오는 중…</span></div>' +
-          '<div class="au-add"><input type="text" class="au-input" placeholder="이름 직접 입력 후 Enter (예: J. Kim)"><button type="button" class="adm-btn au-addbtn">+ 추가</button></div>' +
+          '<div class="au-group"><span class="au-glabel">구성원</span><span class="au-roster"><span class="muted" style="font-size:.82rem">불러오는 중…</span></span></div>' +
+          '<div class="au-group"><span class="au-glabel">⭐ 즐겨찾기</span><span class="au-favs"></span></div>' +
+          '<div class="au-add"><input type="text" class="au-input" placeholder="이름 직접 입력 (예: J. Kim)"><button type="button" class="adm-btn au-addbtn">+ 추가</button><button type="button" class="adm-btn au-favbtn" title="입력한 이름을 즐겨찾기에 저장(공유)">⭐ 저장</button></div>' +
           '<div class="au-preview muted"></div>' +
         '</div></label>';
     }
@@ -811,16 +812,38 @@
       '<button type="button" class="au-mv au-r" title="뒤로">▶</button>' +
       '<button type="button" class="au-del" title="삭제">✕</button></span>';
   }
+  function auPickBtn(nm, label, removable) {
+    return '<span class="au-pickwrap"><button type="button" class="au-pick" data-nm="' + esc(nm) + '">' + esc(nm) +
+      (label ? ' <span class="au-ko">' + esc(label) + '</span>' : '') + '</button>' +
+      (removable ? '<button type="button" class="au-favdel" data-nm="' + esc(nm) + '" title="즐겨찾기 삭제">✕</button>' : '') + '</span>';
+  }
+  // 즐겨찾기 추가/삭제 → data/author_favorites.csv 커밋(공유)
+  function commitFav(action, name, label) {
+    return commitCsv("data/author_favorites.csv", (action === "add" ? "Add" : "Remove") + " author favorite: " + name, function (rows) {
+      var ix = colIndex(rows);
+      if (ix.name == null) { rows[0] = ["name", "label"]; ix = { name: 0, label: 1 }; }
+      var found = -1;
+      for (var i = 1; i < rows.length; i++) { if ((rows[i][ix.name] || "").trim() === name) { found = i; break; } }
+      if (action === "add") { if (found < 0) { var cells = new Array(rows[0].length).fill(""); cells[ix.name] = name; if (ix.label != null) cells[ix.label] = label || ""; rows.splice(1, 0, cells); } }
+      else if (found >= 0) rows.splice(found, 1);
+    }, ["name", "label"]);
+  }
   function setupAuthors(box) {
     var chipsEl = box.querySelector(".au-chips");
     var hidden = box.parentNode.querySelector('input[type=hidden][data-name]');
     var preview = box.querySelector(".au-preview");
     var input = box.querySelector(".au-input");
     var roster = box.querySelector(".au-roster");
+    var favsEl = box.querySelector(".au-favs");
+    var favs = [];
     function names() { return Array.prototype.map.call(chipsEl.querySelectorAll(".au-chip"), function (c) { return c.getAttribute("data-nm"); }); }
     function sync() { var s = oxfordJoin(names()); if (hidden) hidden.value = s; preview.textContent = s ? ("표시: " + s) : "저자를 추가하세요"; }
     function add(nm) { nm = (nm || "").trim(); if (!nm) return; chipsEl.insertAdjacentHTML("beforeend", auChip(nm)); sync(); }
-    // 로스터: 교수 + 현재 구성원(약어)
+    function renderFavs() {
+      favsEl.innerHTML = favs.length ? favs.map(function (f) { return auPickBtn(f.name, f.label, true); }).join("")
+        : '<span class="muted" style="font-size:.8rem">이름 입력 후 “⭐ 저장”으로 자주 쓰는 공저자를 등록하세요</span>';
+    }
+    // 구성원(교수 + 현재 멤버)
     var people = [{ en: "H. Park", ko: "박현철" }];
     fetch("data/people_members.csv?z=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
       if (t && P) P._rowsToObjects(P._parseCSV(t)).forEach(function (m) {
@@ -828,13 +851,32 @@
       });
       var seen = {}, uniq = [];
       people.forEach(function (p) { if (!seen[p.en]) { seen[p.en] = 1; uniq.push(p); } });
-      roster.innerHTML = uniq.map(function (p) {
-        return '<button type="button" class="au-pick" data-nm="' + esc(p.en) + '">' + esc(p.en) + (p.ko ? ' <span class="au-ko">' + esc(p.ko) + '</span>' : '') + '</button>';
-      }).join("");
+      roster.innerHTML = uniq.map(function (p) { return auPickBtn(p.en, p.ko, false); }).join("");
     }).catch(function () { roster.innerHTML = ""; });
+    // 즐겨찾기
+    fetch("data/author_favorites.csv?z=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
+      if (t && P) favs = P._rowsToObjects(P._parseCSV(t)).map(function (r) { return { name: (r.name || "").trim(), label: (r.label || "").trim() }; }).filter(function (f) { return f.name; });
+      renderFavs();
+    }).catch(renderFavs);
+
+    function saveFav(nm) {
+      nm = (nm || "").trim(); if (!nm) return;
+      if (favs.some(function (f) { return f.name === nm; })) { add(nm); return; }
+      if (!token()) { setFormMsg("즐겨찾기 저장은 GitHub 토큰이 필요합니다.", "err"); return; }
+      favs.push({ name: nm, label: "" }); renderFavs(); add(nm); input.value = "";
+      commitFav("add", nm, "").catch(function (e) { setFormMsg("즐겨찾기 저장 실패: " + e.message, "err"); });
+    }
+    function removeFav(nm) {
+      if (!token()) { setFormMsg("즐겨찾기 삭제는 GitHub 토큰이 필요합니다.", "err"); return; }
+      favs = favs.filter(function (f) { return f.name !== nm; }); renderFavs();
+      commitFav("remove", nm, "").catch(function (e) { setFormMsg("즐겨찾기 삭제 실패: " + e.message, "err"); });
+    }
+
     box.addEventListener("click", function (e) {
       if (!e.target.closest) return;
+      var favdel = e.target.closest(".au-favdel"); if (favdel) { removeFav(favdel.getAttribute("data-nm")); return; }
       var pick = e.target.closest(".au-pick"); if (pick) { add(pick.getAttribute("data-nm")); return; }
+      if (e.target.closest(".au-favbtn")) { saveFav(input.value); return; }
       if (e.target.closest(".au-addbtn")) { add(input.value); input.value = ""; input.focus(); return; }
       var chip = e.target.closest(".au-chip"); if (!chip) return;
       if (e.target.closest(".au-del")) { chip.parentNode.removeChild(chip); sync(); }
