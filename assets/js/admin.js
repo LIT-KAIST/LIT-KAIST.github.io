@@ -197,8 +197,8 @@
         { name: "title", label: "제목", required: true },
         { name: "author", label: "저자 — 구성원 클릭 추가 · 직접 추가 · ◀▶ 순서 (자동으로 A, B, and C 형식 저장)", type: "authors" },
         { name: "date", label: "날짜 (YYYY-MM-DD)" },
-        { name: "journal", label: "저널 (Journal)" },
-        { name: "booktitle", label: "학술대회/Booktitle (Conference)" },
+        { name: "journal", label: "저널 (Journal) — 버튼 클릭 또는 직접 입력", type: "venue", venueType: "journal" },
+        { name: "booktitle", label: "학술대회 (Conference) — 버튼 클릭 시 연도 자동 삽입", type: "venue", venueType: "conference" },
         { name: "volume", label: "Volume" },
         { name: "number", label: "Number / 출원·등록번호 (Patent)" },
         { name: "pages", label: "Pages" },
@@ -649,6 +649,8 @@
     // 저자 위젯(Publications)
     var auBox = f.querySelector(".au-box");
     if (auBox) setupAuthors(auBox);
+    // 저널/학회 위젯(Publications)
+    Array.prototype.forEach.call(f.querySelectorAll(".ve-box"), setupVenues);
     // 미디어 매니저: 라디오(대표) 표시 토글 + ◀▶ 순서 이동
     var tp = f.querySelector(".am-thumbpick");
     if (tp) {
@@ -756,6 +758,14 @@
       return '<label class="am-field">' + lab +
         '<div class="am-thumbpick" data-curthumb="' + esc(cur) + '">' + items + "</div></label>";
     }
+    if (fd.type === "venue") {
+      return '<label class="am-field">' + lab +
+        '<input type="text" class="ve-input" data-name="' + fd.name + '" value="' + esc(v) + '">' +
+        '<div class="ve-box" data-vtype="' + esc(fd.venueType || "journal") + '">' +
+          '<div class="ve-list"><span class="muted" style="font-size:.82rem">불러오는 중…</span></div>' +
+          '<button type="button" class="adm-btn ve-save" title="현재 입력값을 목록에 저장(공유)">⭐ 저장</button>' +
+        '</div></label>';
+    }
     if (fd.type === "authors") {
       var initA = row ? (row[fd.name] || "") : "";
       var chips = parseAuthors(initA);
@@ -828,6 +838,54 @@
       if (action === "add") { if (found < 0) { var cells = new Array(rows[0].length).fill(""); cells[ix.name] = name; if (ix.label != null) cells[ix.label] = label || ""; rows.splice(1, 0, cells); } }
       else if (found >= 0) rows.splice(found, 1);
     }, ["name", "label"]);
+  }
+  // 저널/학회 즐겨찾기 → data/venues.csv 커밋(공유)
+  function commitVenue(action, type, name) {
+    return commitCsv("data/venues.csv", (action === "add" ? "Add" : "Remove") + " venue: " + name, function (rows) {
+      var ix = colIndex(rows);
+      if (ix.type == null || ix.name == null) { rows[0] = ["type", "name"]; ix = { type: 0, name: 1 }; }
+      var found = -1;
+      for (var i = 1; i < rows.length; i++) { if ((rows[i][ix.type] || "").trim() === type && (rows[i][ix.name] || "").trim() === name) { found = i; break; } }
+      if (action === "add") { if (found < 0) { var cells = new Array(rows[0].length).fill(""); cells[ix.type] = type; cells[ix.name] = name; rows.splice(1, 0, cells); } }
+      else if (found >= 0) rows.splice(found, 1);
+    }, ["type", "name"]);
+  }
+  function setupVenues(box) {
+    var input = box.parentNode.querySelector(".ve-input");
+    var vtype = box.getAttribute("data-vtype");
+    var listEl = box.querySelector(".ve-list");
+    var vens = [];
+    function yearNow() { var d = document.querySelector('#admForm [data-name="date"]'); return (d && /^\d{4}/.test(d.value)) ? d.value.slice(0, 4) : String(new Date().getFullYear()); }
+    function inject(name) { return (vtype === "conference" && /\)\s*$/.test(name)) ? name.replace(/\)\s*$/, " " + yearNow() + ")") : name; }
+    function stripYear(name) { return vtype === "conference" ? name.replace(/(\([^)]*?)\s*\b(19|20)\d{2}\b/, "$1").replace(/\s+\)/, ")") : name; }
+    function render() {
+      listEl.innerHTML = vens.length ? vens.map(function (n) {
+        return '<span class="ve-wrap"><button type="button" class="ve-pick" data-nm="' + esc(n) + '">' + esc(n) + '</button>' +
+          '<button type="button" class="ve-del" data-nm="' + esc(n) + '" title="삭제">✕</button></span>';
+      }).join("") : '<span class="muted" style="font-size:.8rem">입력 후 “⭐ 저장”으로 자주 쓰는 ' + (vtype === "conference" ? "학회" : "저널") + '를 등록하세요</span>';
+    }
+    fetch("data/venues.csv?z=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
+      if (t && P) vens = P._rowsToObjects(P._parseCSV(t)).filter(function (r) { return (r.type || "").trim() === vtype; }).map(function (r) { return (r.name || "").trim(); }).filter(Boolean);
+      render();
+    }).catch(render);
+    box.addEventListener("click", function (e) {
+      if (!e.target.closest) return;
+      var del = e.target.closest(".ve-del"); if (del) { removeVen(del.getAttribute("data-nm")); return; }
+      var pick = e.target.closest(".ve-pick"); if (pick) { input.value = inject(pick.getAttribute("data-nm")); input.focus(); return; }
+      if (e.target.closest(".ve-save")) { saveVen(); return; }
+    });
+    function saveVen() {
+      var base = stripYear((input.value || "").trim()); if (!base) return;
+      if (vens.indexOf(base) >= 0) return;
+      if (!token()) { setFormMsg("저장은 GitHub 토큰이 필요합니다.", "err"); return; }
+      vens.unshift(base); render();
+      commitVenue("add", vtype, base).catch(function (e) { setFormMsg("저장 실패: " + e.message, "err"); });
+    }
+    function removeVen(n) {
+      if (!token()) { setFormMsg("삭제는 GitHub 토큰이 필요합니다.", "err"); return; }
+      vens = vens.filter(function (x) { return x !== n; }); render();
+      commitVenue("remove", vtype, n).catch(function (e) { setFormMsg("삭제 실패: " + e.message, "err"); });
+    }
   }
   function setupAuthors(box) {
     var chipsEl = box.querySelector(".au-chips");
@@ -1078,7 +1136,9 @@
     return prep.then(function (authors) {
       var stamp = (row.date && /^\d{4}-\d{2}-\d{2}/.test(row.date)) ? row.date : nowStamp();
       var nd = /\d{2}:\d{2}/.test(stamp) ? stamp : (stamp.slice(0, 10) + " " + nowStamp().slice(11));
-      var nTitle = venue + " paper is accepted!";
+      // 제목엔 짧은 이름 사용: 학회 "…(ICC 2026)" → "ICC 2026", 저널은 전체명
+      var vm = venue.match(/\(([^)]+)\)\s*$/);
+      var nTitle = (vm ? vm[1].trim() : venue) + " paper is accepted!";
       var nContent, nContentEn;
       if (isIntl) {
         nContent = 'One paper "' + title + ' by ' + authors + '" has been accepted to ' + venue + '! Congratulations!';

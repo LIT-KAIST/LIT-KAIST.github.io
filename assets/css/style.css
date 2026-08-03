@@ -789,6 +789,15 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .au-add { display: flex; gap: 6px; flex-wrap: wrap; }
 .au-add .au-input { flex: 1; min-width: 160px; }
 .au-preview { font-size: .85rem; }
+/* admin 저널/학회 선택기 */
+.ve-box { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px; margin-top: 6px; }
+.ve-list { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+.ve-wrap { display: inline-flex; align-items: center; }
+.ve-pick { border: 1px solid var(--line, #d5dde6); background: #fff; border-radius: 999px; padding: 4px 10px; font-size: .82rem; cursor: pointer; text-align: left; }
+.ve-pick:hover { background: var(--soft, #eef2f7); }
+.ve-del { border: 0; background: transparent; color: #c0392b; cursor: pointer; font-size: .7rem; padding: 2px 4px; margin-left: -2px; border-radius: 4px; }
+.ve-del:hover { background: rgba(192,57,43,.12); }
+.ve-save { white-space: nowrap; align-self: flex-start; }
 /* 여러 장인 앨범: 뒤에 사진이 쌓인 "뭉탱이" 느낌 */
 .lb-figure.is-stack .lb-img {
   box-shadow:
