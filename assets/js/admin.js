@@ -347,8 +347,8 @@
       fields: [
         { name: "key", type: "hidden" },
         { name: "enabled", label: "알림 메일 보내기 (끄면 전체 발송 중지)", type: "check" },
-        { name: "extra_to", label: "항상 받는 사람 (교수님 등) — 이메일, 쉼표로 여러 명" },
-        { name: "exclude", label: "받을 구성원 선택 (체크=받음 · 새 멤버는 자동 포함)", type: "recipients" },
+        { name: "exclude", label: "받을 사람 선택 (체크=받음 · 새 멤버 자동 포함 · 교수님도 여기서 on/off)", type: "recipients" },
+        { name: "extra_to", label: "교수님/추가 이메일 — 위 '박현철' 체크로 on/off (쉼표로 여러 명 가능)" },
       ],
     },
     highlights: {
@@ -942,12 +942,15 @@
     fetch("data/people_members.csv?z=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
       if (!t || !P) { box.innerHTML = '<span class="muted">구성원을 불러오지 못했습니다.</span>'; return; }
       var ms = P._rowsToObjects(P._parseCSV(t)).filter(function (m) { return (m.email || "").trim(); });
-      box.innerHTML = ms.map(function (m) {
+      // 맨 위: 교수님(항상 받는 사람 extra_to 이메일로 발송) — 여기서도 on/off
+      var profOn = !(excl.indexOf("박현철") >= 0 || excl.indexOf("Hyuncheol Park") >= 0);
+      var profHtml = '<label class="rc-item rc-prof"><input type="checkbox" data-nm="박현철"' + (profOn ? " checked" : "") + ">박현철 (Hyuncheol Park) · 교수</label>";
+      box.innerHTML = profHtml + ms.map(function (m) {
         var ko = (m.name_korean || "").trim(), en = (m.name_english || "").trim(), nm = ko || en;
         var on = !(excl.indexOf(ko) >= 0 || excl.indexOf(en) >= 0);
         var lbl = ko ? (en ? ko + " (" + en + ")" : ko) : en;
         return '<label class="rc-item"><input type="checkbox" data-nm="' + esc(nm) + '"' + (on ? " checked" : "") + ">" + esc(lbl) + "</label>";
-      }).join("") || '<span class="muted">구성원이 없습니다.</span>';
+      }).join("");
       sync();
     }).catch(function () { box.innerHTML = '<span class="muted">불러오기 실패</span>'; });
     box.addEventListener("change", sync);

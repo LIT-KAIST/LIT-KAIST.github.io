@@ -31,7 +31,11 @@ if not enabled:
     raise SystemExit(0)
 
 exclude = split_list(cfg.get("exclude"))
-recipients = list(split_list(cfg.get("extra_to")))   # 교수님 등 항상 받는 사람
+# 항상 받는 사람(교수님 등). 단, 교수님 이름이 exclude 에 있으면 제외(체크박스 off)
+extra = split_list(cfg.get("extra_to"))
+PROF_NAMES = ("박현철", "Hyuncheol Park")
+prof_excluded = any(p in exclude for p in PROF_NAMES)
+recipients = [] if prof_excluded else list(extra)
 
 # ---------- 구성원 이메일 ----------
 for m in read_dicts("data/people_members.csv"):
