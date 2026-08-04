@@ -30,6 +30,13 @@ if not enabled:
     print("Mail disabled (mail_config.enabled). Skipping.")
     raise SystemExit(0)
 
+def flag_on(v):
+    return str(v or "").strip().lower() in ("y", "yes", "1", "true", "on", "예", "✓")
+
+# 유형별 발송 스위치: 큐 항목 type → mail_config 컬럼
+TYPE_FLAG = {"journal": "send_journal", "conference": "send_conference",
+             "news": "send_news", "album": "send_album"}
+
 exclude = split_list(cfg.get("exclude"))
 # 항상 받는 사람(교수님 등). 단, 교수님 이름이 exclude 에 있으면 제외(체크박스 off)
 extra = split_list(cfg.get("extra_to"))
@@ -83,6 +90,11 @@ ctx = ssl.create_default_context()
 with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ctx) as smtp:
     smtp.login(user, pw)
     for it in new_items:
+        t = (it.get("type") or "").strip()
+        col = TYPE_FLAG.get(t)
+        if not col or not flag_on(cfg.get(col)):
+            print(f"skip (type off or unknown): {t}")
+            continue
         subject = (it.get("subject") or "[LIT] 알림").strip()
         body = (it.get("body") or "").strip() or "(내용 없음)"
         msg = EmailMessage()

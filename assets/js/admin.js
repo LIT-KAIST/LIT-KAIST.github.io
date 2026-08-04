@@ -346,7 +346,11 @@
       title: function () { return "새 글 알림 메일 설정"; },
       fields: [
         { name: "key", type: "hidden" },
-        { name: "enabled", label: "알림 메일 보내기 (끄면 전체 발송 중지)", type: "check" },
+        { name: "enabled", label: "알림 메일 전체 사용 (끄면 모든 발송 중지)", type: "check" },
+        { name: "send_journal", label: "· 저널 논문 게재 알림 보내기", type: "check" },
+        { name: "send_conference", label: "· 학회 논문 게재 알림 보내기", type: "check" },
+        { name: "send_news", label: "· 새 소식(뉴스) 알림 보내기", type: "check" },
+        { name: "send_album", label: "· 새 이미지(앨범) 알림 보내기", type: "check" },
         { name: "exclude", label: "받을 사람 선택 (체크=받음 · 새 멤버 자동 포함 · 교수님도 여기서 on/off)", type: "recipients" },
         { name: "extra_to", label: "교수님/추가 이메일 — 위 '박현철' 체크로 on/off (쉼표로 여러 명 가능)" },
       ],
@@ -947,7 +951,7 @@
       var ms = P._rowsToObjects(P._parseCSV(t)).filter(function (m) { return (m.email || "").trim(); });
       // 맨 위: 교수님(항상 받는 사람 extra_to 이메일로 발송) — 여기서도 on/off
       var profOn = !(excl.indexOf("박현철") >= 0 || excl.indexOf("Hyuncheol Park") >= 0);
-      var profHtml = '<label class="rc-item rc-prof"><input type="checkbox" data-nm="박현철"' + (profOn ? " checked" : "") + ">박현철 (Hyuncheol Park) · 교수</label>";
+      var profHtml = '<label class="rc-item rc-prof"><input type="checkbox" data-nm="박현철"' + (profOn ? " checked" : "") + ">박현철 · 교수</label>";
       box.innerHTML = profHtml + ms.map(function (m) {
         var ko = (m.name_korean || "").trim(), en = (m.name_english || "").trim(), nm = ko || en;
         var on = !(excl.indexOf(ko) >= 0 || excl.indexOf(en) >= 0);
@@ -1194,12 +1198,14 @@
   function buildMail(col, row) {
     var site = "https://lit.kaist.ac.kr/";
     if (col.isPub) {
+      // 저널/학회만 메일 대상 (특허는 발송 안 함)
+      var t = /journal/i.test(curPubTarget) ? "journal" : (/conference/i.test(curPubTarget) ? "conference" : null);
+      if (!t) return null;
       var venue = (row.journal || row.booktitle || "").trim();
-      var page = /patent/i.test(curPubTarget) ? "patents.html" : (/conference/i.test(curPubTarget) ? "conferences.html" : "journal.html");
-      var link = (row.doi || "").trim() ? ("https://doi.org/" + row.doi.trim()) : (site + page);
+      var link = (row.doi || "").trim() ? ("https://doi.org/" + row.doi.trim()) : (site + (t === "conference" ? "conferences.html" : "journal.html"));
       var b = "새 논문이 게재되었습니다.\n\n· 제목: " + (row.title || "") + "\n· 저자: " + (row.author || "") +
         "\n· 게재처: " + venue + "\n\n링크: " + link + "\n\n— LIT @ KAIST";
-      return { type: "publication", subject: "[LIT] 새 논문이 게재되었습니다.", body: b };
+      return { type: t, subject: "[LIT] 새 논문이 게재되었습니다.", body: b };
     }
     if (col.csv === "data/news.csv") {
       var anchor = "n-" + (row.date || "").replace(/[^0-9]/g, "");
@@ -1228,12 +1234,24 @@
       rows.splice(1, 0, cells);
     }, ["stamp", "type", "subject", "body"]);
   }
-  // 첫 생성일 때만 큐에 1건 적재 (수정은 발송 안 함; 논문+자동뉴스도 여기서 1건만)
+  // 첫 생성일 때만 큐에 1건 적재 (수정 X; 논문+자동뉴스도 1건만; 설정에서 그 유형이 켜진 경우만)
   function enqueueMailFor(col, row) {
     if (editingId) return Promise.resolve();
     var m = buildMail(col, row);
     if (!m) return Promise.resolve();
-    return enqueueMail(m.type, m.subject, m.body).catch(function () {}); // 메일 실패해도 저장은 성공 처리
+    var yes = function (v) { return /^(y|yes|1|true|on|예|✓)$/i.test((v || "").trim()); };
+    return fetch("data/mail_config.csv?z=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.text() : ""; })
+      .then(function (t) {
+        if (t && P) {
+          var c = (P._rowsToObjects(P._parseCSV(t))[0]) || {};
+          if (!(yes(c.enabled) && yes(c["send_" + m.type]))) return null; // 이 유형 발송 꺼짐
+        }
+        return "go";
+      })
+      .catch(function () { return "go"; })       // 설정 못 읽으면 일단 진행(워크플로가 재확인)
+      .then(function (go) { if (go) return enqueueMail(m.type, m.subject, m.body); })
+      .catch(function () {});                     // 큐 적재 실패는 저장을 막지 않음
   }
 
   // News: 관련 앨범 연동 + 이미지 미업로드 → 앨범 대표사진을 뉴스 이미지로 사용

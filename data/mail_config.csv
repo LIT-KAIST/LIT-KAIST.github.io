@@ -1,2 +1,2 @@
-﻿key,enabled,extra_to,exclude
-mail,Y,hcpark@kaist.ac.kr,임우창
+﻿key,enabled,send_journal,send_conference,send_news,send_album,extra_to,exclude
+mail,Y,Y,Y,Y,,hcpark@kaist.ac.kr,임우창
