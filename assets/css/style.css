@@ -863,20 +863,22 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .ni-content { margin: 8px 0 0 106px; color: #374151; line-height: 1.7; }
 .ni-links { margin: 10px 0 0 106px; display: flex; flex-wrap: wrap; gap: 8px; }
 .ni-link { font-size: .85rem; font-weight: 600; }
-/* 뉴스 대표 이미지 + 관련 앨범 링크 */
-.ni-media { margin: 12px 0 0 106px; }
-.ni-imglink { display: inline-block; position: relative; border-radius: 12px; overflow: hidden; max-width: min(360px, 100%); }
+/* 뉴스 대표 이미지 — 본문 오른쪽에 작은 썸네일로 흐르게 */
+.ni-media { float: right; width: 190px; max-width: 40%; margin: 2px 0 8px 18px; }
+.ni-imglink { display: block; position: relative; border-radius: 10px; overflow: hidden; }
 .ni-img { display: block; width: 100%; height: auto; }
 .ni-imglink.album .ni-more {
-  position: absolute; right: 0; bottom: 0; left: 0; padding: 16px 12px 8px;
-  color: #fff; font-size: .82rem; font-weight: 600; text-align: right;
+  position: absolute; right: 0; bottom: 0; left: 0; padding: 14px 10px 6px;
+  color: #fff; font-size: .74rem; font-weight: 600; text-align: right;
   background: linear-gradient(transparent, rgba(0,0,0,.62));
 }
-.ni-imglink.album:hover .ni-img { transform: scale(1.03); }
+.ni-imglink.album:hover .ni-img { transform: scale(1.04); }
 .ni-imglink .ni-img { transition: transform .3s ease; }
+.news-item::after { content: ""; display: block; clear: both; }
 .news-item.ni-flash { background: #fffbeb; }
 @media (max-width: 600px) {
-  .ni-content, .ni-links, .ni-media { margin-left: 0; }
+  .ni-content, .ni-links { margin-left: 0; }
+  .ni-media { float: none; width: auto; max-width: 240px; margin: 10px 0 0; }
   .rn-link { flex-direction: column; gap: 2px; }
   .rn-date { width: auto; }
   .rn-title { white-space: normal; }

@@ -103,8 +103,8 @@
             '<span class="ni-date">' + esc(dateLabel(row)) + "</span>" +
             '<h3 class="ni-title">' + esc(pick(row, "title")) + "</h3>" +
           "</div>" +
-          '<div class="ni-content">' + nl2br(pick(row, "content")) + "</div>" +
           imageHtml(row) +
+          '<div class="ni-content">' + nl2br(pick(row, "content")) + "</div>" +
           (linksHtml(row) ? '<div class="ni-links">' + linksHtml(row) + "</div>" : "") +
           (adminMode
             ? '<div class="ni-admin">' +
