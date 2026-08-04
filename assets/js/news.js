@@ -42,6 +42,19 @@
     return d ? d.replace(/-/g, ".") : (row.year || "");
   }
   function nl2br(s) { return esc(s).replace(/\r?\n/g, "<br>"); }
+  // 대표 이미지(1장) + 관련 앨범 연동 링크
+  function imageHtml(row) {
+    var img = (row.image || "").trim();
+    if (!img) return "";
+    var alb = (row.album || "").trim();
+    var im = '<img class="ni-img" src="' + esc(img) + '" alt="' + esc(pick(row, "title")) + '" loading="lazy">';
+    if (alb) {
+      var more = lang() === "en" ? "See more photos →" : "사진 더 보기 →";
+      return '<div class="ni-media"><a class="ni-imglink album" href="album.html?a=' + encodeURIComponent(alb) + '">' + im +
+        '<span class="ni-more">' + more + "</span></a></div>";
+    }
+    return '<div class="ni-media"><a class="ni-imglink" href="' + esc(img) + '" target="_blank" rel="noopener">' + im + "</a></div>";
+  }
   function linksHtml(row) {
     var raw = (row.links || "").trim();
     if (!raw) return "";
@@ -91,6 +104,7 @@
             '<h3 class="ni-title">' + esc(pick(row, "title")) + "</h3>" +
           "</div>" +
           '<div class="ni-content">' + nl2br(pick(row, "content")) + "</div>" +
+          imageHtml(row) +
           (linksHtml(row) ? '<div class="ni-links">' + linksHtml(row) + "</div>" : "") +
           (adminMode
             ? '<div class="ni-admin">' +

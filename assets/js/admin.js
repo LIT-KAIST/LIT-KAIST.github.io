@@ -218,6 +218,10 @@
         { name: "title_en", label: "Title (English)" },
         { name: "content", label: "본문 (한국어)", type: "textarea" },
         { name: "content_en", label: "Content (English)", type: "textarea" },
+        { name: "image", label: "대표 이미지 (1장, 자동 리사이즈) — 앨범 연동 시 안 올리면 앨범 대표사진 사용", type: "image",
+          dir: function () { return "assets/img/news/" + (editingId || nowStamp()).slice(0, 4); },
+          filename: function (f) { return "news-" + Math.round(performance.now()) + ".jpg"; } },
+        { name: "album", label: "관련 앨범 연동 (선택) — 클릭 시 이 앨범이 열립니다", type: "albumref" },
         { name: "links", label: "링크 (| 로 구분)" },
         { name: "forum", label: "분류 (forum)" },
         { name: "status", label: "상태", type: "select", options: STATUS_PUB },
@@ -651,6 +655,23 @@
     if (auBox) setupAuthors(auBox);
     // 저널/학회 위젯(Publications)
     Array.prototype.forEach.call(f.querySelectorAll(".ve-box"), setupVenues);
+    // 관련 앨범 드롭다운(News)
+    Array.prototype.forEach.call(f.querySelectorAll(".albref"), function (sel) {
+      var cur = sel.getAttribute("data-cur") || "";
+      fetch("data/album.csv?z=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
+        if (!t || !P) return;
+        P._rowsToObjects(P._parseCSV(t))
+          .filter(function (a) { return (a.title || "").trim() && (a.status || "") !== "draft"; })
+          .sort(function (a, b) { return (b.date || "").localeCompare(a.date || ""); })
+          .forEach(function (a) {
+            var opt = document.createElement("option");
+            opt.value = (a.date || "").trim();
+            opt.textContent = (a.title || "") + " · " + (a.date || "").slice(0, 10);
+            if (opt.value === cur) opt.selected = true;
+            sel.appendChild(opt);
+          });
+      }).catch(function () {});
+    });
     // 미디어 매니저: 라디오(대표) 표시 토글 + ◀▶ 순서 이동
     var tp = f.querySelector(".am-thumbpick");
     if (tp) {
@@ -757,6 +778,10 @@
       }).join("");
       return '<label class="am-field">' + lab +
         '<div class="am-thumbpick" data-curthumb="' + esc(cur) + '">' + items + "</div></label>";
+    }
+    if (fd.type === "albumref") {
+      return '<label class="am-field">' + lab +
+        '<select class="albref" data-name="' + fd.name + '" data-cur="' + esc(v) + '"><option value="">— 연동 안 함 —</option></select></label>';
     }
     if (fd.type === "venue") {
       return '<label class="am-field">' + lab +
@@ -1061,6 +1086,8 @@
       // 앨범 썸네일 선택(영상이면 첫 프레임 캡처) 반영 후 커밋
       return resolvePickedThumb(col, imgVals).then(function (picked) {
         if (picked !== undefined) row.thumbnail_file = picked;
+        return prepNewsImage(col, row);
+      }).then(function () {
         return commitCsv(csvPathOf(col), (editingId ? "Update " : "Add ") + col.label + ": " + msgName, function (rows) {
           var ix = colIndex(rows);
           if (editingId) {
@@ -1113,6 +1140,18 @@
         return commitText(path, text, "Update project detail: " + slugVal + " (" + fd.mdLang + ")");
       });
     }, Promise.resolve());
+  }
+
+  // News: 관련 앨범 연동 + 이미지 미업로드 → 앨범 대표사진을 뉴스 이미지로 사용
+  function prepNewsImage(col, row) {
+    if (col.csv !== "data/news.csv") return Promise.resolve();
+    var album = (row.album || "").trim();
+    if (!album || (row.image || "").trim()) return Promise.resolve();
+    return fetch("data/album.csv?z=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
+      if (!t || !P) return;
+      var a = P._rowsToObjects(P._parseCSV(t)).filter(function (x) { return (x.date || "").trim() === album; })[0];
+      if (a) { var th = (a.thumbnail_file || "").trim() || ((a.image_files || "").split("|")[0] || "").trim(); if (th) row.image = "assets/img/album/" + th; }
+    }).catch(function () {});
   }
 
   // 새 논문 저장 시 → data/news.csv 에 "게재 accept" 뉴스 자동 작성 (기존 양식 동일)

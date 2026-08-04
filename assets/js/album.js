@@ -58,6 +58,14 @@
         buildFilter();
         render();
         buildLightbox();
+        // 뉴스 등에서 넘어온 딥링크(?a=<date>) → 해당 앨범 자동 열기
+        var qa = null;
+        try { qa = new URLSearchParams(location.search).get("a"); } catch (e) {}
+        if (qa) {
+          for (var qi = 0; qi < albums.length; qi++) {
+            if ((albums[qi].date || "").trim() === qa.trim()) { openLightbox(qi, null); break; }
+          }
+        }
       })
       .catch(function (err) {
         mount.innerHTML =
