@@ -798,6 +798,10 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .ve-del { border: 0; background: transparent; color: #c0392b; cursor: pointer; font-size: .7rem; padding: 2px 4px; margin-left: -2px; border-radius: 4px; }
 .ve-del:hover { background: rgba(192,57,43,.12); }
 .ve-save { white-space: nowrap; align-self: flex-start; }
+/* admin 알림 수신자 체크박스 */
+.rc-box { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 6px; }
+.rc-item { display: inline-flex; align-items: center; gap: 5px; font-size: .9rem; cursor: pointer; }
+.rc-item input { width: auto; }
 /* 여러 장인 앨범: 뒤에 사진이 쌓인 "뭉탱이" 느낌 */
 .lb-figure.is-stack .lb-img {
   box-shadow:

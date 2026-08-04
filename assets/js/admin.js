@@ -348,7 +348,7 @@
         { name: "key", type: "hidden" },
         { name: "enabled", label: "알림 메일 보내기 (끄면 전체 발송 중지)", type: "check" },
         { name: "extra_to", label: "항상 받는 사람 (교수님 등) — 이메일, 쉼표로 여러 명" },
-        { name: "exclude", label: "제외할 구성원 — 이름(국문/영문), 쉼표로 여러 명 (새 멤버는 자동 포함)" },
+        { name: "exclude", label: "받을 구성원 선택 (체크=받음 · 새 멤버는 자동 포함)", type: "recipients" },
       ],
     },
     highlights: {
@@ -665,6 +665,8 @@
     if (auBox) setupAuthors(auBox);
     // 저널/학회 위젯(Publications)
     Array.prototype.forEach.call(f.querySelectorAll(".ve-box"), setupVenues);
+    // 알림 수신 구성원 체크박스(Mail)
+    Array.prototype.forEach.call(f.querySelectorAll(".rc-box"), setupRecipients);
     // 관련 앨범 드롭다운(News)
     Array.prototype.forEach.call(f.querySelectorAll(".albref"), function (sel) {
       var cur = sel.getAttribute("data-cur") || "";
@@ -788,6 +790,12 @@
       }).join("");
       return '<label class="am-field">' + lab +
         '<div class="am-thumbpick" data-curthumb="' + esc(cur) + '">' + items + "</div></label>";
+    }
+    if (fd.type === "recipients") {
+      var curEx = row ? (row[fd.name] || "") : "";
+      return '<label class="am-field">' + lab +
+        '<input type="hidden" data-name="' + fd.name + '" value="' + esc(curEx) + '">' +
+        '<div class="rc-box" data-cur="' + esc(curEx) + '"><span class="muted" style="font-size:.82rem">구성원 불러오는 중…</span></div></label>';
     }
     if (fd.type === "albumref") {
       return '<label class="am-field">' + lab +
@@ -921,6 +929,28 @@
       vens = vens.filter(function (x) { return x !== n; }); render();
       commitVenue("remove", vtype, n).catch(function (e) { setFormMsg("삭제 실패: " + e.message, "err"); });
     }
+  }
+  // 알림 수신 구성원 체크박스 (체크=받음, 미체크 이름을 exclude 에 저장)
+  function setupRecipients(box) {
+    var hidden = box.parentNode.querySelector('input[type=hidden][data-name]');
+    var excl = (box.getAttribute("data-cur") || "").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+    function sync() {
+      var out = [];
+      Array.prototype.forEach.call(box.querySelectorAll(".rc-item input:not(:checked)"), function (cb) { out.push(cb.getAttribute("data-nm")); });
+      if (hidden) hidden.value = out.join(", ");
+    }
+    fetch("data/people_members.csv?z=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
+      if (!t || !P) { box.innerHTML = '<span class="muted">구성원을 불러오지 못했습니다.</span>'; return; }
+      var ms = P._rowsToObjects(P._parseCSV(t)).filter(function (m) { return (m.email || "").trim(); });
+      box.innerHTML = ms.map(function (m) {
+        var ko = (m.name_korean || "").trim(), en = (m.name_english || "").trim(), nm = ko || en;
+        var on = !(excl.indexOf(ko) >= 0 || excl.indexOf(en) >= 0);
+        var lbl = ko ? (en ? ko + " (" + en + ")" : ko) : en;
+        return '<label class="rc-item"><input type="checkbox" data-nm="' + esc(nm) + '"' + (on ? " checked" : "") + ">" + esc(lbl) + "</label>";
+      }).join("") || '<span class="muted">구성원이 없습니다.</span>';
+      sync();
+    }).catch(function () { box.innerHTML = '<span class="muted">불러오기 실패</span>'; });
+    box.addEventListener("change", sync);
   }
   function setupAuthors(box) {
     var chipsEl = box.querySelector(".au-chips");
