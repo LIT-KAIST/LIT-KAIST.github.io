@@ -418,8 +418,11 @@
     document.getElementById("admFilter").addEventListener("input", renderList);
     document.getElementById("admAdd").addEventListener("click", function () { openForm(null); });
     document.getElementById("admClose").addEventListener("click", closeModal);
+    // 바깥(배경) 클릭으로 실수로 닫혀 작성 내용이 사라지지 않게 — 확인 후에만 닫음
     document.getElementById("admModal").addEventListener("click", function (e) {
-      if (e.target.id === "admModal") closeModal();
+      if (e.target.id === "admModal") {
+        if (global.confirm("작성 중인 내용이 저장되지 않고 사라집니다. 창을 닫을까요?")) closeModal();
+      }
     });
     document.getElementById("admSubmit").onclick = onSubmit;
 
