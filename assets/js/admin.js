@@ -341,6 +341,16 @@
         { name: "map_query", label: "지도 위치(Google Maps) — 정확히 찍으려면 좌표 입력 '위도,경도' (예: 36.3754069,127.3635082). 장소명도 가능하나 부정확할 수 있음" },
       ],
     },
+    mail: {
+      label: "Mail 알림", csv: "data/mail_config.csv", idCol: "key", singleton: true,
+      title: function () { return "새 글 알림 메일 설정"; },
+      fields: [
+        { name: "key", type: "hidden" },
+        { name: "enabled", label: "알림 메일 보내기 (끄면 전체 발송 중지)", type: "check" },
+        { name: "extra_to", label: "항상 받는 사람 (교수님 등) — 이메일, 쉼표로 여러 명" },
+        { name: "exclude", label: "제외할 구성원 — 이름(국문/영문), 쉼표로 여러 명 (새 멤버는 자동 포함)" },
+      ],
+    },
     highlights: {
       label: "Highlights (대표성과·자동)", readonly: true,
     },
@@ -1103,7 +1113,9 @@
             setCells(cells, ix, row, col);
             rows.splice(1, 0, cells); // 맨 위(최신)
           }
-        }, headerCols).then(function () { return commitDetailMd(col); }).then(function () { return maybeCreateNews(col, row); });
+        }, headerCols).then(function () { return commitDetailMd(col); })
+          .then(function () { return maybeCreateNews(col, row); })
+          .then(function (madeNews) { return enqueueMailFor(col, row).then(function () { return madeNews; }); });
       });
     }).then(function (madeNews) {
       setFormMsg(madeNews ? "저장 완료! 📰 뉴스도 자동 작성했습니다. 1~2분 후 반영됩니다." : "저장 완료! 1~2분 후 사이트에 반영됩니다.", "ok");
@@ -1140,6 +1152,52 @@
         return commitText(path, text, "Update project detail: " + slugVal + " (" + fd.mdLang + ")");
       });
     }, Promise.resolve());
+  }
+
+  // 새 글(논문/뉴스/앨범) 첫 생성 시 발송할 알림 메일 초안 생성 (수정/기타는 null)
+  function buildMail(col, row) {
+    var site = "https://lit.kaist.ac.kr/";
+    if (col.isPub) {
+      var venue = (row.journal || row.booktitle || "").trim();
+      var page = /patent/i.test(curPubTarget) ? "patents.html" : (/conference/i.test(curPubTarget) ? "conferences.html" : "journal.html");
+      var link = (row.doi || "").trim() ? ("https://doi.org/" + row.doi.trim()) : (site + page);
+      var b = "새 논문이 게재되었습니다.\n\n· 제목: " + (row.title || "") + "\n· 저자: " + (row.author || "") +
+        "\n· 게재처: " + venue + "\n\n링크: " + link + "\n\n— LIT @ KAIST";
+      return { type: "publication", subject: "[LIT] 새 논문이 게재되었습니다.", body: b };
+    }
+    if (col.csv === "data/news.csv") {
+      var anchor = "n-" + (row.date || "").replace(/[^0-9]/g, "");
+      var b2 = "새 소식이 게재되었습니다.\n\n· 제목: " + (row.title || "") +
+        ((row.content || "").trim() ? "\n" + row.content.trim() : "") +
+        "\n\n링크: " + site + "news.html#" + anchor + "\n\n— LIT @ KAIST";
+      return { type: "news", subject: "[LIT] 새 소식이 게재되었습니다.", body: b2 };
+    }
+    if (col.auto && col.csv === "data/album.csv") {
+      var b3 = "새 이미지가 업로드되었습니다.\n\n· 앨범: " + (row.title || "") +
+        "\n\n링크: " + site + "album.html?a=" + encodeURIComponent((row.date || "").trim()) + "\n\n— LIT @ KAIST";
+      return { type: "album", subject: "[LIT] 새 이미지가 업로드되었습니다.", body: b3 };
+    }
+    return null;
+  }
+  function enqueueMail(type, subject, body) {
+    var stamp = nowStamp();
+    return commitCsv("data/mail_queue.csv", "Queue mail: " + subject, function (rows) {
+      var ix = colIndex(rows);
+      if (ix.stamp == null) { rows[0] = ["stamp", "type", "subject", "body"]; ix = { stamp: 0, type: 1, subject: 2, body: 3 }; }
+      var cells = new Array(rows[0].length).fill("");
+      cells[ix.stamp] = stamp;
+      if (ix.type != null) cells[ix.type] = type;
+      if (ix.subject != null) cells[ix.subject] = subject;
+      if (ix.body != null) cells[ix.body] = body;
+      rows.splice(1, 0, cells);
+    }, ["stamp", "type", "subject", "body"]);
+  }
+  // 첫 생성일 때만 큐에 1건 적재 (수정은 발송 안 함; 논문+자동뉴스도 여기서 1건만)
+  function enqueueMailFor(col, row) {
+    if (editingId) return Promise.resolve();
+    var m = buildMail(col, row);
+    if (!m) return Promise.resolve();
+    return enqueueMail(m.type, m.subject, m.body).catch(function () {}); // 메일 실패해도 저장은 성공 처리
   }
 
   // News: 관련 앨범 연동 + 이미지 미업로드 → 앨범 대표사진을 뉴스 이미지로 사용

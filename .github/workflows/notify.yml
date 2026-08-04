@@ -1,0 +1,33 @@
+name: Notify members on new post
+
+# data/mail_queue.csv 에 새 행이 커밋되면(=admin에서 새 논문/뉴스/앨범 첫 생성) 실행.
+# 새로 추가된 큐 항목만 구성원에게 메일 발송 (수정/기존 항목은 발송 안 함).
+on:
+  push:
+    branches: [main]
+    paths:
+      - data/mail_queue.csv
+
+permissions:
+  contents: read
+
+concurrency:
+  group: notify-mail
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2   # 직전 커밋과 diff 하려면 필요
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Send emails for newly queued items
+        env:
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: python .github/scripts/send_mail.py
