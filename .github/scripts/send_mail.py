@@ -7,8 +7,32 @@ data/mail_queue.csv 의 '아직 안 보낸(sent 빈칸)' 항목만 발송 (Brevo
 설정: data/mail_config.csv / 수신자: extra_to + people_members.csv − exclude
 발신주소 = SENDER_EMAIL(=MAIL_USERNAME), 인증 = BREVO_API_KEY
 """
-import os, csv, json, urllib.request, urllib.error
+import os, csv, json, re, html, urllib.request, urllib.error
 from datetime import datetime, timezone
+
+
+def build_html(body):
+    """평문 본문(admin이 만든 것)을 정돈된 HTML 메일로 감싼다."""
+    core = re.sub(r"\s*—\s*LIT @ KAIST\s*$", "", body or "").strip()      # 중복 서명 제거(푸터로 대체)
+    esc = html.escape(core)
+    esc = re.sub(r"(https?://[^\s<]+)", r'<a href="\1" style="color:#1a5fb4;word-break:break-all">\1</a>', esc)
+    esc = esc.replace("\n", "<br>")
+    return (
+        '<div style="font-family:-apple-system,\'Apple SD Gothic Neo\',Segoe UI,Roboto,sans-serif;'
+        'max-width:600px;margin:0 auto;color:#222">'
+        '<div style="background:#0f2747;color:#fff;padding:15px 22px;border-radius:10px 10px 0 0;'
+        'font-weight:700;font-size:15px;letter-spacing:.3px">LIT @ KAIST · 정보전송연구실</div>'
+        '<div style="border:1px solid #e5e9ef;border-top:0;border-radius:0 0 10px 10px;padding:22px 22px 18px">'
+        '<p style="margin:0 0 14px;font-size:14px;color:#555">안녕하세요, LIT 연구실입니다.</p>'
+        '<div style="font-size:14.5px;line-height:1.75">' + esc + "</div>"
+        '<hr style="border:0;border-top:1px solid #eee;margin:20px 0 14px">'
+        '<div style="font-size:12px;color:#8a94a3;line-height:1.65">'
+        "<b>정보전송연구실 (Laboratory for Information Transmission)</b><br>"
+        "KAIST 전기및전자공학부 · 지도교수 박현철<br>"
+        '웹사이트: <a href="https://lit.kaist.ac.kr" style="color:#1a5fb4">lit.kaist.ac.kr</a><br>'
+        "이 메일은 사이트에 새 글이 등록되어 자동 발송되었습니다."
+        "</div></div></div>"
+    )
 
 
 def read_dicts(path):
@@ -73,9 +97,10 @@ master = flag_on(cfg.get("enabled"))
 
 def brevo_send(subject, body):
     payload = {
-        "sender": {"name": "LIT @ KAIST", "email": sender_email},
+        "sender": {"name": "LIT @ KAIST 정보전송연구실", "email": sender_email},
         "to": [{"email": e} for e in to_list],
         "subject": subject or "[LIT] 알림",
+        "htmlContent": build_html(body),
         "textContent": body or "(내용 없음)",
     }
     req = urllib.request.Request(
