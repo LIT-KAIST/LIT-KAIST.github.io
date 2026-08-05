@@ -29,7 +29,7 @@ def build_html(body):
         'style="height:26px;width:auto;vertical-align:middle;opacity:.95">'
         "</div>"
         '<div style="border:1px solid #e5e9ef;border-top:0;border-radius:0 0 10px 10px;padding:26px 24px 20px">'
-        '<p style="margin:0 0 16px;font-size:16px;color:#555">안녕하세요, LIT 연구실입니다.</p>'
+        '<p style="margin:0 0 16px;font-size:18px;font-weight:500;color:#3a4250">안녕하세요, LIT 연구실입니다.</p>'
         '<div style="font-size:17px;line-height:1.8;color:#1c2330">' + esc + "</div>"
         '<hr style="border:0;border-top:1px solid #eee;margin:24px 0 16px">'
         '<div style="font-size:13.5px;color:#8a94a3;line-height:1.7">'
