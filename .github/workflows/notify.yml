@@ -1,7 +1,7 @@
 name: Notify members on new post
 
 # data/mail_queue.csv 에 새 행이 커밋되면(=admin에서 새 논문/뉴스/앨범 첫 생성) 실행.
-# 새로 추가된 큐 항목만 구성원에게 메일 발송 (수정/기존 항목은 발송 안 함).
+# 아직 안 보낸(sent 빈칸) 항목만 발송하고, 발송한 항목엔 sent 표시를 커밋 → 중복 발송 방지.
 on:
   push:
     branches: [main]
@@ -10,7 +10,7 @@ on:
   workflow_dispatch: {}   # Actions 탭에서 수동 실행 가능 (최신 코드로)
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: notify-mail
@@ -22,13 +22,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2   # 직전 커밋과 diff 하려면 필요
+          ref: main          # 최신 main 에서 작업 + sent 표시 push
+          fetch-depth: 1
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - name: Send emails for newly queued items
+      - name: Send unsent queue items
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
           SENDER_EMAIL: ${{ secrets.MAIL_USERNAME }}
-          BEFORE_SHA: ${{ github.event.before }}
         run: python .github/scripts/send_mail.py
+      - name: Persist sent flags
+        if: always()
+        run: |
+          if ! git diff --quiet -- data/mail_queue.csv; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add data/mail_queue.csv
+            git commit -m "Mark mail queue items as sent [skip ci]"
+            git push
+          else
+            echo "no queue change"
+          fi

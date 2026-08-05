@@ -1,4 +1,4 @@
-﻿stamp,type,subject,body
+﻿stamp,type,subject,body,sent
 2026-08-05 15:38:29,news,[LIT] 새 소식이 게재되었습니다.,"새 소식이 게재되었습니다.
 
 · 제목: 테스트
@@ -6,7 +6,7 @@
 
 링크: https://lit.kaist.ac.kr/news.html#n-20260805153826
 
-— LIT @ KAIST"
+— LIT @ KAIST",migrated
 2026-08-05 12:27:26,news,[LIT] 새 소식이 게재되었습니다.,"새 소식이 게재되었습니다.
 
 · 제목: 테스트
@@ -14,4 +14,4 @@
 
 링크: https://lit.kaist.ac.kr/news.html#n-20260805122723
 
-— LIT @ KAIST"
+— LIT @ KAIST",migrated
