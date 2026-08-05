@@ -20,8 +20,12 @@ def build_html(body):
     return (
         '<div style="font-family:-apple-system,\'Apple SD Gothic Neo\',Segoe UI,Roboto,sans-serif;'
         'max-width:600px;margin:0 auto;color:#222">'
-        '<div style="background:#0f2747;color:#fff;padding:15px 22px;border-radius:10px 10px 0 0;'
-        'font-weight:700;font-size:15px;letter-spacing:.3px">LIT @ KAIST · 정보전송연구실</div>'
+        '<div style="background:#0f2747;padding:16px 22px;border-radius:10px 10px 0 0;line-height:1">'
+        '<img src="https://lit.kaist.ac.kr/assets/lit-logo-white.png" alt="LIT" height="26" '
+        'style="height:26px;width:auto;vertical-align:middle;margin-right:14px">'
+        '<img src="https://lit.kaist.ac.kr/assets/kaist-logo-white.png" alt="KAIST" height="18" '
+        'style="height:18px;width:auto;vertical-align:middle;opacity:.95">'
+        "</div>"
         '<div style="border:1px solid #e5e9ef;border-top:0;border-radius:0 0 10px 10px;padding:22px 22px 18px">'
         '<p style="margin:0 0 14px;font-size:14px;color:#555">안녕하세요, LIT 연구실입니다.</p>'
         '<div style="font-size:14.5px;line-height:1.75">' + esc + "</div>"
