@@ -7,6 +7,7 @@ on:
     branches: [main]
     paths:
       - data/mail_queue.csv
+  workflow_dispatch: {}   # Actions 탭에서 수동 실행 가능 (최신 코드로)
 
 permissions:
   contents: read
