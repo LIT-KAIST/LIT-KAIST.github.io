@@ -17,20 +17,22 @@ def build_html(body):
     esc = html.escape(core)
     esc = re.sub(r"(https?://[^\s<]+)", r'<a href="\1" style="color:#1a5fb4;word-break:break-all">\1</a>', esc)
     esc = esc.replace("\n", "<br>")
+    font = ("Pretendard,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',"
+            "Segoe UI,Roboto,sans-serif")
     return (
-        '<div style="font-family:-apple-system,\'Apple SD Gothic Neo\',Segoe UI,Roboto,sans-serif;'
-        'max-width:600px;margin:0 auto;color:#222">'
-        '<div style="background:#0f2747;padding:16px 22px;border-radius:10px 10px 0 0;line-height:1">'
-        '<img src="https://lit.kaist.ac.kr/assets/lit-logo-white.png" alt="LIT" height="26" '
-        'style="height:26px;width:auto;vertical-align:middle;margin-right:14px">'
-        '<img src="https://lit.kaist.ac.kr/assets/kaist-logo-white.png" alt="KAIST" height="18" '
-        'style="height:18px;width:auto;vertical-align:middle;opacity:.95">'
+        '<style>@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");</style>'
+        '<div style="font-family:' + font + ';max-width:600px;margin:0 auto;color:#222">'
+        '<div style="background:#0f2747;padding:18px 22px;border-radius:10px 10px 0 0;line-height:1">'
+        '<img src="https://lit.kaist.ac.kr/assets/lit-logo-white.png" alt="LIT" height="30" '
+        'style="height:30px;width:auto;vertical-align:middle;margin-right:16px">'
+        '<img src="https://lit.kaist.ac.kr/assets/kaist-logo-white.png" alt="KAIST" height="26" '
+        'style="height:26px;width:auto;vertical-align:middle;opacity:.95">'
         "</div>"
-        '<div style="border:1px solid #e5e9ef;border-top:0;border-radius:0 0 10px 10px;padding:22px 22px 18px">'
-        '<p style="margin:0 0 14px;font-size:14px;color:#555">안녕하세요, LIT 연구실입니다.</p>'
-        '<div style="font-size:14.5px;line-height:1.75">' + esc + "</div>"
-        '<hr style="border:0;border-top:1px solid #eee;margin:20px 0 14px">'
-        '<div style="font-size:12px;color:#8a94a3;line-height:1.65">'
+        '<div style="border:1px solid #e5e9ef;border-top:0;border-radius:0 0 10px 10px;padding:26px 24px 20px">'
+        '<p style="margin:0 0 16px;font-size:16px;color:#555">안녕하세요, LIT 연구실입니다.</p>'
+        '<div style="font-size:17px;line-height:1.8;color:#1c2330">' + esc + "</div>"
+        '<hr style="border:0;border-top:1px solid #eee;margin:24px 0 16px">'
+        '<div style="font-size:13.5px;color:#8a94a3;line-height:1.7">'
         "<b>정보전송연구실 (Laboratory for Information Transmission)</b><br>"
         "KAIST 전기및전자공학부 · 지도교수 박현철<br>"
         '웹사이트: <a href="https://lit.kaist.ac.kr" style="color:#1a5fb4">lit.kaist.ac.kr</a><br>'
