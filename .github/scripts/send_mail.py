@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-data/mail_queue.csv 에 이번 푸시로 새로 추가된 행만 골라 구성원에게 메일 발송.
-- 설정: data/mail_config.csv (enabled / extra_to / exclude)
+data/mail_queue.csv 에 이번 푸시로 새로 추가된 행만 골라 구성원에게 메일 발송 (Brevo API).
+- 설정: data/mail_config.csv (enabled / send_* / extra_to / exclude)
 - 수신자: 항상받음(extra_to) + people_members.csv 이메일 − 제외(exclude)
-- 발송: Gmail SMTP (secrets: MAIL_USERNAME / MAIL_PASSWORD)
+- 발송: Brevo HTTP API (secret: BREVO_API_KEY), 발신주소 = SENDER_EMAIL(=MAIL_USERNAME)
 큐는 append-only 이며, '직전 커밋(before)에 없던 stamp' 만 새 항목으로 간주해 발송한다.
 """
-import os, csv, io, ssl, subprocess, smtplib
-from email.message import EmailMessage
+import os, csv, io, json, subprocess, urllib.request, urllib.error
 
 
 def read_dicts(path):
@@ -22,23 +21,21 @@ def split_list(s):
     return [x.strip() for x in (s or "").replace("，", ",").split(",") if x.strip()]
 
 
-# ---------- 설정 ----------
-cfg_rows = read_dicts("data/mail_config.csv")
-cfg = cfg_rows[0] if cfg_rows else {}
-enabled = str(cfg.get("enabled", "")).strip().lower() in ("y", "yes", "1", "true", "on", "예", "✓")
-if not enabled:
-    print("Mail disabled (mail_config.enabled). Skipping.")
-    raise SystemExit(0)
-
 def flag_on(v):
     return str(v or "").strip().lower() in ("y", "yes", "1", "true", "on", "예", "✓")
 
-# 유형별 발송 스위치: 큐 항목 type → mail_config 컬럼
+
+# ---------- 설정 ----------
+cfg_rows = read_dicts("data/mail_config.csv")
+cfg = cfg_rows[0] if cfg_rows else {}
+if not flag_on(cfg.get("enabled")):
+    print("Mail disabled (mail_config.enabled). Skipping.")
+    raise SystemExit(0)
+
 TYPE_FLAG = {"journal": "send_journal", "conference": "send_conference",
              "news": "send_news", "album": "send_album"}
 
 exclude = split_list(cfg.get("exclude"))
-# 항상 받는 사람(교수님 등). 단, 교수님 이름이 exclude 에 있으면 제외(체크박스 off)
 extra = split_list(cfg.get("extra_to"))
 PROF_NAMES = ("박현철", "Hyuncheol Park")
 prof_excluded = any(p in exclude for p in PROF_NAMES)
@@ -55,7 +52,6 @@ for m in read_dicts("data/people_members.csv"):
         continue
     recipients.append(em)
 
-# 정리(중복 제거, 유효 이메일만)
 seen, to_list = set(), []
 for e in recipients:
     e = e.strip()
@@ -83,25 +79,45 @@ if not new_items:
     print("No new queue items. Skipping.")
     raise SystemExit(0)
 
-# ---------- 발송 ----------
-user = os.environ["MAIL_USERNAME"]
-pw = os.environ["MAIL_PASSWORD"]
-ctx = ssl.create_default_context()
-with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ctx) as smtp:
-    smtp.login(user, pw)
-    for it in new_items:
-        t = (it.get("type") or "").strip()
-        col = TYPE_FLAG.get(t)
-        if not col or not flag_on(cfg.get(col)):
-            print(f"skip (type off or unknown): {t}")
-            continue
-        subject = (it.get("subject") or "[LIT] 알림").strip()
-        body = (it.get("body") or "").strip() or "(내용 없음)"
-        msg = EmailMessage()
-        msg["Subject"] = subject
-        msg["From"] = f"LIT @ KAIST <{user}>"
-        msg["To"] = ", ".join(to_list)
-        msg.set_content(body)
-        smtp.send_message(msg)
-        print(f"sent: {subject} -> {len(to_list)} recipients")
-print("done.")
+# ---------- 발송 (Brevo API) ----------
+api_key = os.environ.get("BREVO_API_KEY", "").strip()
+sender_email = os.environ.get("SENDER_EMAIL", "").strip()
+if not api_key:
+    print("BREVO_API_KEY secret is missing.")
+    raise SystemExit(1)
+if not sender_email:
+    print("SENDER_EMAIL (=MAIL_USERNAME secret) is missing.")
+    raise SystemExit(1)
+
+sent = 0
+for it in new_items:
+    t = (it.get("type") or "").strip()
+    col = TYPE_FLAG.get(t)
+    if not col or not flag_on(cfg.get(col)):
+        print(f"skip (type off or unknown): {t}")
+        continue
+    payload = {
+        "sender": {"name": "LIT @ KAIST", "email": sender_email},
+        "to": [{"email": e} for e in to_list],
+        "subject": (it.get("subject") or "[LIT] 알림").strip(),
+        "textContent": (it.get("body") or "").strip() or "(내용 없음)",
+    }
+    req = urllib.request.Request(
+        "https://api.brevo.com/v3/smtp/email",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"api-key": api_key, "content-type": "application/json", "accept": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            print(f"sent: {payload['subject']} -> {len(to_list)} recipients (HTTP {resp.status})")
+            sent += 1
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode("utf-8", "replace")
+        print(f"Brevo API error (HTTP {e.code}): {detail}")
+        raise SystemExit(1)
+    except Exception as e:
+        print(f"Send failed: {e}")
+        raise SystemExit(1)
+
+print(f"done. sent {sent} email(s).")

@@ -27,7 +27,7 @@ jobs:
           python-version: '3.x'
       - name: Send emails for newly queued items
         env:
-          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          SENDER_EMAIL: ${{ secrets.MAIL_USERNAME }}
           BEFORE_SHA: ${{ github.event.before }}
         run: python .github/scripts/send_mail.py
