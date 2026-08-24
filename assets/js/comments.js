@@ -21,6 +21,12 @@
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
   function nl2br(s) { return esc(s).replace(/\r?\n/g, "<br>"); }
+  function initialOf(name) { var s = String(name || "").trim(); return s ? s.charAt(0).toUpperCase() : "?"; }
+  function avatarColor(name) {
+    var s = String(name || ""), h = 0;
+    for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; }
+    return "hsl(" + (h % 360) + ", 42%, 46%)";
+  }
   // 첨부 사진: 브라우저에서 리사이즈+JPEG 압축 → data URI (용량 절감)
   function resizeImage(file, maxW, quality) {
     return new Promise(function (resolve, reject) {
@@ -65,7 +71,9 @@
           '<textarea class="cm-body" rows="2" maxlength="2000" placeholder="댓글을 입력하세요" required></textarea>' +
           '<div class="cm-preview" hidden></div>' +
           '<div class="cm-actions">' +
-            '<button type="button" class="cm-photo" title="사진 첨부">🖼<span>사진</span></button>' +
+            '<button type="button" class="cm-photo" title="사진 첨부">' +
+              '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="m21 15-5-5L5 21"></path></svg>' +
+              "<span>사진</span></button>" +
             '<input type="file" class="cm-file" accept="image/*" hidden>' +
             '<span class="cm-msg"></span>' +
             '<button type="submit" class="cm-submit">등록</button>' +
@@ -101,12 +109,15 @@
     }
     function item(r) {
       return '<div class="cm-item" data-id="' + r.id + '">' +
-        '<div class="cm-meta"><b class="cm-who">' + esc(r.name) + "</b>" +
-        '<span class="cm-when">' + esc(fmt(r.created_at)) + "</span>" +
-        '<button type="button" class="cm-del" title="삭제">✕</button></div>' +
-        '<div class="cm-text">' + nl2br(r.body) + "</div>" +
-        (r.image ? '<a class="cm-imgwrap" href="' + esc(r.image) + '" target="_blank" rel="noopener"><img class="cm-img" src="' + esc(r.image) + '" alt="첨부 이미지" loading="lazy"></a>' : "") +
-        "</div>";
+        '<div class="cm-avatar" style="background:' + avatarColor(r.name) + '">' + esc(initialOf(r.name)) + "</div>" +
+        '<div class="cm-bodywrap">' +
+          '<div class="cm-meta"><b class="cm-who">' + esc(r.name) + "</b>" +
+          '<span class="cm-when">' + esc(fmt(r.created_at)) + "</span>" +
+          '<button type="button" class="cm-del" title="삭제">✕</button></div>' +
+          '<div class="cm-text">' + nl2br(r.body) + "</div>" +
+          (r.image ? '<a class="cm-imgwrap" href="' + esc(r.image) + '" target="_blank" rel="noopener"><img class="cm-img" src="' + esc(r.image) + '" alt="첨부 이미지" loading="lazy"></a>' : "") +
+        "</div>" +
+      "</div>";
     }
 
     // ── 사진 첨부: 버튼 → 파일 선택 → 리사이즈 → 미리보기 ──────────────
