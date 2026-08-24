@@ -22,11 +22,6 @@
   }
   function nl2br(s) { return esc(s).replace(/\r?\n/g, "<br>"); }
   function initialOf(name) { var s = String(name || "").trim(); return s ? s.charAt(0).toUpperCase() : "?"; }
-  function avatarColor(name) {
-    var s = String(name || ""), h = 0;
-    for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; }
-    return "hsl(" + (h % 360) + ", 42%, 46%)";
-  }
   // 첨부 사진: 브라우저에서 리사이즈+JPEG 압축 → data URI (용량 절감)
   function resizeImage(file, maxW, quality) {
     return new Promise(function (resolve, reject) {
@@ -109,7 +104,7 @@
     }
     function item(r) {
       return '<div class="cm-item" data-id="' + r.id + '">' +
-        '<div class="cm-avatar" style="background:' + avatarColor(r.name) + '">' + esc(initialOf(r.name)) + "</div>" +
+        '<div class="cm-avatar">' + esc(initialOf(r.name)) + "</div>" +
         '<div class="cm-bodywrap">' +
           '<div class="cm-meta"><b class="cm-who">' + esc(r.name) + "</b>" +
           '<span class="cm-when">' + esc(fmt(r.created_at)) + "</span>" +
@@ -156,9 +151,18 @@
       var msg = form.querySelector(".cm-msg");
       if (!name || !pass || (!body && !pendingImg)) { msg.textContent = "이름·암호·내용(또는 사진)을 입력하세요."; return; }
       var btn = form.querySelector(".cm-submit"); btn.disabled = true; msg.textContent = "등록 중…";
-      c.rpc("add_comment", { p_news_id: news, p_name: name, p_body: body, p_passcode: pass, p_image: pendingImg }).then(function (res) {
+      var params = { p_news_id: news, p_name: name, p_body: body, p_passcode: pass };
+      if (pendingImg) params.p_image = pendingImg;   // 사진 있을 때만 전송(구버전 함수와도 호환)
+      c.rpc("add_comment", params).then(function (res) {
         btn.disabled = false;
-        if (res.error) { msg.textContent = /passcode/i.test(res.error.message) ? "암호가 올바르지 않습니다." : "등록 실패: " + res.error.message; return; }
+        if (res.error) {
+          var m = res.error.message || "";
+          msg.textContent = /invalid_passcode/i.test(m) ? "암호가 올바르지 않습니다."
+            : /image_too_large/i.test(m) ? "사진 용량이 너무 큽니다. 더 작은 이미지를 사용하세요."
+            : /p_image|schema cache|find the function/i.test(m) ? "사진 첨부는 아직 설정 전이에요(관리자: comments-add-image.sql 실행 필요)."
+            : "등록 실패: " + m;
+          return;
+        }
         form.querySelector(".cm-body").value = ""; form.querySelector(".cm-pass").value = ""; msg.textContent = "";
         pendingImg = null; preview.hidden = true; preview.innerHTML = "";
         load();
@@ -170,7 +174,7 @@
       var it = del.closest(".cm-item"); var id = it && it.getAttribute("data-id"); if (!id) return;
       var pass = global.prompt("삭제하려면 연구실 암호를 입력하세요."); if (pass == null) return;
       c.rpc("delete_comment", { p_id: Number(id), p_passcode: pass.trim() }).then(function (res) {
-        if (res.error) { global.alert(/passcode/i.test(res.error.message) ? "암호가 올바르지 않습니다." : "삭제 실패"); return; }
+        if (res.error) { global.alert(/invalid_passcode/i.test(res.error.message || "") ? "암호가 올바르지 않습니다." : "삭제 실패"); return; }
         load();
       });
     });
