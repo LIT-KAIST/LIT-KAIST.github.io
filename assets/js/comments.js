@@ -21,6 +21,22 @@
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
   function nl2br(s) { return esc(s).replace(/\r?\n/g, "<br>"); }
+  // 첨부 사진: 브라우저에서 리사이즈+JPEG 압축 → data URI (용량 절감)
+  function resizeImage(file, maxW, quality) {
+    return new Promise(function (resolve, reject) {
+      var img = new Image();
+      img.onload = function () {
+        var scale = Math.min(1, maxW / img.width);
+        var w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+        var c = document.createElement("canvas"); c.width = w; c.height = h;
+        c.getContext("2d").drawImage(img, 0, 0, w, h);
+        try { resolve(c.toDataURL("image/jpeg", quality)); } catch (e) { reject(e); }
+        URL.revokeObjectURL(img.src);
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  }
   function fmt(ts) {
     var d = new Date(ts); if (isNaN(d)) return "";
     function p(n) { return (n < 10 ? "0" : "") + n; }
@@ -47,7 +63,13 @@
             '<input class="cm-pass" type="password" inputmode="numeric" maxlength="20" placeholder="연구실 암호" autocomplete="off" required>' +
           "</div>" +
           '<textarea class="cm-body" rows="2" maxlength="2000" placeholder="댓글을 입력하세요" required></textarea>' +
-          '<div class="cm-actions"><span class="cm-msg"></span><button type="submit" class="cm-submit">등록</button></div>' +
+          '<div class="cm-preview" hidden></div>' +
+          '<div class="cm-actions">' +
+            '<button type="button" class="cm-photo" title="사진 첨부">🖼<span>사진</span></button>' +
+            '<input type="file" class="cm-file" accept="image/*" hidden>' +
+            '<span class="cm-msg"></span>' +
+            '<button type="submit" class="cm-submit">등록</button>' +
+          "</div>" +
         "</form>" +
       "</div>";
 
@@ -82,8 +104,38 @@
         '<div class="cm-meta"><b class="cm-who">' + esc(r.name) + "</b>" +
         '<span class="cm-when">' + esc(fmt(r.created_at)) + "</span>" +
         '<button type="button" class="cm-del" title="삭제">✕</button></div>' +
-        '<div class="cm-text">' + nl2br(r.body) + "</div></div>";
+        '<div class="cm-text">' + nl2br(r.body) + "</div>" +
+        (r.image ? '<a class="cm-imgwrap" href="' + esc(r.image) + '" target="_blank" rel="noopener"><img class="cm-img" src="' + esc(r.image) + '" alt="첨부 이미지" loading="lazy"></a>' : "") +
+        "</div>";
     }
+
+    // ── 사진 첨부: 버튼 → 파일 선택 → 리사이즈 → 미리보기 ──────────────
+    var pendingImg = null;
+    var fileInput = form.querySelector(".cm-file");
+    var photoBtn = form.querySelector(".cm-photo");
+    var preview = form.querySelector(".cm-preview");
+    var formMsg = form.querySelector(".cm-msg");
+    photoBtn.addEventListener("click", function () { fileInput.click(); });
+    fileInput.addEventListener("change", function () {
+      var f = fileInput.files && fileInput.files[0]; fileInput.value = "";
+      if (!f) return;
+      formMsg.textContent = "사진 처리 중…";
+      resizeImage(f, 1000, 0.82).then(function (uri) {
+        // data URI 가 지나치게 크면 한 번 더 압축
+        if (uri.length > 850000) return resizeImage(f, 760, 0.72);
+        return uri;
+      }).then(function (uri) {
+        if (uri.length > 850000) { formMsg.textContent = "사진 용량이 너무 큽니다. 더 작은 이미지를 사용하세요."; return; }
+        pendingImg = uri; formMsg.textContent = "";
+        preview.hidden = false;
+        preview.innerHTML = '<img src="' + esc(uri) + '"><button type="button" class="cm-imgdel" title="사진 제거">✕</button>';
+      }).catch(function () { formMsg.textContent = "이 이미지는 첨부할 수 없어요(JPG/PNG 권장)."; });
+    });
+    preview.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest(".cm-imgdel")) {
+        pendingImg = null; preview.hidden = true; preview.innerHTML = "";
+      }
+    });
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -91,12 +143,13 @@
       var pass = form.querySelector(".cm-pass").value.trim();
       var body = form.querySelector(".cm-body").value.trim();
       var msg = form.querySelector(".cm-msg");
-      if (!name || !pass || !body) { msg.textContent = "이름·암호·내용을 모두 입력하세요."; return; }
+      if (!name || !pass || (!body && !pendingImg)) { msg.textContent = "이름·암호·내용(또는 사진)을 입력하세요."; return; }
       var btn = form.querySelector(".cm-submit"); btn.disabled = true; msg.textContent = "등록 중…";
-      c.rpc("add_comment", { p_news_id: news, p_name: name, p_body: body, p_passcode: pass }).then(function (res) {
+      c.rpc("add_comment", { p_news_id: news, p_name: name, p_body: body, p_passcode: pass, p_image: pendingImg }).then(function (res) {
         btn.disabled = false;
         if (res.error) { msg.textContent = /passcode/i.test(res.error.message) ? "암호가 올바르지 않습니다." : "등록 실패: " + res.error.message; return; }
         form.querySelector(".cm-body").value = ""; form.querySelector(".cm-pass").value = ""; msg.textContent = "";
+        pendingImg = null; preview.hidden = true; preview.innerHTML = "";
         load();
       });
     });

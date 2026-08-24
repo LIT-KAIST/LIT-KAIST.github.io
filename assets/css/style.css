@@ -898,12 +898,20 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .cm-del { margin-left: auto; border: 0; background: transparent; color: #c0392b; cursor: pointer; font-size: .72rem; opacity: .5; }
 .cm-del:hover { opacity: 1; }
 .cm-text { margin-top: 5px; line-height: 1.6; color: #374151; font-size: .92rem; word-break: break-word; }
+.cm-imgwrap { display: inline-block; margin-top: 8px; }
+.cm-img { max-width: min(300px, 100%); max-height: 320px; border-radius: 10px; border: 1px solid var(--line); display: block; }
 .cm-form { display: flex; flex-direction: column; gap: 8px; }
 .cm-row { display: flex; gap: 8px; }
 .cm-row .cm-name { flex: 1; } .cm-row .cm-pass { width: 150px; flex: 0 0 auto; }
 .cm-form input, .cm-form textarea { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; width: 100%; }
-.cm-actions { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
-.cm-msg { margin-right: auto; color: #c0392b; font-size: .82rem; }
+.cm-preview { position: relative; align-self: flex-start; }
+.cm-preview img { max-width: 120px; max-height: 120px; border-radius: 8px; border: 1px solid var(--line); display: block; }
+.cm-imgdel { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; border-radius: 50%; border: 0; background: #c0392b; color: #fff; cursor: pointer; font-size: .72rem; line-height: 1; display: flex; align-items: center; justify-content: center; }
+.cm-actions { display: flex; align-items: center; gap: 10px; }
+.cm-photo { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); background: #fff; color: var(--fg); border-radius: 8px; font: inherit; font-size: .86rem; padding: 7px 12px; cursor: pointer; line-height: 1; }
+.cm-photo:hover { background: var(--soft); }
+.cm-photo span { font-weight: 500; }
+.cm-msg { flex: 1; color: #c0392b; font-size: .82rem; }
 .cm-submit { border: 0; background: var(--accent); color: #fff; font: inherit; font-weight: 600; padding: 8px 18px; border-radius: 8px; cursor: pointer; }
 .cm-submit:disabled { opacity: .6; }
 @media (max-width: 600px) { .ni-comments { margin-left: 0; } .cm-row .cm-pass { width: 120px; } }
