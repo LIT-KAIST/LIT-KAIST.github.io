@@ -76,6 +76,12 @@
     }
     return '<div class="ni-media"><a class="ni-imglink" href="' + esc(img) + '" target="_blank" rel="noopener">' + im + "</a></div>";
   }
+  // 카드용 이미지(링크 없이 — 카드 클릭이 모달을 열도록)
+  function cardImageHtml(row) {
+    var img = (row.image || "").trim();
+    if (!img) return "";
+    return '<div class="ni-media"><img class="ni-img" src="' + esc(img) + '" alt="' + esc(pick(row, "title")) + '" loading="lazy"></div>';
+  }
   function linksHtml(row) {
     var raw = (row.links || "").trim();
     if (!raw) return "";
@@ -120,16 +126,17 @@
     function itemHtml(row) {
       return (
         '<article class="news-item reveal" data-type="' + newsType(row).key + '" id="' + slug(row.date) + '">' +
-          imageHtml(row) +
+          cardImageHtml(row) +
           '<div class="ni-head">' +
             tagHtml(row) +
             '<span class="ni-date">' + esc(dateLabel(row)) + "</span>" +
-            '<span class="ni-like" data-key="news:' + esc(slug(row.date)) + '"></span>' +
           "</div>" +
           '<h3 class="ni-title">' + esc(pick(row, "title")) + "</h3>" +
           '<div class="ni-content">' + nl2br(pick(row, "content")) + "</div>" +
-          (linksHtml(row) ? '<div class="ni-links">' + linksHtml(row) + "</div>" : "") +
-          '<div class="ni-comments" data-news="' + esc(slug(row.date)) + '"></div>' +
+          '<div class="ni-foot">' +
+            '<span class="ni-cmt" data-news="' + esc(slug(row.date)) + '"></span>' +
+            '<span class="ni-like" data-key="news:' + esc(slug(row.date)) + '"></span>' +
+          "</div>" +
           (adminMode
             ? '<div class="ni-admin">' +
                 '<button type="button" class="ni-edit" data-date="' + esc(row.date) + '">수정</button>' +
@@ -152,10 +159,14 @@
       }).join("");
       mount.innerHTML = html || '<p class="muted">뉴스가 없습니다.</p>';
       if (global.LitReveal) global.LitReveal.observe(mount.querySelectorAll(".reveal"));
-      if (global.LitComments) global.LitComments.mount(mount);
       if (global.LitLikes) {
         Array.prototype.forEach.call(mount.querySelectorAll(".ni-like[data-key]"), function (el) {
           global.LitLikes.mount(el, el.getAttribute("data-key"));
+        });
+      }
+      if (global.LitComments && global.LitComments.newsCount) {
+        Array.prototype.forEach.call(mount.querySelectorAll(".ni-cmt[data-news]"), function (el) {
+          global.LitComments.newsCount(el, el.getAttribute("data-news"));
         });
       }
     }
@@ -163,12 +174,22 @@
     function focusHash() {
       var id = location.hash.replace(/^#/, "");
       if (!id) return;
+      var row = news.filter(function (r) { return slug(r.date) === id; })[0];
+      if (row) { openNews(row); return; }
       var el = document.getElementById(id);
       if (!el) return;
       el.scrollIntoView({ behavior: "smooth", block: "center" });
       el.classList.add("ni-flash");
       setTimeout(function () { el.classList.remove("ni-flash"); }, 2200);
     }
+
+    // 카드 클릭 → 확대 모달 (좋아요·수정·삭제·링크 클릭은 제외)
+    mount.addEventListener("click", function (e) {
+      if (e.target.closest(".ni-like") || e.target.closest(".ni-edit") || e.target.closest(".ni-del") || e.target.closest("a")) return;
+      var art = e.target.closest(".news-item"); if (!art) return;
+      var row = news.filter(function (r) { return slug(r.date) === art.id; })[0];
+      if (row) openNews(row);
+    });
 
     // 언어 토글 시 재렌더 (제목·본문이 언어별로 다름)
     document.addEventListener("lit:lang", function () { render(); });
@@ -411,6 +432,58 @@
     }).catch(function () {
       mount.innerHTML = '<li class="muted">뉴스를 불러오지 못했습니다.</li>';
     });
+  }
+
+  /* ====================== 뉴스 확대 모달 ====================== */
+  var TYPE_COLORS = { paper: "#2563eb", award: "#d97706", event: "#059669", people: "#7c3aed", obituary: "#64748b", news: "#475569" };
+  var newsModal = null;
+  function buildNewsModal() {
+    if (newsModal) return newsModal;
+    newsModal = document.createElement("div");
+    newsModal.className = "news-modal";
+    newsModal.setAttribute("aria-hidden", "true");
+    newsModal.innerHTML =
+      '<div class="nm-backdrop"></div>' +
+      '<div class="nm-panel"><button class="nm-close" type="button" aria-label="닫기">&times;</button><div class="nm-body"></div></div>';
+    document.body.appendChild(newsModal);
+    function close() {
+      newsModal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      newsModal.querySelector(".nm-body").innerHTML = "";
+    }
+    newsModal.querySelector(".nm-close").addEventListener("click", close);
+    newsModal.querySelector(".nm-backdrop").addEventListener("click", close);
+    global.addEventListener("keydown", function (e) {
+      if (newsModal.getAttribute("aria-hidden") === "false" && e.key === "Escape") close();
+    });
+    return newsModal;
+  }
+  function openNews(row) {
+    var m = buildNewsModal();
+    var t = newsType(row);
+    var panel = m.querySelector(".nm-panel");
+    panel.setAttribute("data-type", t.key);
+    panel.style.setProperty("--nt", TYPE_COLORS[t.key] || "#475569");
+    var body = m.querySelector(".nm-body");
+    var img = (row.image || "").trim();
+    var alb = (row.album || "").trim();
+    var newsId = slug(row.date);
+    body.innerHTML =
+      (img ? '<img class="nm-banner" src="' + esc(img) + '" alt="' + esc(pick(row, "title")) + '">' : "") +
+      '<div class="nm-inner">' +
+        '<div class="ni-head">' + tagHtml(row) + '<span class="ni-date">' + esc(dateLabel(row)) + "</span></div>" +
+        '<h2 class="nm-title">' + esc(pick(row, "title")) + "</h2>" +
+        '<div class="nm-content">' + nl2br(pick(row, "content")) + "</div>" +
+        (linksHtml(row) ? '<div class="ni-links">' + linksHtml(row) + "</div>" : "") +
+        (alb ? '<p class="nm-albumlink"><a href="album.html?a=' + encodeURIComponent(alb) + '">' + (lang() === "en" ? "See related album →" : "관련 앨범 보기 →") + "</a></p>" : "") +
+        '<div class="nm-foot"><span class="nm-foot-label">' + (lang() === "en" ? "Like & comments" : "좋아요 · 댓글") + '</span><span class="ni-like" data-key="news:' + esc(newsId) + '"></span></div>' +
+        '<div class="ni-comments" data-news="' + esc(newsId) + '"></div>' +
+      "</div>";
+    if (global.LitLikes) { var lk = body.querySelector(".ni-like"); if (lk) global.LitLikes.mount(lk, lk.getAttribute("data-key")); }
+    if (global.LitComments) { global.LitComments.mount(body); var tg = body.querySelector(".cm-toggle"); if (tg) tg.click(); }
+    m.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    body.scrollTop = 0;
   }
 
   global.News = { initPage: initPage, renderRecent: renderRecent };

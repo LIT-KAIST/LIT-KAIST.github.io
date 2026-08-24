@@ -467,6 +467,13 @@
       .then(function (res) { if (res.count != null) el.innerHTML = '<span class="cmt-badge">💬 ' + res.count + "</span>"; });
   }
 
-  global.LitComments = { mount: mount, mountPanel: mountPanel, count: mountCommentCount };
+  // 뉴스 댓글 수 배지 (comments 테이블, news_id 기준)
+  function mountNewsCount(el, newsId) {
+    var c = client(); if (!c || !newsId) { el.textContent = ""; return; }
+    c.from("comments").select("id", { count: "exact", head: true }).eq("news_id", newsId)
+      .then(function (res) { if (res.count != null) el.innerHTML = '<span class="cmt-badge2">💬 ' + res.count + "</span>"; });
+  }
+
+  global.LitComments = { mount: mount, mountPanel: mountPanel, count: mountCommentCount, newsCount: mountNewsCount };
   global.LitLikes = { mount: mountLike };
 })(window);
