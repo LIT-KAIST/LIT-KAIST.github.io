@@ -134,8 +134,8 @@
           '<h3 class="ni-title">' + esc(pick(row, "title")) + "</h3>" +
           '<div class="ni-content">' + nl2br(pick(row, "content")) + "</div>" +
           '<div class="ni-foot">' +
-            '<span class="ni-cmt" data-news="' + esc(slug(row.date)) + '"></span>' +
             '<span class="ni-like" data-key="news:' + esc(slug(row.date)) + '"></span>' +
+            '<span class="ni-cmt" data-news="' + esc(slug(row.date)) + '"></span>' +
           "</div>" +
           (adminMode
             ? '<div class="ni-admin">' +

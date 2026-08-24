@@ -110,8 +110,10 @@
           '<span class="ac-thumb">' +
             media +
             (n > 1 ? '<span class="ac-count">🖼 ' + n + "</span>" : "") +
-            '<span class="ac-cmt" data-key="' + esc(albumKey(row)) + '"></span>' +
-            '<span class="ac-like" data-key="' + esc(albumKey(row)) + '"></span>' +
+            '<span class="ac-meta">' +
+              '<span class="ac-like" data-key="' + esc(albumKey(row)) + '"></span>' +
+              '<span class="ac-cmt" data-key="' + esc(albumKey(row)) + '"></span>' +
+            "</span>" +
           "</span>" +
           '<span class="ac-body">' +
             '<span class="ac-title">' + esc(row.title) + "</span>" +
