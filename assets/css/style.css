@@ -883,6 +883,30 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .ni-imglink .ni-img { transition: transform .3s ease; }
 .news-item::after { content: ""; display: block; clear: both; }
 .news-item.ni-flash { background: #fffbeb; }
+/* 뉴스 댓글(공용 암호) */
+.ni-comments { margin: 14px 0 0 106px; }
+.cm-toggle { border: 1px solid var(--line); background: var(--soft); color: var(--accent); font: inherit; font-size: .85rem; font-weight: 600; padding: 5px 12px; border-radius: 999px; cursor: pointer; }
+.cm-toggle:hover { background: #fff; }
+.cm-count { color: var(--muted); font-weight: 500; }
+.cm-panel { margin-top: 12px; border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: var(--soft); }
+.cm-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+.cm-loading, .cm-empty { color: var(--muted); font-size: .88rem; }
+.cm-item { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.cm-meta { display: flex; align-items: center; gap: 8px; font-size: .82rem; }
+.cm-who { color: var(--fg); }
+.cm-when { color: var(--muted); }
+.cm-del { margin-left: auto; border: 0; background: transparent; color: #c0392b; cursor: pointer; font-size: .72rem; opacity: .5; }
+.cm-del:hover { opacity: 1; }
+.cm-text { margin-top: 5px; line-height: 1.6; color: #374151; font-size: .92rem; word-break: break-word; }
+.cm-form { display: flex; flex-direction: column; gap: 8px; }
+.cm-row { display: flex; gap: 8px; }
+.cm-row .cm-name { flex: 1; } .cm-row .cm-pass { width: 150px; flex: 0 0 auto; }
+.cm-form input, .cm-form textarea { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; width: 100%; }
+.cm-actions { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
+.cm-msg { margin-right: auto; color: #c0392b; font-size: .82rem; }
+.cm-submit { border: 0; background: var(--accent); color: #fff; font: inherit; font-weight: 600; padding: 8px 18px; border-radius: 8px; cursor: pointer; }
+.cm-submit:disabled { opacity: .6; }
+@media (max-width: 600px) { .ni-comments { margin-left: 0; } .cm-row .cm-pass { width: 120px; } }
 @media (max-width: 600px) {
   .ni-content, .ni-links { margin-left: 0; }
   .ni-media { float: none; width: auto; max-width: 240px; margin: 10px 0 0; }

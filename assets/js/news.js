@@ -106,6 +106,7 @@
           imageHtml(row) +
           '<div class="ni-content">' + nl2br(pick(row, "content")) + "</div>" +
           (linksHtml(row) ? '<div class="ni-links">' + linksHtml(row) + "</div>" : "") +
+          '<div class="ni-comments" data-news="' + esc(slug(row.date)) + '"></div>' +
           (adminMode
             ? '<div class="ni-admin">' +
                 '<button type="button" class="ni-edit" data-date="' + esc(row.date) + '">수정</button>' +
@@ -128,6 +129,7 @@
       }).join("");
       mount.innerHTML = html || '<p class="muted">뉴스가 없습니다.</p>';
       if (global.LitReveal) global.LitReveal.observe(mount.querySelectorAll(".reveal"));
+      if (global.LitComments) global.LitComments.mount(mount);
     }
 
     function focusHash() {
