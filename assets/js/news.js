@@ -42,6 +42,27 @@
     return d ? d.replace(/-/g, ".") : (row.year || "");
   }
   function nl2br(s) { return esc(s).replace(/\r?\n/g, "<br>"); }
+
+  // 뉴스 유형 자동 분류 (forum 값이 유형키와 같으면 우선, 아니면 제목 키워드로 추정)
+  var TYPES = [
+    { key: "obituary", ko: "부고", en: "Obituary", emoji: "🕯", re: /부고|별세|영면|조의|조문|부친상|모친상|빙모상|빈소|passed\s*away|obituary|condolence|funeral|in\s*memoriam/i },
+    { key: "award", ko: "수상", en: "Award", emoji: "🏆", re: /수상|우승|입상|대상|최우수|우수상|장려상|금상|은상|동상|챌린지|공모전|선정.*(우수|최우수)|award|prize|best\s*paper|honorable/i },
+    { key: "paper", ko: "논문 게재", en: "Publication", emoji: "📄", re: /논문|게재|채택|등재|accept|\bpaper\b|journal|conference|proceedings/i },
+    { key: "people", ko: "인사·축하", en: "People", emoji: "🎉", re: /축하|진급|임용|임관|조교수|부교수|정교수|취임|합격|졸업|입학|학위|수료|입사|취업|joined|graduat|professor|faculty|appoint/i },
+    { key: "event", ko: "행사·활동", en: "Event", emoji: "📅", re: /세미나|워크숍|워크샵|엠티|\bMT\b|행사|회식|체육대회|개최|참가|참석|발표회|튜토리얼|탐방|현장|방문|간담회|모임|workshop|seminar|retreat|event/i },
+  ];
+  function newsType(row) {
+    var f = (row.forum || "").trim().toLowerCase();
+    for (var i = 0; i < TYPES.length; i++) { if (f === TYPES[i].key) return TYPES[i]; }
+    var hay = (row.forum || "") + " " + (row.title || "") + " " + (row.title_en || "") + " " + (row.content || "");
+    for (var j = 0; j < TYPES.length; j++) { if (TYPES[j].re.test(hay)) return TYPES[j]; }
+    return { key: "news", ko: "소식", en: "News", emoji: "📰" };
+  }
+  function tagHtml(row) {
+    var t = newsType(row);
+    return '<span class="ni-tag">' + t.emoji + " " + esc(lang() === "en" ? t.en : t.ko) + "</span>";
+  }
+
   // 대표 이미지(1장) + 관련 앨범 연동 링크
   function imageHtml(row) {
     var img = (row.image || "").trim();
@@ -98,11 +119,12 @@
 
     function itemHtml(row) {
       return (
-        '<article class="news-item reveal" id="' + slug(row.date) + '">' +
+        '<article class="news-item reveal" data-type="' + newsType(row).key + '" id="' + slug(row.date) + '">' +
           '<div class="ni-head">' +
+            tagHtml(row) +
             '<span class="ni-date">' + esc(dateLabel(row)) + "</span>" +
-            '<h3 class="ni-title">' + esc(pick(row, "title")) + "</h3>" +
           "</div>" +
+          '<h3 class="ni-title">' + esc(pick(row, "title")) + "</h3>" +
           imageHtml(row) +
           '<div class="ni-content">' + nl2br(pick(row, "content")) + "</div>" +
           (linksHtml(row) ? '<div class="ni-links">' + linksHtml(row) + "</div>" : "") +
