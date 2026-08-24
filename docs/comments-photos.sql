@@ -31,4 +31,42 @@ begin
 end $$;
 grant execute on function public.add_comment(text, text, text, text, text[]) to anon;
 
--- 끝. (댓글 읽기 정책·삭제 함수·암호는 그대로 유지됩니다.)
+-- 3) 사진별 댓글 (라이트박스에서 각 사진에 다는 댓글). photo_key = '<댓글id>#<사진번호>'
+create table if not exists public.photo_comments (
+  id         bigint generated always as identity primary key,
+  photo_key  text not null,
+  name       text not null,
+  body       text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists photo_comments_key_idx on public.photo_comments (photo_key, created_at);
+alter table public.photo_comments enable row level security;
+drop policy if exists photo_comments_read on public.photo_comments;
+create policy photo_comments_read on public.photo_comments for select to anon using (true);
+
+create or replace function public.add_photo_comment(p_photo_key text, p_name text, p_body text, p_passcode text)
+returns bigint language plpgsql security definer set search_path = public as $$
+declare v_id bigint; v_pass text;
+begin
+  select value into v_pass from app_secrets where key = 'comment_passcode';
+  if v_pass is null or p_passcode is null or p_passcode <> v_pass then raise exception 'invalid_passcode'; end if;
+  if length(coalesce(trim(p_name), '')) = 0 or length(coalesce(trim(p_body), '')) = 0
+     or length(coalesce(trim(p_photo_key), '')) = 0 then raise exception 'empty'; end if;
+  insert into photo_comments (photo_key, name, body)
+    values (p_photo_key, left(trim(p_name), 40), left(trim(p_body), 2000))
+    returning id into v_id;
+  return v_id;
+end $$;
+grant execute on function public.add_photo_comment(text, text, text, text) to anon;
+
+create or replace function public.delete_photo_comment(p_id bigint, p_passcode text)
+returns void language plpgsql security definer set search_path = public as $$
+declare v_pass text;
+begin
+  select value into v_pass from app_secrets where key = 'comment_passcode';
+  if v_pass is null or p_passcode is null or p_passcode <> v_pass then raise exception 'invalid_passcode'; end if;
+  delete from photo_comments where id = p_id;
+end $$;
+grant execute on function public.delete_photo_comment(bigint, text) to anon;
+
+-- 끝. (뉴스 댓글 읽기 정책·삭제 함수·암호는 그대로 유지됩니다.)

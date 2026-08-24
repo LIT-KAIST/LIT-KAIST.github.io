@@ -50,44 +50,134 @@
     return [];
   }
 
-  // 사진 확대 갤러리(라이트박스) — 페이지에 하나만 생성해 공유
-  var lb = null;
+  // 댓글 목록 아이템(아바타 + 이름/시간 + 본문) — 뉴스 댓글/사진 댓글 공용
+  function commentItem(r) {
+    return '<div class="cm-item" data-id="' + r.id + '">' +
+      '<div class="cm-avatar">' + esc(initialOf(r.name)) + "</div>" +
+      '<div class="cm-bodywrap">' +
+        '<div class="cm-meta"><b class="cm-who">' + esc(r.name) + "</b>" +
+        '<span class="cm-when">' + esc(fmt(r.created_at)) + "</span>" +
+        '<button type="button" class="cm-del" title="삭제">✕</button></div>' +
+        '<div class="cm-text">' + nl2br(r.body) + "</div>" +
+      "</div></div>";
+  }
+
+  // 사진 확대 갤러리(라이트박스) + 사진별 댓글 — 페이지에 하나만 생성해 공유
+  var lb = null, lbState = { imgs: [], idx: 0, parent: "" };
+  function photoKey() { return lbState.parent + "#" + lbState.idx; }
   function ensureLightbox() {
     if (lb) return lb;
     lb = document.createElement("div");
     lb.className = "cm-lb"; lb.hidden = true;
     lb.innerHTML =
-      '<button type="button" class="cm-lb-close" aria-label="닫기">✕</button>' +
-      '<button type="button" class="cm-lb-nav prev" aria-label="이전">‹</button>' +
-      '<img class="cm-lb-img" alt="첨부 이미지">' +
-      '<button type="button" class="cm-lb-nav next" aria-label="다음">›</button>' +
-      '<div class="cm-lb-count"></div>';
+      '<div class="cm-lb-stage">' +
+        '<button type="button" class="cm-lb-close" aria-label="닫기">✕</button>' +
+        '<button type="button" class="cm-lb-nav prev" aria-label="이전">‹</button>' +
+        '<img class="cm-lb-img" alt="첨부 이미지">' +
+        '<button type="button" class="cm-lb-nav next" aria-label="다음">›</button>' +
+        '<div class="cm-lb-count"></div>' +
+      "</div>" +
+      '<aside class="cm-lb-side">' +
+        '<div class="cm-lb-title">이 사진의 댓글</div>' +
+        '<div class="cm-lb-list"></div>' +
+        '<form class="cm-form cm-lb-form">' +
+          '<div class="cm-row">' +
+            '<input class="cm-name" maxlength="40" placeholder="이름" autocomplete="off">' +
+            '<input class="cm-pass" type="password" inputmode="numeric" maxlength="20" placeholder="연구실 암호" autocomplete="off">' +
+          "</div>" +
+          '<textarea class="cm-body" rows="2" maxlength="2000" placeholder="이 사진에 댓글 달기"></textarea>' +
+          '<div class="cm-actions"><span class="cm-msg"></span><button type="submit" class="cm-submit">등록</button></div>' +
+        "</form>" +
+      "</aside>";
     document.body.appendChild(lb);
-    var imgs = [], idx = 0;
+
+    var imgEl = lb.querySelector(".cm-lb-img");
+    var countEl = lb.querySelector(".cm-lb-count");
+    var listEl = lb.querySelector(".cm-lb-list");
+    var form = lb.querySelector(".cm-lb-form");
+
     function show() {
-      lb.querySelector(".cm-lb-img").src = imgs[idx] || "";
-      lb.querySelector(".cm-lb-count").textContent = imgs.length > 1 ? (idx + 1) + " / " + imgs.length : "";
-      var multi = imgs.length > 1 ? "visible" : "hidden";
+      imgEl.src = lbState.imgs[lbState.idx] || "";
+      countEl.textContent = lbState.imgs.length > 1 ? (lbState.idx + 1) + " / " + lbState.imgs.length : "";
+      var multi = lbState.imgs.length > 1 ? "visible" : "hidden";
       lb.querySelector(".prev").style.visibility = multi;
       lb.querySelector(".next").style.visibility = multi;
+      loadPC();
     }
-    function close() { lb.hidden = true; document.body.style.overflow = ""; imgs = []; }
-    function step(d) { if (imgs.length) { idx = (idx + d + imgs.length) % imgs.length; show(); } }
+    function close() { lb.hidden = true; document.body.style.overflow = ""; lbState.imgs = []; }
+    function step(d) { if (lbState.imgs.length) { lbState.idx = (lbState.idx + d + lbState.imgs.length) % lbState.imgs.length; show(); } }
+
+    function loadPC() {
+      var c = client(); if (!c) { listEl.innerHTML = ""; return; }
+      var key = photoKey();
+      listEl.innerHTML = '<div class="cm-loading">불러오는 중…</div>';
+      c.from("photo_comments").select("*").eq("photo_key", key).order("created_at", { ascending: true })
+        .then(function (res) {
+          if (photoKey() !== key || lb.hidden) return;   // 그새 사진 이동/닫힘
+          var rows = res.data || [];
+          listEl.innerHTML = rows.length ? rows.map(commentItem).join("") : '<div class="cm-empty">첫 댓글을 남겨보세요.</div>';
+        });
+    }
+
     lb.addEventListener("click", function (e) {
-      if (e.target === lb || e.target.closest(".cm-lb-close")) return close();
+      if (e.target.closest(".cm-lb-close")) return close();
       if (e.target.closest(".prev")) return step(-1);
       if (e.target.closest(".next")) return step(1);
+      if (e.target === lb || e.target.classList.contains("cm-lb-stage")) return close();
     });
+
+    listEl.addEventListener("click", function (e) {
+      var del = e.target.closest && e.target.closest(".cm-del"); if (!del) return;
+      var it = del.closest(".cm-item"); var id = it && it.getAttribute("data-id"); if (!id) return;
+      var pass = global.prompt("삭제하려면 연구실 암호를 입력하세요."); if (pass == null) return;
+      var c = client(); if (!c) return;
+      c.rpc("delete_photo_comment", { p_id: Number(id), p_passcode: pass.trim() }).then(function (res) {
+        if (res.error) { global.alert(/invalid_passcode/i.test(res.error.message || "") ? "암호가 올바르지 않습니다." : "삭제 실패"); return; }
+        loadPC();
+      });
+    });
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var name = form.querySelector(".cm-name").value.trim();
+      var pass = form.querySelector(".cm-pass").value.trim();
+      var body = form.querySelector(".cm-body").value.trim();
+      var msg = form.querySelector(".cm-msg");
+      if (!name || !pass || !body) { msg.textContent = "이름·암호·내용을 입력하세요."; return; }
+      var c = client(); if (!c) return;
+      var btn = form.querySelector(".cm-submit"); btn.disabled = true; msg.textContent = "등록 중…";
+      c.rpc("add_photo_comment", { p_photo_key: photoKey(), p_name: name, p_body: body, p_passcode: pass }).then(function (res) {
+        btn.disabled = false;
+        if (res.error) {
+          var m = res.error.message || "";
+          msg.textContent = /invalid_passcode/i.test(m) ? "암호가 올바르지 않습니다."
+            : /schema cache|find the function|photo_comments/i.test(m) ? "사진 댓글은 아직 설정 전이에요(관리자: comments-photos.sql 실행 필요)."
+            : "등록 실패: " + m;
+          return;
+        }
+        form.querySelector(".cm-body").value = ""; msg.textContent = "";
+        loadPC();
+      });
+    });
+
     global.addEventListener("keydown", function (e) {
       if (lb.hidden) return;
-      if (e.key === "Escape") close();
-      else if (e.key === "ArrowLeft") step(-1);
+      var tag = (e.target && e.target.tagName || "").toLowerCase();
+      if (e.key === "Escape") return close();
+      if (tag === "input" || tag === "textarea") return;   // 입력 중엔 화살표로 넘기지 않음
+      if (e.key === "ArrowLeft") step(-1);
       else if (e.key === "ArrowRight") step(1);
     });
-    lb.openWith = function (list, start) { imgs = list.slice(); idx = start || 0; lb.hidden = false; document.body.style.overflow = "hidden"; show(); };
+
+    lb.openWith = function (list, start, parent) {
+      lbState.imgs = list.slice(); lbState.idx = start || 0; lbState.parent = String(parent || "");
+      form.querySelector(".cm-pass").value = ""; form.querySelector(".cm-body").value = "";
+      form.querySelector(".cm-msg").textContent = "";
+      lb.hidden = false; document.body.style.overflow = "hidden"; show();
+    };
     return lb;
   }
-  function openGallery(list, start) { if (list && list.length) ensureLightbox().openWith(list, start); }
+  function openGallery(list, start, parent) { if (list && list.length) ensureLightbox().openWith(list, start, parent); }
 
   function mount(root) {
     var boxes = (root || document).querySelectorAll(".ni-comments[data-news]");
@@ -243,7 +333,7 @@
       if (wrap) {
         var wid = wrap.getAttribute("data-id");
         var wr = listRows.filter(function (x) { return String(x.id) === wid; })[0];
-        if (wr) openGallery(imagesOf(wr), 0);
+        if (wr) openGallery(imagesOf(wr), 0, wr.id);
         return;
       }
       var del = e.target.closest && e.target.closest(".cm-del"); if (!del) return;
