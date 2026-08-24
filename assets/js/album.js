@@ -110,6 +110,7 @@
           '<span class="ac-thumb">' +
             media +
             (n > 1 ? '<span class="ac-count">🖼 ' + n + "</span>" : "") +
+            '<span class="ac-cmt" data-key="' + esc(albumKey(row)) + '"></span>' +
             '<span class="ac-like" data-key="' + esc(albumKey(row)) + '"></span>' +
           "</span>" +
           '<span class="ac-body">' +
@@ -152,6 +153,11 @@
       if (global.LitLikes) {
         Array.prototype.forEach.call(mount.querySelectorAll(".ac-like[data-key]"), function (el) {
           global.LitLikes.mount(el, el.getAttribute("data-key"));
+        });
+      }
+      if (global.LitComments && global.LitComments.count) {
+        Array.prototype.forEach.call(mount.querySelectorAll(".ac-cmt[data-key]"), function (el) {
+          global.LitComments.count(el, el.getAttribute("data-key"));
         });
       }
     }

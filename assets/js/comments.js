@@ -460,6 +460,13 @@
     btn.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") toggle(e); });
   }
 
-  global.LitComments = { mount: mount, mountPanel: mountPanel };
+  // 특정 키(앨범 등)의 댓글 수 배지 렌더
+  function mountCommentCount(el, key) {
+    var c = client(); if (!c || !key) { el.textContent = ""; return; }
+    c.from("photo_comments").select("id", { count: "exact", head: true }).eq("photo_key", key)
+      .then(function (res) { if (res.count != null) el.innerHTML = '<span class="cmt-badge">💬 ' + res.count + "</span>"; });
+  }
+
+  global.LitComments = { mount: mount, mountPanel: mountPanel, count: mountCommentCount };
   global.LitLikes = { mount: mountLike };
 })(window);

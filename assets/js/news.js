@@ -120,13 +120,13 @@
     function itemHtml(row) {
       return (
         '<article class="news-item reveal" data-type="' + newsType(row).key + '" id="' + slug(row.date) + '">' +
+          imageHtml(row) +
           '<div class="ni-head">' +
             tagHtml(row) +
             '<span class="ni-date">' + esc(dateLabel(row)) + "</span>" +
             '<span class="ni-like" data-key="news:' + esc(slug(row.date)) + '"></span>' +
           "</div>" +
           '<h3 class="ni-title">' + esc(pick(row, "title")) + "</h3>" +
-          imageHtml(row) +
           '<div class="ni-content">' + nl2br(pick(row, "content")) + "</div>" +
           (linksHtml(row) ? '<div class="ni-links">' + linksHtml(row) + "</div>" : "") +
           '<div class="ni-comments" data-news="' + esc(slug(row.date)) + '"></div>' +
@@ -148,7 +148,7 @@
         var list = news.filter(function (r) { return (r.year || "").trim() === y; });
         return '<section class="news-year"><h2 class="year">' + esc(y) +
           ' <span class="year-count">' + list.length + "</span></h2>" +
-          list.map(itemHtml).join("") + "</section>";
+          '<div class="news-grid">' + list.map(itemHtml).join("") + "</div></section>";
       }).join("");
       mount.innerHTML = html || '<p class="muted">뉴스가 없습니다.</p>';
       if (global.LitReveal) global.LitReveal.observe(mount.querySelectorAll(".reveal"));

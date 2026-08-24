@@ -712,6 +712,10 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
   position: absolute; right: 8px; bottom: 8px; font-size: .74rem; font-weight: 600;
   color: #fff; background: rgba(0,0,0,.6); padding: 2px 8px; border-radius: 999px;
 }
+/* 앨범 카드 댓글 수 배지(좌하단) */
+.ac-cmt { position: absolute; left: 8px; bottom: 8px; z-index: 2; }
+.cmt-badge { font-size: .74rem; font-weight: 600; color: #fff; background: rgba(0,0,0,.6);
+  padding: 2px 8px; border-radius: 999px; }
 .ac-body { display: block; padding: 12px 14px 14px; }
 .ac-title { display: block; font-weight: 600; color: var(--fg); line-height: 1.35; }
 .ac-date { display: block; color: var(--accent); font-size: .8rem; margin-top: 3px; }
@@ -885,10 +889,14 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 
 /* ---------- news page ---------- */
 .news-year { margin-bottom: 30px; }
+/* 앨범처럼 3열 그리드 */
+.news-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 1000px) { .news-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .news-grid { grid-template-columns: 1fr; } }
 /* 카드형 뉴스 + 유형별 색상 (--nt 로 좌측 강조선·태그 색 지정) */
 .news-item { position: relative; background: var(--bg); border: 1px solid var(--line);
   border-left: 4px solid var(--nt, var(--accent)); border-radius: 14px;
-  padding: 16px 20px 18px; margin-bottom: 15px;
+  padding: 16px 20px 18px; margin: 0; overflow: hidden;
   transition: box-shadow .25s ease, transform .25s ease, border-color .25s ease, background .4s; }
 .news-item:hover { box-shadow: 0 8px 22px rgba(15, 39, 71, .08); transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--nt, var(--accent)) 45%, var(--line)); }
@@ -905,13 +913,15 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
   background: color-mix(in srgb, var(--nt, var(--accent)) 12%, var(--bg));
   border: 1px solid color-mix(in srgb, var(--nt, var(--accent)) 30%, var(--bg)); }
 .ni-date { color: var(--muted); font-size: .82rem; font-variant-numeric: tabular-nums; }
-.ni-title { margin: 0; font-size: 1.12rem; line-height: 1.4; }
-.ni-content { margin: 9px 0 0; color: #374151; line-height: 1.7; }
+.ni-title { margin: 0; font-size: 1.08rem; line-height: 1.4; }
+.ni-content { margin: 9px 0 0; color: #374151; line-height: 1.65; font-size: .92rem;
+  display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
 .ni-links { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.ni-link { font-size: .85rem; font-weight: 600; }
-/* 뉴스 대표 이미지 — 본문 오른쪽에 작은 썸네일로 흐르게 */
-.ni-media { float: right; width: 190px; max-width: 40%; margin: 2px 0 8px 18px; }
-.ni-imglink { display: block; position: relative; border-radius: 10px; overflow: hidden; }
+.ni-link { font-size: .82rem; font-weight: 600; }
+/* 뉴스 대표 이미지 — 카드 상단 배너 */
+.ni-media { float: none; width: calc(100% + 40px); max-width: none; margin: -16px -20px 14px; }
+.ni-imglink { display: block; position: relative; overflow: hidden; }
+.ni-media .ni-img { width: 100%; height: 170px; object-fit: cover; }
 .ni-img { display: block; width: 100%; height: auto; }
 .ni-imglink.album .ni-more {
   position: absolute; right: 0; bottom: 0; left: 0; padding: 14px 10px 6px;
@@ -998,8 +1008,6 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 }
 @media (max-width: 600px) { .ni-comments { margin-left: 0; } .cm-row .cm-pass { width: 120px; } }
 @media (max-width: 600px) {
-  .ni-content, .ni-links { margin-left: 0; }
-  .ni-media { float: none; width: auto; max-width: 240px; margin: 10px 0 0; }
   .rn-link { flex-direction: column; gap: 2px; }
   .rn-date { width: auto; }
   .rn-title { white-space: normal; }
