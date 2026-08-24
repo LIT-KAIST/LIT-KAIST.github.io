@@ -123,6 +123,7 @@
           '<div class="ni-head">' +
             tagHtml(row) +
             '<span class="ni-date">' + esc(dateLabel(row)) + "</span>" +
+            '<span class="ni-like" data-key="news:' + esc(slug(row.date)) + '"></span>' +
           "</div>" +
           '<h3 class="ni-title">' + esc(pick(row, "title")) + "</h3>" +
           imageHtml(row) +
@@ -152,6 +153,11 @@
       mount.innerHTML = html || '<p class="muted">뉴스가 없습니다.</p>';
       if (global.LitReveal) global.LitReveal.observe(mount.querySelectorAll(".reveal"));
       if (global.LitComments) global.LitComments.mount(mount);
+      if (global.LitLikes) {
+        Array.prototype.forEach.call(mount.querySelectorAll(".ni-like[data-key]"), function (el) {
+          global.LitLikes.mount(el, el.getAttribute("data-key"));
+        });
+      }
     }
 
     function focusHash() {

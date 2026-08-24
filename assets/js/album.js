@@ -22,6 +22,7 @@
   }
 
   function isVideo(path) { return /\.(mp4|webm|mov|m4v)$/i.test(path || ""); }
+  function albumKey(row) { return "album#" + String((row && row.date) || "").replace(/[^0-9]/g, ""); }
 
   function dateLabel(row) {
     // "2026-05-28 15:13:04" → "2026.05.28"
@@ -109,6 +110,7 @@
           '<span class="ac-thumb">' +
             media +
             (n > 1 ? '<span class="ac-count">🖼 ' + n + "</span>" : "") +
+            '<span class="ac-like" data-key="' + esc(albumKey(row)) + '"></span>' +
           "</span>" +
           '<span class="ac-body">' +
             '<span class="ac-title">' + esc(row.title) + "</span>" +
@@ -147,10 +149,15 @@
         });
       });
       if (global.LitReveal) global.LitReveal.observe(mount.querySelectorAll(".reveal"));
+      if (global.LitLikes) {
+        Array.prototype.forEach.call(mount.querySelectorAll(".ac-like[data-key]"), function (el) {
+          global.LitLikes.mount(el, el.getAttribute("data-key"));
+        });
+      }
     }
 
     /* ---------- 라이트박스 ---------- */
-    var lb, lbImg, lbVid, lbFig, lbCap, lbCounter, lbPrev, lbNext;
+    var lb, lbImg, lbVid, lbFig, lbCap, lbCounter, lbPrev, lbNext, lbSide, albumPanel, albumLikeEl;
     var curImgs = [], curPos = 0, curRow = null;
     var reduceMotion = global.matchMedia &&
       global.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -161,15 +168,21 @@
       lb.className = "lightbox";
       lb.setAttribute("aria-hidden", "true");
       lb.innerHTML =
-        '<button class="lb-close" type="button" aria-label="닫기">&times;</button>' +
-        '<button class="lb-nav lb-prev" type="button" aria-label="이전">&#10094;</button>' +
-        '<figure class="lb-figure">' +
-          '<img class="lb-img" alt="">' +
-          '<video class="lb-vid" controls playsinline preload="metadata" style="display:none"></video>' +
-          '<figcaption class="lb-caption"></figcaption>' +
-        "</figure>" +
-        '<button class="lb-nav lb-next" type="button" aria-label="다음">&#10095;</button>' +
-        '<div class="lb-counter"></div>';
+        '<div class="lb-stage">' +
+          '<button class="lb-close" type="button" aria-label="닫기">&times;</button>' +
+          '<button class="lb-nav lb-prev" type="button" aria-label="이전">&#10094;</button>' +
+          '<figure class="lb-figure">' +
+            '<img class="lb-img" alt="">' +
+            '<video class="lb-vid" controls playsinline preload="metadata" style="display:none"></video>' +
+            '<figcaption class="lb-caption"></figcaption>' +
+          "</figure>" +
+          '<button class="lb-nav lb-next" type="button" aria-label="다음">&#10095;</button>' +
+          '<div class="lb-counter"></div>' +
+        "</div>" +
+        '<aside class="lb-side">' +
+          '<div class="lb-side-head"><span class="lb-side-title">이 앨범</span><span class="lb-like" id="albumLike"></span></div>' +
+          '<div class="lb-side-inner"></div>' +
+        "</aside>";
       document.body.appendChild(lb);
       lbImg = lb.querySelector(".lb-img");
       lbVid = lb.querySelector(".lb-vid");
@@ -178,15 +191,22 @@
       lbCounter = lb.querySelector(".lb-counter");
       lbPrev = lb.querySelector(".lb-prev");
       lbNext = lb.querySelector(".lb-next");
+      lbSide = lb.querySelector(".lb-side-inner");
+      albumLikeEl = lb.querySelector("#albumLike");
+      if (global.LitComments && global.LitComments.mountPanel) albumPanel = global.LitComments.mountPanel(lbSide, null);
 
       lb.querySelector(".lb-close").addEventListener("click", closeLightbox);
       lbPrev.addEventListener("click", function (e) { e.stopPropagation(); step(-1); });
       lbNext.addEventListener("click", function (e) { e.stopPropagation(); step(1); });
-      lb.addEventListener("click", function (e) { if (e.target === lb) closeLightbox(); });
+      lb.addEventListener("click", function (e) {
+        if (e.target === lb || e.target.classList.contains("lb-stage")) closeLightbox();
+      });
       document.addEventListener("keydown", function (e) {
         if (lb.getAttribute("aria-hidden") === "true") return;
-        if (e.key === "Escape") closeLightbox();
-        else if (e.key === "ArrowLeft") step(-1);
+        var tag = (e.target && e.target.tagName || "").toLowerCase();
+        if (e.key === "Escape") return closeLightbox();
+        if (tag === "input" || tag === "textarea") return;   // 댓글 입력 중엔 화살표로 넘기지 않음
+        if (e.key === "ArrowLeft") step(-1);
         else if (e.key === "ArrowRight") step(1);
       });
     }
@@ -197,6 +217,9 @@
       curImgs = imgList(curRow);
       curPos = 0;
       updateMeta();
+      // 앨범 단위 댓글·좋아요 (사진을 넘겨도 동일 유지)
+      if (albumPanel) albumPanel.setKey(albumKey(curRow));
+      if (albumLikeEl && global.LitLikes) global.LitLikes.mount(albumLikeEl, albumKey(curRow));
       lb.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
       if (!reduceMotion && lb.animate) {

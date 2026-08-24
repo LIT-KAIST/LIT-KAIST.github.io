@@ -69,4 +69,27 @@ begin
 end $$;
 grant execute on function public.delete_photo_comment(bigint, text) to anon;
 
+-- 4) 좋아요 (로그인 없이 · 브라우저별 고유 client_id 로 1회). target_key 예: 'news:n-...', 'album#...'
+create table if not exists public.likes (
+  target_key text not null,
+  client_id  text not null,
+  created_at timestamptz not null default now(),
+  primary key (target_key, client_id)
+);
+alter table public.likes enable row level security;
+drop policy if exists likes_read on public.likes;
+create policy likes_read on public.likes for select to anon using (true);
+
+create or replace function public.set_like(p_key text, p_client text, p_on boolean)
+returns int language plpgsql security definer set search_path = public as $$
+declare v_count int;
+begin
+  if length(coalesce(trim(p_key), '')) = 0 or length(coalesce(trim(p_client), '')) = 0 then raise exception 'bad_key'; end if;
+  if p_on then insert into likes (target_key, client_id) values (p_key, p_client) on conflict do nothing;
+  else delete from likes where target_key = p_key and client_id = p_client; end if;
+  select count(*) into v_count from likes where target_key = p_key;
+  return v_count;
+end $$;
+grant execute on function public.set_like(text, text, boolean) to anon;
+
 -- 끝. (뉴스 댓글 읽기 정책·삭제 함수·암호는 그대로 유지됩니다.)

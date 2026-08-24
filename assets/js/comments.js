@@ -346,5 +346,120 @@
     });
   }
 
-  global.LitComments = { mount: mount };
+  // ============ 재사용 댓글 패널 (앨범 라이트박스 등, 고정 키) ============
+  function mountPanel(container, key) {
+    container.innerHTML =
+      '<div class="cm-lb-title">댓글</div>' +
+      '<div class="cm-lb-list"></div>' +
+      '<form class="cm-form cm-lb-form">' +
+        '<div class="cm-row">' +
+          '<input class="cm-name" maxlength="40" placeholder="이름" autocomplete="off">' +
+          '<input class="cm-pass" type="password" inputmode="numeric" maxlength="20" placeholder="연구실 암호" autocomplete="off">' +
+        "</div>" +
+        '<textarea class="cm-body" rows="2" maxlength="2000" placeholder="댓글 달기"></textarea>' +
+        '<div class="cm-actions"><span class="cm-msg"></span><button type="submit" class="cm-submit">등록</button></div>' +
+      "</form>";
+    var listEl = container.querySelector(".cm-lb-list");
+    var form = container.querySelector(".cm-lb-form");
+    var curKey = key || "";
+
+    function load() {
+      var c = client(); if (!c || !curKey) { listEl.innerHTML = ""; return; }
+      var key0 = curKey;
+      listEl.innerHTML = '<div class="cm-loading">불러오는 중…</div>';
+      c.from("photo_comments").select("*").eq("photo_key", key0).order("created_at", { ascending: true })
+        .then(function (res) {
+          if (curKey !== key0) return;
+          var rows = res.data || [];
+          listEl.innerHTML = rows.length ? rows.map(commentItem).join("") : '<div class="cm-empty">첫 댓글을 남겨보세요.</div>';
+        });
+    }
+    listEl.addEventListener("click", function (e) {
+      var del = e.target.closest && e.target.closest(".cm-del"); if (!del) return;
+      var it = del.closest(".cm-item"); var id = it && it.getAttribute("data-id"); if (!id) return;
+      var pass = global.prompt("삭제하려면 연구실 암호를 입력하세요."); if (pass == null) return;
+      var c = client(); if (!c) return;
+      c.rpc("delete_photo_comment", { p_id: Number(id), p_passcode: pass.trim() }).then(function (res) {
+        if (res.error) { global.alert(/invalid_passcode/i.test(res.error.message || "") ? "암호가 올바르지 않습니다." : "삭제 실패"); return; }
+        load();
+      });
+    });
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var name = form.querySelector(".cm-name").value.trim();
+      var pass = form.querySelector(".cm-pass").value.trim();
+      var body = form.querySelector(".cm-body").value.trim();
+      var msg = form.querySelector(".cm-msg");
+      if (!name || !pass || !body) { msg.textContent = "이름·암호·내용을 입력하세요."; return; }
+      var c = client(); if (!c || !curKey) return;
+      var btn = form.querySelector(".cm-submit"); btn.disabled = true; msg.textContent = "등록 중…";
+      c.rpc("add_photo_comment", { p_photo_key: curKey, p_name: name, p_body: body, p_passcode: pass }).then(function (res) {
+        btn.disabled = false;
+        if (res.error) {
+          var m = res.error.message || "";
+          msg.textContent = /invalid_passcode/i.test(m) ? "암호가 올바르지 않습니다."
+            : /schema cache|find the function|photo_comments/i.test(m) ? "댓글 기능이 아직 설정 전이에요(관리자: comments-photos.sql 실행 필요)."
+            : "등록 실패: " + m;
+          return;
+        }
+        form.querySelector(".cm-body").value = ""; msg.textContent = "";
+        load();
+      });
+    });
+    load();
+    return {
+      setKey: function (k) {
+        curKey = k || "";
+        form.querySelector(".cm-pass").value = ""; form.querySelector(".cm-body").value = ""; form.querySelector(".cm-msg").textContent = "";
+        load();
+      },
+      reload: load
+    };
+  }
+
+  // ============ 좋아요 (브라우저별 1회 · localStorage 클라이언트 ID) ============
+  function clientId() {
+    var id = null;
+    try { id = localStorage.getItem("lit-client-id"); } catch (e) {}
+    if (!id) {
+      id = "c-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      try { localStorage.setItem("lit-client-id", id); } catch (e) {}
+    }
+    return id;
+  }
+  function likedMap() { try { return JSON.parse(localStorage.getItem("lit-liked") || "{}"); } catch (e) { return {}; } }
+  function setLikedLocal(key, on) { var s = likedMap(); if (on) s[key] = 1; else delete s[key]; try { localStorage.setItem("lit-liked", JSON.stringify(s)); } catch (e) {} }
+
+  function mountLike(el, key) {
+    var c = client();
+    el.innerHTML = '<span class="like-btn" role="button" tabindex="0" aria-pressed="false" aria-label="좋아요">' +
+      '<span class="like-ic">♥</span><span class="like-n"></span></span>';
+    var btn = el.querySelector(".like-btn");
+    var nEl = el.querySelector(".like-n");
+    var liked = !!likedMap()[key];
+    var count = 0, busy = false;
+    function paint() { btn.classList.toggle("on", liked); nEl.textContent = count > 0 ? count : ""; btn.setAttribute("aria-pressed", liked ? "true" : "false"); }
+    paint();
+    if (c) {
+      c.from("likes").select("client_id", { count: "exact", head: true }).eq("target_key", key)
+        .then(function (res) { if (res.count != null) { count = res.count; paint(); } });
+    }
+    function toggle(e) {
+      if (e) { e.stopPropagation(); e.preventDefault(); }
+      if (busy || !c) return;
+      busy = true;
+      var next = !liked;
+      liked = next; count = Math.max(0, count + (next ? 1 : -1)); setLikedLocal(key, next); paint();
+      c.rpc("set_like", { p_key: key, p_client: clientId(), p_on: next }).then(function (res) {
+        busy = false;
+        if (res.error) { liked = !next; count = Math.max(0, count + (next ? -1 : 1)); setLikedLocal(key, !next); paint(); return; }
+        if (typeof res.data === "number") { count = res.data; paint(); }
+      });
+    }
+    btn.addEventListener("click", toggle);
+    btn.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") toggle(e); });
+  }
+
+  global.LitComments = { mount: mount, mountPanel: mountPanel };
+  global.LitLikes = { mount: mountLike };
 })(window);
