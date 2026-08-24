@@ -43,6 +43,51 @@
     function p(n) { return (n < 10 ? "0" : "") + n; }
     return d.getFullYear() + "." + p(d.getMonth() + 1) + "." + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
   }
+  // 한 댓글의 사진 목록 (신규: images 배열 / 구버전: image 단일)
+  function imagesOf(r) {
+    if (Array.isArray(r.images) && r.images.length) return r.images.filter(Boolean);
+    if (r.image) return [r.image];
+    return [];
+  }
+
+  // 사진 확대 갤러리(라이트박스) — 페이지에 하나만 생성해 공유
+  var lb = null;
+  function ensureLightbox() {
+    if (lb) return lb;
+    lb = document.createElement("div");
+    lb.className = "cm-lb"; lb.hidden = true;
+    lb.innerHTML =
+      '<button type="button" class="cm-lb-close" aria-label="닫기">✕</button>' +
+      '<button type="button" class="cm-lb-nav prev" aria-label="이전">‹</button>' +
+      '<img class="cm-lb-img" alt="첨부 이미지">' +
+      '<button type="button" class="cm-lb-nav next" aria-label="다음">›</button>' +
+      '<div class="cm-lb-count"></div>';
+    document.body.appendChild(lb);
+    var imgs = [], idx = 0;
+    function show() {
+      lb.querySelector(".cm-lb-img").src = imgs[idx] || "";
+      lb.querySelector(".cm-lb-count").textContent = imgs.length > 1 ? (idx + 1) + " / " + imgs.length : "";
+      var multi = imgs.length > 1 ? "visible" : "hidden";
+      lb.querySelector(".prev").style.visibility = multi;
+      lb.querySelector(".next").style.visibility = multi;
+    }
+    function close() { lb.hidden = true; document.body.style.overflow = ""; imgs = []; }
+    function step(d) { if (imgs.length) { idx = (idx + d + imgs.length) % imgs.length; show(); } }
+    lb.addEventListener("click", function (e) {
+      if (e.target === lb || e.target.closest(".cm-lb-close")) return close();
+      if (e.target.closest(".prev")) return step(-1);
+      if (e.target.closest(".next")) return step(1);
+    });
+    global.addEventListener("keydown", function (e) {
+      if (lb.hidden) return;
+      if (e.key === "Escape") close();
+      else if (e.key === "ArrowLeft") step(-1);
+      else if (e.key === "ArrowRight") step(1);
+    });
+    lb.openWith = function (list, start) { imgs = list.slice(); idx = start || 0; lb.hidden = false; document.body.style.overflow = "hidden"; show(); };
+    return lb;
+  }
+  function openGallery(list, start) { if (list && list.length) ensureLightbox().openWith(list, start); }
 
   function mount(root) {
     var boxes = (root || document).querySelectorAll(".ni-comments[data-news]");
@@ -69,7 +114,7 @@
             '<button type="button" class="cm-photo" title="사진 첨부">' +
               '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="m21 15-5-5L5 21"></path></svg>' +
               "<span>사진</span></button>" +
-            '<input type="file" class="cm-file" accept="image/*" hidden>' +
+            '<input type="file" class="cm-file" accept="image/*" multiple hidden>' +
             '<span class="cm-msg"></span>' +
             '<button type="submit" class="cm-submit">등록</button>' +
           "</div>" +
@@ -82,6 +127,7 @@
     var countEl = box.querySelector(".cm-count");
     var form = box.querySelector(".cm-form");
     var loaded = false;
+    var listRows = [];
 
     toggle.addEventListener("click", function () {
       panel.hidden = !panel.hidden;
@@ -98,11 +144,20 @@
       c.from("comments").select("*").eq("news_id", news).order("created_at", { ascending: true })
         .then(function (res) {
           var rows = res.data || [];
+          listRows = rows;
           countEl.textContent = "(" + rows.length + ")";
           listEl.innerHTML = rows.length ? rows.map(item).join("") : '<div class="cm-empty">첫 댓글을 남겨보세요.</div>';
         });
     }
     function item(r) {
+      var imgs = imagesOf(r);
+      var gallery = "";
+      if (imgs.length) {
+        gallery = '<div class="cm-imgwrap' + (imgs.length > 1 ? " multi" : "") + '" data-id="' + r.id + '" role="button" tabindex="0" title="사진 보기">' +
+          '<img class="cm-img" src="' + esc(imgs[0]) + '" alt="첨부 이미지" loading="lazy">' +
+          (imgs.length > 1 ? '<span class="cm-more-photos">+' + (imgs.length - 1) + " 더보기</span>" : "") +
+          "</div>";
+      }
       return '<div class="cm-item" data-id="' + r.id + '">' +
         '<div class="cm-avatar">' + esc(initialOf(r.name)) + "</div>" +
         '<div class="cm-bodywrap">' +
@@ -110,37 +165,50 @@
           '<span class="cm-when">' + esc(fmt(r.created_at)) + "</span>" +
           '<button type="button" class="cm-del" title="삭제">✕</button></div>' +
           (r.body && r.body.trim() ? '<div class="cm-text">' + nl2br(r.body) + "</div>" : "") +
-          (r.image ? '<a class="cm-imgwrap" href="' + esc(r.image) + '" target="_blank" rel="noopener"><img class="cm-img" src="' + esc(r.image) + '" alt="첨부 이미지" loading="lazy"></a>' : "") +
+          gallery +
         "</div>" +
       "</div>";
     }
 
-    // ── 사진 첨부: 버튼 → 파일 선택 → 리사이즈 → 미리보기 ──────────────
-    var pendingImg = null;
+    // ── 사진 첨부(여러 장): 버튼 → 파일 선택 → 리사이즈 → 미리보기 스트립 ──
+    var MAX_PHOTOS = 6;
+    var pendingImgs = [];
     var fileInput = form.querySelector(".cm-file");
     var photoBtn = form.querySelector(".cm-photo");
     var preview = form.querySelector(".cm-preview");
     var formMsg = form.querySelector(".cm-msg");
     photoBtn.addEventListener("click", function () { fileInput.click(); });
     fileInput.addEventListener("change", function () {
-      var f = fileInput.files && fileInput.files[0]; fileInput.value = "";
-      if (!f) return;
-      formMsg.textContent = "사진 처리 중…";
-      resizeImage(f, 1000, 0.82).then(function (uri) {
-        // data URI 가 지나치게 크면 한 번 더 압축
-        if (uri.length > 850000) return resizeImage(f, 760, 0.72);
-        return uri;
-      }).then(function (uri) {
-        if (uri.length > 850000) { formMsg.textContent = "사진 용량이 너무 큽니다. 더 작은 이미지를 사용하세요."; return; }
-        pendingImg = uri; formMsg.textContent = "";
-        preview.hidden = false;
-        preview.innerHTML = '<img src="' + esc(uri) + '"><button type="button" class="cm-imgdel" title="사진 제거">✕</button>';
-      }).catch(function () { formMsg.textContent = "이 이미지는 첨부할 수 없어요(JPG/PNG 권장)."; });
+      var files = fileInput.files ? Array.prototype.slice.call(fileInput.files) : [];
+      fileInput.value = "";
+      if (!files.length) return;
+      var room = MAX_PHOTOS - pendingImgs.length;
+      if (room <= 0) { formMsg.textContent = "사진은 최대 " + MAX_PHOTOS + "장까지예요."; return; }
+      if (files.length > room) formMsg.textContent = "최대 " + MAX_PHOTOS + "장까지만 담겼어요.";
+      else formMsg.textContent = "사진 처리 중…";
+      Promise.all(files.slice(0, room).map(function (f) {
+        return resizeImage(f, 1000, 0.82)
+          .then(function (uri) { return uri.length > 850000 ? resizeImage(f, 760, 0.72) : uri; })
+          .catch(function () { return null; });
+      })).then(function (uris) {
+        var added = 0;
+        uris.forEach(function (u) { if (u && u.length <= 850000) { pendingImgs.push(u); added++; } });
+        if (!added && !pendingImgs.length) formMsg.textContent = "이미지를 처리하지 못했어요(JPG/PNG 권장).";
+        else if (formMsg.textContent === "사진 처리 중…") formMsg.textContent = "";
+        renderPreview();
+      });
     });
+    function renderPreview() {
+      if (!pendingImgs.length) { preview.hidden = true; preview.innerHTML = ""; return; }
+      preview.hidden = false;
+      preview.innerHTML = pendingImgs.map(function (u, i) {
+        return '<span class="cm-thumb"><img src="' + esc(u) + '"><button type="button" class="cm-imgdel" data-i="' + i + '" title="사진 제거">✕</button></span>';
+      }).join("");
+    }
     preview.addEventListener("click", function (e) {
-      if (e.target.closest && e.target.closest(".cm-imgdel")) {
-        pendingImg = null; preview.hidden = true; preview.innerHTML = "";
-      }
+      var del = e.target.closest && e.target.closest(".cm-imgdel"); if (!del) return;
+      pendingImgs.splice(Number(del.getAttribute("data-i")), 1);
+      renderPreview();
     });
 
     form.addEventListener("submit", function (e) {
@@ -149,27 +217,35 @@
       var pass = form.querySelector(".cm-pass").value.trim();
       var body = form.querySelector(".cm-body").value.trim();
       var msg = form.querySelector(".cm-msg");
-      if (!name || !pass || (!body && !pendingImg)) { msg.textContent = "이름·암호·내용(또는 사진)을 입력하세요."; return; }
+      if (!name || !pass || (!body && !pendingImgs.length)) { msg.textContent = "이름·암호·내용(또는 사진)을 입력하세요."; return; }
       var btn = form.querySelector(".cm-submit"); btn.disabled = true; msg.textContent = "등록 중…";
       var params = { p_news_id: news, p_name: name, p_body: body, p_passcode: pass };
-      if (pendingImg) params.p_image = pendingImg;   // 사진 있을 때만 전송(구버전 함수와도 호환)
+      if (pendingImgs.length) params.p_images = pendingImgs;   // 사진 있을 때만 전송(구버전 함수와도 호환)
       c.rpc("add_comment", params).then(function (res) {
         btn.disabled = false;
         if (res.error) {
           var m = res.error.message || "";
           msg.textContent = /invalid_passcode/i.test(m) ? "암호가 올바르지 않습니다."
+            : /too_many_images/i.test(m) ? "사진은 최대 " + MAX_PHOTOS + "장까지예요."
             : /image_too_large/i.test(m) ? "사진 용량이 너무 큽니다. 더 작은 이미지를 사용하세요."
-            : /p_image|schema cache|find the function/i.test(m) ? "사진 첨부는 아직 설정 전이에요(관리자: comments-add-image.sql 실행 필요)."
+            : /p_image|schema cache|find the function/i.test(m) ? "사진 첨부는 아직 설정 전이에요(관리자: comments-photos.sql 실행 필요)."
             : "등록 실패: " + m;
           return;
         }
         form.querySelector(".cm-body").value = ""; form.querySelector(".cm-pass").value = ""; msg.textContent = "";
-        pendingImg = null; preview.hidden = true; preview.innerHTML = "";
+        pendingImgs = []; renderPreview();
         load();
       });
     });
 
     listEl.addEventListener("click", function (e) {
+      var wrap = e.target.closest && e.target.closest(".cm-imgwrap");
+      if (wrap) {
+        var wid = wrap.getAttribute("data-id");
+        var wr = listRows.filter(function (x) { return String(x.id) === wid; })[0];
+        if (wr) openGallery(imagesOf(wr), 0);
+        return;
+      }
       var del = e.target.closest && e.target.closest(".cm-del"); if (!del) return;
       var it = del.closest(".cm-item"); var id = it && it.getAttribute("data-id"); if (!id) return;
       var pass = global.prompt("삭제하려면 연구실 암호를 입력하세요."); if (pass == null) return;

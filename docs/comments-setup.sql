@@ -11,9 +11,11 @@ create table if not exists public.comments (
   name       text not null,
   body       text not null,
   image      text,
+  images     text[],
   created_at timestamptz not null default now()
 );
 alter table public.comments add column if not exists image text;
+alter table public.comments add column if not exists images text[];
 create index if not exists comments_news_idx on public.comments (news_id, created_at);
 
 -- 2) 읽기는 공개, 직접 쓰기/삭제는 차단(아래 함수로만 가능)
@@ -27,23 +29,28 @@ alter table public.app_secrets enable row level security;
 insert into public.app_secrets (key, value) values ('comment_passcode', '715718')
   on conflict (key) do update set value = excluded.value;
 
--- 4) 댓글 등록: 암호 확인 후 삽입 (SECURITY DEFINER 로 RLS 우회) — p_image: 첨부 사진(data URI, 선택)
+-- 4) 댓글 등록: 암호 확인 후 삽입 (SECURITY DEFINER 로 RLS 우회) — p_images: 첨부 사진 배열(data URI, 선택)
 drop function if exists public.add_comment(text, text, text, text);
-create or replace function public.add_comment(p_news_id text, p_name text, p_body text, p_passcode text, p_image text default null)
+drop function if exists public.add_comment(text, text, text, text, text);
+create or replace function public.add_comment(p_news_id text, p_name text, p_body text, p_passcode text, p_images text[] default null)
 returns bigint language plpgsql security definer set search_path = public as $$
-declare v_id bigint; v_pass text;
+declare v_id bigint; v_pass text; v_total bigint;
 begin
   select value into v_pass from app_secrets where key = 'comment_passcode';
   if p_passcode is null or p_passcode <> v_pass then raise exception 'invalid_passcode'; end if;
   if length(coalesce(trim(p_name), '')) = 0
-     or (length(coalesce(trim(p_body), '')) = 0 and coalesce(p_image, '') = '') then raise exception 'empty'; end if;
-  if p_image is not null and length(p_image) > 1200000 then raise exception 'image_too_large'; end if;
-  insert into comments (news_id, name, body, image)
-    values (p_news_id, left(trim(p_name), 40), left(trim(p_body), 2000), nullif(p_image, ''))
+     or (length(coalesce(trim(p_body), '')) = 0 and coalesce(array_length(p_images, 1), 0) = 0) then raise exception 'empty'; end if;
+  if coalesce(array_length(p_images, 1), 0) > 6 then raise exception 'too_many_images'; end if;
+  if p_images is not null then
+    select coalesce(sum(length(x)), 0) into v_total from unnest(p_images) as x;
+    if v_total > 7000000 then raise exception 'image_too_large'; end if;
+  end if;
+  insert into comments (news_id, name, body, images)
+    values (p_news_id, left(trim(p_name), 40), left(trim(p_body), 2000), p_images)
     returning id into v_id;
   return v_id;
 end $$;
-grant execute on function public.add_comment(text, text, text, text, text) to anon;
+grant execute on function public.add_comment(text, text, text, text, text[]) to anon;
 
 -- 5) 댓글 삭제: 암호 확인 후 삭제
 create or replace function public.delete_comment(p_id bigint, p_passcode text)

@@ -921,8 +921,12 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .cm-item:hover .cm-del { opacity: .7; }
 .cm-del:hover { opacity: 1 !important; color: #c0392b; }
 .cm-text { margin-top: 3px; line-height: 1.6; color: var(--fg); font-size: .92rem; word-break: break-word; }
-.cm-imgwrap { display: inline-block; margin-top: 8px; }
+.cm-imgwrap { position: relative; display: inline-block; margin-top: 8px; cursor: pointer; line-height: 0; }
 .cm-img { max-width: min(280px, 100%); max-height: 300px; border-radius: 10px; border: 1px solid var(--line); display: block; }
+.cm-imgwrap.multi .cm-img { filter: brightness(.94); }
+.cm-imgwrap:hover .cm-img { filter: brightness(.88); }
+.cm-more-photos { position: absolute; right: 8px; bottom: 8px; background: rgba(0, 0, 0, .62); color: #fff;
+  font-size: .78rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; pointer-events: none; line-height: 1; }
 
 /* 입력 폼 */
 .cm-form { display: flex; flex-direction: column; gap: 9px; border-top: 1px solid var(--line); padding-top: 14px; }
@@ -931,9 +935,10 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .cm-form input, .cm-form textarea { font: inherit; padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); color: var(--fg); width: 100%; transition: border-color .15s, box-shadow .15s; }
 .cm-form input:focus, .cm-form textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent); }
 .cm-form textarea { resize: vertical; min-height: 44px; }
-.cm-preview { position: relative; align-self: flex-start; }
-.cm-preview img { max-width: 96px; max-height: 96px; border-radius: 9px; border: 1px solid var(--line); display: block; }
-.cm-imgdel { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--bg); background: #c0392b; color: #fff; cursor: pointer; font-size: .7rem; line-height: 1; display: flex; align-items: center; justify-content: center; }
+.cm-preview { display: flex; flex-wrap: wrap; gap: 8px; align-self: flex-start; }
+.cm-thumb { position: relative; }
+.cm-thumb img { width: 66px; height: 66px; object-fit: cover; border-radius: 9px; border: 1px solid var(--line); display: block; }
+.cm-imgdel { position: absolute; top: -7px; right: -7px; width: 21px; height: 21px; border-radius: 50%; border: 2px solid var(--bg); background: #c0392b; color: #fff; cursor: pointer; font-size: .68rem; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0; }
 .cm-actions { display: flex; align-items: center; gap: 10px; }
 .cm-photo { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 9px; font: inherit; font-size: .85rem; padding: 7px 12px; cursor: pointer; line-height: 1; transition: color .15s, border-color .15s; }
 .cm-photo:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
@@ -942,6 +947,21 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .cm-submit { border: 0; background: var(--accent); color: #fff; font: inherit; font-weight: 600; padding: 9px 20px; border-radius: 9px; cursor: pointer; transition: opacity .15s; }
 .cm-submit:hover { opacity: .9; }
 .cm-submit:disabled { opacity: .55; cursor: default; }
+
+/* 사진 확대 갤러리(라이트박스) */
+.cm-lb { position: fixed; inset: 0; z-index: 9999; background: rgba(0, 0, 0, .86);
+  display: flex; align-items: center; justify-content: center; }
+.cm-lb[hidden] { display: none; }
+.cm-lb-img { max-width: 92vw; max-height: 86vh; border-radius: 8px; box-shadow: 0 12px 48px rgba(0, 0, 0, .5); }
+.cm-lb-close { position: absolute; top: 16px; right: 18px; width: 42px; height: 42px; border: 0; border-radius: 50%;
+  background: rgba(255, 255, 255, .14); color: #fff; font-size: 1.1rem; cursor: pointer; }
+.cm-lb-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 48px; height: 48px; border: 0; border-radius: 50%;
+  background: rgba(255, 255, 255, .14); color: #fff; font-size: 2rem; line-height: 1; cursor: pointer; }
+.cm-lb-nav.prev { left: 16px; } .cm-lb-nav.next { right: 16px; }
+.cm-lb-nav:hover, .cm-lb-close:hover { background: rgba(255, 255, 255, .3); }
+.cm-lb-count { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: #fff; font-size: .9rem;
+  background: rgba(0, 0, 0, .45); padding: 4px 14px; border-radius: 999px; }
+@media (max-width: 600px) { .cm-lb-nav { width: 40px; height: 40px; font-size: 1.6rem; } }
 @media (max-width: 600px) { .ni-comments { margin-left: 0; } .cm-row .cm-pass { width: 120px; } }
 @media (max-width: 600px) {
   .ni-content, .ni-links { margin-left: 0; }
