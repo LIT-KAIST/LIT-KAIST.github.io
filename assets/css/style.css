@@ -913,9 +913,10 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
   background: color-mix(in srgb, var(--nt, var(--accent)) 12%, var(--bg));
   border: 1px solid color-mix(in srgb, var(--nt, var(--accent)) 30%, var(--bg)); }
 .ni-date { color: var(--muted); font-size: .82rem; font-variant-numeric: tabular-nums; }
-.ni-title { margin: 0; font-size: 1.08rem; line-height: 1.4; }
-.ni-content { margin: 9px 0 0; color: #374151; line-height: 1.65; font-size: .92rem;
-  display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.ni-title { margin: 0; font-size: 1.02rem; line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ni-content { margin: 16px 0 0; color: #374151; line-height: 1.65; font-size: .9rem;
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .ni-links { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .ni-link { font-size: .82rem; font-weight: 600; }
 /* 뉴스 대표 이미지 — 카드 상단 배너 */
