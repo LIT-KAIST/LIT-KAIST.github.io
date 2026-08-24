@@ -109,7 +109,7 @@
           '<div class="cm-meta"><b class="cm-who">' + esc(r.name) + "</b>" +
           '<span class="cm-when">' + esc(fmt(r.created_at)) + "</span>" +
           '<button type="button" class="cm-del" title="삭제">✕</button></div>' +
-          '<div class="cm-text">' + nl2br(r.body) + "</div>" +
+          (r.body && r.body.trim() ? '<div class="cm-text">' + nl2br(r.body) + "</div>" : "") +
           (r.image ? '<a class="cm-imgwrap" href="' + esc(r.image) + '" target="_blank" rel="noopener"><img class="cm-img" src="' + esc(r.image) + '" alt="첨부 이미지" loading="lazy"></a>' : "") +
         "</div>" +
       "</div>";
