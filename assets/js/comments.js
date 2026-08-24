@@ -6,8 +6,8 @@
    ========================================================================== */
 (function (global) {
   // ▼▼ Supabase 프로젝트 값 넣기 (둘 다 공개용 — 커밋 OK) ▼▼
-  var SUPABASE_URL = "";   // 예: https://abcdefgh.supabase.co
-  var SUPABASE_ANON = "";  // 예: eyJhbGciOi...  (anon public key)
+  var SUPABASE_URL = "https://pvzpiunlnuxzkqhticvw.supabase.co";
+  var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2enBpdW5sbnV4emtxaHRpY3Z3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1Mzk1NjgsImV4cCI6MjEwMzExNTU2OH0.7ozGn3RoUhKHmWFIuXWFSn5weLG6P9zkQP01QgGlGY4";
   // ▲▲ 비어 있으면 댓글 UI 는 표시되지 않습니다 ▲▲
 
   var sb = null;
