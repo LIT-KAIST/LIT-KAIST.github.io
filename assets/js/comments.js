@@ -21,6 +21,18 @@
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
   function nl2br(s) { return esc(s).replace(/\r?\n/g, "<br>"); }
+  // 이스케이프 → URL 자동 하이퍼링크 → 줄바꿈
+  function richText(s) {
+    var e = esc(s);
+    e = e.replace(/(https?:\/\/[^\s<]+|www\.[^\s<]+)/g, function (u) {
+      var tail = "";
+      var mt = u.match(/[),.!?]+$/);
+      if (mt) { tail = mt[0]; u = u.slice(0, -tail.length); }
+      var href = /^www\./i.test(u) ? "http://" + u : u;
+      return '<a href="' + href + '" target="_blank" rel="noopener nofollow">' + u + "</a>" + tail;
+    });
+    return e.replace(/\r?\n/g, "<br>");
+  }
   function initialOf(name) { var s = String(name || "").trim(); return s ? s.charAt(0).toUpperCase() : "?"; }
   // 첨부 사진: 브라우저에서 리사이즈+JPEG 압축 → data URI (용량 절감)
   function resizeImage(file, maxW, quality) {
@@ -58,7 +70,7 @@
         '<div class="cm-meta"><b class="cm-who">' + esc(r.name) + "</b>" +
         '<span class="cm-when">' + esc(fmt(r.created_at)) + "</span>" +
         '<button type="button" class="cm-del" title="삭제">✕</button></div>' +
-        '<div class="cm-text">' + nl2br(r.body) + "</div>" +
+        '<div class="cm-text">' + richText(r.body) + "</div>" +
       "</div></div>";
   }
 
@@ -254,7 +266,7 @@
           '<div class="cm-meta"><b class="cm-who">' + esc(r.name) + "</b>" +
           '<span class="cm-when">' + esc(fmt(r.created_at)) + "</span>" +
           '<button type="button" class="cm-del" title="삭제">✕</button></div>' +
-          (r.body && r.body.trim() ? '<div class="cm-text">' + nl2br(r.body) + "</div>" : "") +
+          (r.body && r.body.trim() ? '<div class="cm-text">' + richText(r.body) + "</div>" : "") +
           gallery +
         "</div>" +
       "</div>";
@@ -474,6 +486,6 @@
       .then(function (res) { if (res.count != null) el.innerHTML = '<span class="cmt-badge2">💬 ' + res.count + "</span>"; });
   }
 
-  global.LitComments = { mount: mount, mountPanel: mountPanel, count: mountCommentCount, newsCount: mountNewsCount };
+  global.LitComments = { mount: mount, mountPanel: mountPanel, count: mountCommentCount, newsCount: mountNewsCount, client: client };
   global.LitLikes = { mount: mountLike };
 })(window);

@@ -202,6 +202,7 @@
       bar.className = "admin-launch";
       bar.innerHTML =
         '<button type="button" class="admin-btn" id="adminNew">✎ 새 뉴스</button>' +
+        '<button type="button" class="admin-btn" id="adminComments">💬 댓글 관리</button>' +
         '<button type="button" class="admin-btn" id="adminMode">관리 모드</button>';
       mount.parentNode.insertBefore(bar, mount);
 
@@ -241,6 +242,7 @@
       amModal.querySelector("#amSubmit").addEventListener("click", submitNews);
 
       document.getElementById("adminNew").addEventListener("click", function () { openAdd(); });
+      document.getElementById("adminComments").addEventListener("click", function () { openAdminComments(); });
       document.getElementById("adminMode").addEventListener("click", function () {
         adminMode = !adminMode;
         this.classList.toggle("on", adminMode);
@@ -409,6 +411,113 @@
           global.alert("삭제 완료! 1~2분 후 사이트에 완전히 반영됩니다.");
         })
         .catch(function (err) { global.alert("삭제 실패: " + err.message); });
+    }
+
+    /* ---------------- 관리자: 댓글·사진 대시보드 ---------------- */
+    var acmModal = null, albumMap = null;
+    function newsTitleOf(id) { var x = news.filter(function (n) { return slug(n.date) === id; })[0]; return x ? (x.title || id) : id; }
+    function acmDate(ts) {
+      var d = new Date(ts); if (isNaN(d)) return "";
+      function p(n) { return (n < 10 ? "0" : "") + n; }
+      return d.getFullYear() + "." + p(d.getMonth() + 1) + "." + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+    }
+    function ensureAlbumMap() {
+      if (albumMap) return Promise.resolve(albumMap);
+      return fetch("data/album.csv", { cache: "no-store" }).then(function (r) { return r.text(); }).then(function (t) {
+        albumMap = {};
+        P._rowsToObjects(P._parseCSV(t)).forEach(function (r) {
+          albumMap["album#" + String(r.date || "").replace(/[^0-9]/g, "")] = r.title || "";
+        });
+        return albumMap;
+      }).catch(function () { albumMap = {}; return albumMap; });
+    }
+    function openAdminComments() {
+      var c = global.LitComments && global.LitComments.client ? global.LitComments.client() : null;
+      if (!c) { global.alert("댓글 백엔드(Supabase)가 설정되지 않았습니다."); return; }
+      if (!acmModal) buildAcm();
+      acmModal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      loadAcm();
+    }
+    function buildAcm() {
+      acmModal = document.createElement("div");
+      acmModal.className = "acm-modal";
+      acmModal.setAttribute("aria-hidden", "true");
+      acmModal.innerHTML =
+        '<div class="acm-backdrop"></div>' +
+        '<div class="acm-panel">' +
+          '<button class="acm-close" type="button" aria-label="닫기">&times;</button>' +
+          "<h2>댓글 · 사진 관리</h2>" +
+          '<div class="acm-tools">' +
+            '<input class="acm-pass" type="password" placeholder="삭제용 연구실 암호" autocomplete="off">' +
+            '<button class="acm-refresh" type="button">새로고침</button>' +
+          "</div>" +
+          '<div class="acm-list"></div>' +
+        "</div>";
+      document.body.appendChild(acmModal);
+      function close() { acmModal.setAttribute("aria-hidden", "true"); document.body.style.overflow = ""; }
+      acmModal.querySelector(".acm-close").addEventListener("click", close);
+      acmModal.querySelector(".acm-backdrop").addEventListener("click", close);
+      acmModal.querySelector(".acm-refresh").addEventListener("click", loadAcm);
+      global.addEventListener("keydown", function (e) { if (acmModal.getAttribute("aria-hidden") === "false" && e.key === "Escape") close(); });
+      acmModal.querySelector(".acm-list").addEventListener("click", function (e) {
+        var del = e.target.closest && e.target.closest(".acm-del"); if (!del) return;
+        var c = global.LitComments.client(); if (!c) return;
+        var pass = (acmModal.querySelector(".acm-pass").value || "").trim();
+        if (!pass) { global.alert("삭제하려면 상단에 연구실 암호를 입력하세요."); return; }
+        if (!global.confirm("이 댓글을 삭제할까요?")) return;
+        var rpc = del.getAttribute("data-kind") === "news" ? "delete_comment" : "delete_photo_comment";
+        c.rpc(rpc, { p_id: Number(del.getAttribute("data-id")), p_passcode: pass }).then(function (res) {
+          if (res.error) { global.alert(/invalid_passcode/i.test(res.error.message || "") ? "암호가 올바르지 않습니다." : "삭제 실패"); return; }
+          loadAcm();
+        });
+      });
+    }
+    function loadAcm() {
+      var c = global.LitComments.client();
+      var listEl = acmModal.querySelector(".acm-list");
+      listEl.innerHTML = '<p class="muted">불러오는 중…</p>';
+      Promise.all([
+        Promise.resolve(c.from("comments").select("*").order("created_at", { ascending: false })),
+        Promise.resolve(c.from("photo_comments").select("*").order("created_at", { ascending: false })),
+        ensureAlbumMap()
+      ]).then(function (r) {
+        renderAcm(listEl, (r[0] && r[0].data) || [], (r[1] && r[1].data) || []);
+      }).catch(function () { listEl.innerHTML = '<p class="error">불러오기 실패</p>'; });
+    }
+    function renderAcm(listEl, newsC, photoC) {
+      var byId = {}; newsC.forEach(function (r) { byId[r.id] = r; });
+      var groups = {};
+      function add(label, order, e) { if (!groups[label]) groups[label] = { order: order, items: [] }; groups[label].items.push(e); }
+      newsC.forEach(function (r) {
+        var imgs = (Array.isArray(r.images) ? r.images : []).concat(r.image ? [r.image] : []);
+        add("📰 " + newsTitleOf(r.news_id), r.created_at, { name: r.name, body: r.body, when: r.created_at, imgs: imgs, kind: "news", id: r.id });
+      });
+      photoC.forEach(function (r) {
+        var label;
+        if (/^album#/.test(r.photo_key)) label = "🖼 앨범: " + ((albumMap && albumMap[r.photo_key]) || r.photo_key);
+        else {
+          var m = r.photo_key.match(/^(\d+)#(\d+)$/);
+          if (m) { var pc = byId[m[1]]; label = "💬 사진댓글: " + (pc ? newsTitleOf(pc.news_id) : "?") + " (사진 " + (Number(m[2]) + 1) + ")"; }
+          else label = r.photo_key;
+        }
+        add(label, r.created_at, { name: r.name, body: r.body, when: r.created_at, imgs: [], kind: "photo", id: r.id });
+      });
+      var labels = Object.keys(groups).sort(function (a, b) { return String(groups[b].order).localeCompare(String(groups[a].order)); });
+      if (!labels.length) { listEl.innerHTML = '<p class="muted">아직 댓글이 없습니다.</p>'; return; }
+      listEl.innerHTML = labels.map(function (lb) {
+        var g = groups[lb];
+        return '<section class="acm-group"><h3>' + esc(lb) + ' <span class="muted">(' + g.items.length + ")</span></h3>" +
+          g.items.map(function (e) {
+            return '<div class="acm-row">' +
+              '<div class="acm-meta"><b>' + esc(e.name) + "</b> <span class=\"muted\">" + esc(acmDate(e.when)) + "</span>" +
+              '<button class="acm-del" type="button" data-kind="' + e.kind + '" data-id="' + e.id + '">삭제</button></div>' +
+              (e.body ? '<div class="acm-text">' + esc(e.body) + "</div>" : "") +
+              (e.imgs.length ? '<div class="acm-imgs">' + e.imgs.map(function (u) { return '<img src="' + esc(u) + '">'; }).join("") + "</div>" : "") +
+              "</div>";
+          }).join("") +
+          "</section>";
+      }).join("");
     }
   }
 
