@@ -131,6 +131,19 @@
   var STATUS_PUB = ["publish", "draft"];
 
   var COLLECTIONS = {
+    faculty: {
+      label: "Faculty (지도교수)", csv: "data/faculty_meta.csv", idCol: "key", singleton: true,
+      title: function () { return "지도교수 프로필"; },
+      fields: [
+        { name: "key", type: "hidden" },
+        { name: "slug", type: "hidden" },
+        { name: "photo", label: "사진", type: "image",
+          dir: function () { return "assets/img/people/faculty"; },
+          filename: function () { return "hyuncheol-park.jpg"; } },
+        { name: "본문_en", label: "프로필 전체 (English, Markdown) — 이름/직함/사진/연락처/약력 모두 포함 · data/faculty.md", type: "md", mdLang: "en" },
+        { name: "본문_ko", label: "프로필 전체 (한국어, Markdown) — 이름/직함/사진/연락처/약력 모두 포함 · data/faculty_ko.md", type: "md", mdLang: "ko" },
+      ],
+    },
     members: {
       label: "Members", csv: "data/people_members.csv", idCol: "name_english",
       sub: function (r) { return r["직함"] || ""; },
@@ -1178,7 +1191,7 @@
     }
   }
 
-  // 프로젝트 상세 본문(md) 커밋: 본문_ko → data/<slug>_ko.md, 본문_en → data/<slug>.md
+  // 본문(md) 커밋: 본문_ko → data/<slug>_ko.md, 본문_en → data/<slug>.md (프로젝트 상세, Faculty 프로필 등)
   function commitDetailMd(col) {
     var mds = col.fields.filter(function (fd) { return fd.type === "md"; });
     var slugVal = formVal("slug");
@@ -1189,7 +1202,7 @@
         if (!ta || !ta.value.trim()) return; // 비어 있으면 건너뜀(기존 파일 보존)
         var text = ta.value.replace(/\s+$/, "") + "\n";
         var path = "data/" + slugVal + (fd.mdLang === "en" ? "" : "_ko") + ".md";
-        return commitText(path, text, "Update project detail: " + slugVal + " (" + fd.mdLang + ")");
+        return commitText(path, text, "Update " + col.label + ": " + slugVal + " (" + fd.mdLang + ")");
       });
     }, Promise.resolve());
   }
