@@ -14,10 +14,22 @@
    ========================================================================== */
 (function () {
   var KEY = "lit-lang";
+  var memLang = null;   // localStorage 를 못 쓸 때 쓰는 대체 저장소(탭이 열려 있는 동안만 유지)
+
+  // 브라우저가 "쿠키 및 사이트 데이터 차단"으로 설정돼 있으면 localStorage 를
+  // 읽는 것만으로도 예외가 납니다. 언어 설정 하나 때문에 페이지 렌더링 전체가
+  // 멈추지 않도록 항상 감싸서 사용합니다.
+  function readLang() {
+    try { return localStorage.getItem(KEY); } catch (e) { return memLang; }
+  }
+  function writeLang(lang) {
+    memLang = lang;
+    try { localStorage.setItem(KEY, lang); } catch (e) {}
+  }
 
   function getLang() {
     // 기본 언어는 영어. 사용자가 한국어를 고르면 그 선택을 저장·유지.
-    return localStorage.getItem(KEY) === "ko" ? "ko" : "en";
+    return readLang() === "ko" ? "ko" : "en";
   }
 
   function apply(lang) {
@@ -48,7 +60,7 @@
   }
 
   function setLang(lang) {
-    localStorage.setItem(KEY, lang);
+    writeLang(lang);
     apply(lang);
     // 언어가 바뀌면 알림 (people.js 의 마크다운 프로필 재렌더 등에서 사용)
     try {

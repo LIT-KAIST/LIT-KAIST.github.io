@@ -46,7 +46,19 @@
     if (/\.github\.io$/.test(h)) return h.replace(/\.github\.io$/, "") + "/" + h;
     return "LIT-KAIST/LIT-KAIST.github.io";
   }
-  function token() { return (localStorage.getItem("lit-gh-token") || "").trim(); }
+  // 브라우저가 사이트 데이터를 차단한 경우 localStorage 접근만으로 예외가 나므로 항상 감쌉니다.
+  // (그때는 이 탭이 열려 있는 동안만 토큰을 기억합니다)
+  var memTok = "";
+  function token() {
+    try { return (localStorage.getItem("lit-gh-token") || "").trim(); } catch (e) { return memTok; }
+  }
+  function setToken(v) {
+    memTok = v || "";
+    try {
+      if (v) localStorage.setItem("lit-gh-token", v);
+      else localStorage.removeItem("lit-gh-token");
+    } catch (e) {}
+  }
 
   /* ---------------- 이미지 리사이즈 → base64(jpeg) ---------------- */
   function fileToB64(file, resize) {
@@ -418,8 +430,8 @@
     if (tok) { document.getElementById("admToken").value = tok; verifyAccess(); }
     document.getElementById("admSaveTok").addEventListener("click", function () {
       var v = document.getElementById("admToken").value.trim();
-      if (v) { localStorage.setItem("lit-gh-token", v); verifyAccess(); }
-      else { localStorage.removeItem("lit-gh-token"); setTokState(false); }
+      if (v) { setToken(v); verifyAccess(); }
+      else { setToken(""); setTokState(false); }
     });
 
     // 탭

@@ -257,6 +257,11 @@
       var hash = location.hash.replace(/^#/, "");
       var valid = groups.some(function (g) { return g.key === hash; });
       setActive(valid ? hash : cfg.default || groups[0].key, false);
+    }).catch(function (e) {
+      // 여기서 막히면 "불러오는 중…" 이 그대로 남아 원인을 알 수 없으니 화면에 알립니다.
+      console.error(e);
+      mount.innerHTML =
+        '<div class="error">화면을 표시하지 못했습니다. 브라우저의 쿠키·사이트 데이터 차단 설정을 해제한 뒤 새로고침해 주세요.</div>';
     });
 
     // 같은 페이지에서 해시(#faculty/#members/#alumni)가 바뀌면 탭 전환
