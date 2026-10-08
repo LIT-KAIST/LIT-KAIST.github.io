@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 """
-data/mail_queue.csv 의 '아직 안 보낸(sent 빈칸)' 항목만 발송 (Brevo API).
+data/mail_queue.csv 의 '아직 안 보낸(sent 빈칸)' 항목만 발송 (Mailjet Send API v3.1).
 - 발송 성공 → 그 행의 sent 칸에 발송시각 기록 (재발송 방지)
 - 유형(send_*)이 꺼져 있으면 sent=skipped 로 표시(다시 안 보냄)
 - 워크플로가 실행 후 mail_queue.csv 변경분을 커밋 → 다음 실행 때 중복 발송 없음
 설정: data/mail_config.csv / 수신자: extra_to + people_members.csv − exclude
-발신주소 = SENDER_EMAIL(=MAIL_USERNAME), 인증 = BREVO_API_KEY
+발신주소 = SENDER_EMAIL(=MAIL_USERNAME), 인증 = MAILJET_API_KEY + MAILJET_SECRET_KEY
+
+※ Brevo 를 쓰다가 Mailjet 으로 옮긴 이유:
+  Brevo 는 API 키를 쓰는 IP 를 학습해두고 30일간 새 IP 가 없으면 '미등록 IP 차단'을
+  자동으로 켭니다. 이 워크플로는 GitHub Actions 러너(IP 가 실행마다 무작위, 공식 대역
+  7,000여 개)에서 돌기 때문에 매 발송이 새 IP 로 잡혀 전부 401 로 막혔습니다.
+  Mailjet 은 이런 IP 제한이 없어 CI 에서 발송하기에 적합합니다.
 """
-import os, csv, json, re, html, urllib.request, urllib.error
+import os, csv, json, re, html, base64, urllib.request, urllib.error
 from datetime import datetime, timezone
 
 
@@ -96,27 +102,40 @@ if "sent" not in header:
 ix = {n: i for i, n in enumerate(header)}
 data = [r + [""] * (len(header) - len(r)) for r in rows[1:]]
 
-api_key = os.environ.get("BREVO_API_KEY", "").strip()
+api_key = os.environ.get("MAILJET_API_KEY", "").strip()
+secret_key = os.environ.get("MAILJET_SECRET_KEY", "").strip()
 sender_email = os.environ.get("SENDER_EMAIL", "").strip()
 master = flag_on(cfg.get("enabled"))
 
 
-def brevo_send(subject, body):
-    payload = {
-        "sender": {"name": "LIT @ KAIST 정보전송연구실", "email": sender_email},
-        "to": [{"email": e} for e in to_list],
-        "subject": subject or "[LIT] 알림",
-        "htmlContent": build_html(body),
-        "textContent": body or "(내용 없음)",
-    }
+def mailjet_send(subject, body):
+    payload = {"Messages": [{
+        "From": {"Email": sender_email, "Name": "LIT @ KAIST 정보전송연구실"},
+        "To": [{"Email": e} for e in to_list],
+        "Subject": subject or "[LIT] 알림",
+        "TextPart": body or "(내용 없음)",
+        "HTMLPart": build_html(body),
+    }]}
+    basic = base64.b64encode(f"{api_key}:{secret_key}".encode("utf-8")).decode("ascii")
     req = urllib.request.Request(
-        "https://api.brevo.com/v3/smtp/email",
+        "https://api.mailjet.com/v3.1/send",
         data=json.dumps(payload).encode("utf-8"),
-        headers={"api-key": api_key, "content-type": "application/json", "accept": "application/json"},
+        headers={"authorization": "Basic " + basic,
+                 "content-type": "application/json", "accept": "application/json"},
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=30) as resp:
-        return resp.status
+        status, raw = resp.status, resp.read().decode("utf-8", "replace")
+    # Mailjet 은 일부 수신자만 실패해도 HTTP 200 을 주므로 본문의 Status 를 직접 확인한다.
+    # (여기서 예외를 내면 그 항목은 sent 표시가 안 되어 다음 실행에서 다시 시도된다)
+    try:
+        msgs = json.loads(raw).get("Messages", [])
+    except ValueError:
+        raise RuntimeError(f"Mailjet 응답을 해석할 수 없습니다 (HTTP {status}): {raw[:300]}")
+    bad = [m for m in msgs if str(m.get("Status", "")).lower() != "success"]
+    if bad or not msgs:
+        raise RuntimeError(f"Mailjet 발송 실패 (HTTP {status}): {json.dumps(bad or msgs, ensure_ascii=False)[:500]}")
+    return status
 
 
 now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%SZ")
@@ -138,14 +157,14 @@ for r in data:
         print(f"skip (type off): {t}"); continue
     if not to_list:
         r[ix["sent"]] = "skipped(no recipients)"; changed = True; continue
-    if not api_key or not sender_email:
-        print("BREVO_API_KEY / SENDER_EMAIL missing."); had_error = True; break
+    if not api_key or not secret_key or not sender_email:
+        print("MAILJET_API_KEY / MAILJET_SECRET_KEY / SENDER_EMAIL missing."); had_error = True; break
     try:
-        code = brevo_send(r[ix["subject"]], r[ix["body"]])
+        code = mailjet_send(r[ix["subject"]], r[ix["body"]])
         r[ix["sent"]] = now; changed = True; sent_count += 1
         print(f"sent: {r[ix['subject']]} -> {len(to_list)} recipients (HTTP {code})")
     except urllib.error.HTTPError as e:
-        print(f"Brevo API error (HTTP {e.code}): {e.read().decode('utf-8', 'replace')}")
+        print(f"Mailjet API error (HTTP {e.code}): {e.read().decode('utf-8', 'replace')}")
         had_error = True; break
     except Exception as e:
         print(f"Send failed: {e}"); had_error = True; break
