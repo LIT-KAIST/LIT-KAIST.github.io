@@ -1,4 +1,13 @@
 ﻿stamp,type,subject,body,sent
+2026-10-08 22:40:17,journal,[LIT] 새 논문이 게재되었습니다.,"새 논문이 게재되었습니다.
+
+· 제목: Low-Latency Edge LLM Handover Via Joint KV Cache Transfer and Token Prefill
+· 저자: S. Lee, J. Park, C. Zheng, and H. Park
+· 게재처: IEEE Transactions on Vehicular Technology
+
+링크: https://lit.kaist.ac.kr/journal.html
+
+— LIT @ KAIST",
 2026-10-06 12:31:07,conference,[LIT] 새 논문이 게재되었습니다.,"새 논문이 게재되었습니다.
 
 · 제목: Movable Subarrays for Low-Complexity Near-Field ISAC: Joint Position and Orientation Optimization
