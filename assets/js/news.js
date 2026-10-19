@@ -4,6 +4,7 @@
    - 이중언어: 현재 언어(LitI18n)에 따라 _en 필드 사용, 언어 토글 시 재렌더
    - News.initPage(): 뉴스 목록 페이지 (+ GitHub 토큰 기반 관리자 등록)
    - News.renderRecent(): 홈페이지 최근 N개 제목 블록
+   - News.renderLatest(): 홈 첫 화면(히어로) 최신 소식 패널 — 유형 제외 가능(부고 등)
    ========================================================================== */
 (function (global) {
   var P = global.Pubs;
@@ -543,6 +544,42 @@
     });
   }
 
+  /* ====================== 홈 첫 화면: 최신 소식 패널 ====================== */
+  // cfg: { mount, csv, count(4), exclude: ["obituary", ...](유형키), newDays(21), onPaint }
+  // 각 항목은 news.html#n-… 로 연결 → 뉴스 페이지에서 해당 글 팝업이 바로 열림
+  function renderLatest(cfg) {
+    var mount = document.getElementById(cfg.mount);
+    if (!mount) return;
+    var count = cfg.count || 4, newDays = cfg.newDays || 21, exclude = cfg.exclude || [];
+    var recent = null;
+    function T(ko, en) { return lang() === "en" ? en : ko; }
+    function isNew(r) {
+      var d = new Date((r.date || "").slice(0, 10) + "T00:00:00");
+      return !isNaN(d) && (Date.now() - d) / 864e5 <= newDays;
+    }
+    function paint() {
+      if (!recent) return;
+      mount.innerHTML =
+        '<span class="nd-label"><span class="nd-live" aria-hidden="true"></span>' + T("최신 소식", "Latest News") + "</span>" +
+        '<h2 class="nd-h">' + T("연구실 소식", "Lab News") + "</h2>" +
+        (recent.length ? '<ul class="nd-list">' + recent.map(function (r) {
+          var t = newsType(r);
+          return '<li><a href="news.html#' + slug(r.date) + '">' +
+            '<span class="nd-meta"><span class="nd-chip" data-type="' + t.key + '">' + esc(lang() === "en" ? t.en : t.ko) + "</span>" +
+            '<span class="nd-date">' + esc(dateLabel(r)) + "</span>" +
+            (isNew(r) ? '<span class="nd-new">NEW</span>' : "") + "</span>" +
+            '<span class="nd-t">' + esc(pick(r, "title")) + "</span></a></li>";
+        }).join("") + "</ul>" : "") +
+        '<a class="nd-btn" href="news.html">' + T("모든 소식 보기", "See all news") + " →</a>";
+      if (cfg.onPaint) cfg.onPaint();
+    }
+    document.addEventListener("lit:lang", paint);
+    loadNews(cfg.csv).then(function (rows) {
+      recent = rows.filter(function (r) { return exclude.indexOf(newsType(r).key) < 0; }).slice(0, count);
+      paint();
+    }).catch(function () { recent = []; paint(); });   // 실패해도 '모든 소식 보기' 버튼은 표시
+  }
+
   /* ====================== 뉴스 확대 모달 ====================== */
   var TYPE_COLORS = { paper: "#2563eb", award: "#d97706", event: "#059669", people: "#7c3aed", obituary: "#64748b", news: "#475569" };
   var newsModal = null;
@@ -595,5 +632,5 @@
     body.scrollTop = 0;
   }
 
-  global.News = { initPage: initPage, renderRecent: renderRecent };
+  global.News = { initPage: initPage, renderRecent: renderRecent, renderLatest: renderLatest };
 })(window);

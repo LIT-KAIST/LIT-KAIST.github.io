@@ -25,33 +25,42 @@
   <link rel="stylesheet" href="assets/css/style.css?v=20260624x" />
   <script src="assets/js/theme.js?v=20260624x"></script>
   <style>
+    /* 히어로 비율 단위: 첫 화면의 글자·여백·패널을 모두 1u 로 계산 → 해상도가 달라도 같은 비율
+       가로 화면 1u = min(1vw, 1.6vh) (1440×900 → 14.4px, 16:9 는 높이 기준) / 세로 화면 1u = min(2.4vw, 1.1vh) */
+    :root { --u: min(1vw, 1.6vh); }
+    @supports (height: 1svh) { :root { --u: min(1vw, 1.6svh); } }
+    @media (max-aspect-ratio: 1/1) {
+      :root { --u: min(2.4vw, 1.1vh); }
+      @supports (height: 1svh) { :root { --u: min(2.4vw, 1.1svh); } }
+    }
+
     /* 스크롤 스냅: 한 화면씩 집중 */
     html { scroll-snap-type: y mandatory; scroll-padding-top: 0; }  /* 한 번 스크롤 = 한 칸 */
     .snap { min-height: 100vh; scroll-snap-align: start; scroll-snap-stop: always; display: flex; align-items: center; }
 
     /* 히어로 */
-    .v3hero { position: relative; min-height: 100vh; overflow: hidden; background: var(--header-bg); color: var(--header-fg); display:flex; align-items:center; scroll-snap-align: start; scroll-snap-stop: always; }
+    .v3hero { position: relative; min-height: 100vh; min-height: 100svh; overflow: hidden; background: var(--header-bg); color: var(--header-fg); display:flex; flex-direction: column; scroll-snap-align: start; scroll-snap-stop: always; }
     #v3canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; opacity: 0; transition: opacity 2.4s ease; }
     /* 좌측 음영(텍스트 가독성) */
     .v3hero::before { content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background: linear-gradient(90deg, rgba(0,0,0,.5), rgba(0,0,0,0) 58%); }
-    /* 카피: 왼쪽 정렬, 시작점 동일 */
-    .v3hero .wrap { position: relative; z-index: 2; max-width: none; margin: 0; padding-left: clamp(24px, 8vw, 120px); padding-right: 24px; text-align: left; }
+    /* 카피: 왼쪽 정렬, 시작점 동일 (세로 가운데 = margin auto, 세로 화면에선 아래 뉴스 패널 위 공간의 가운데) */
+    .v3hero .wrap { position: relative; z-index: 2; max-width: none; margin: auto 0; padding: 0 calc(var(--u) * 4) 0 calc(var(--u) * 8); text-align: left; }
     /* 첫 화면에선 헤더 숨김 → 스크롤 후 등장 (fixed 라 상단 빈 줄 없음) */
     .site-header { position: fixed; left: 0; right: 0; top: 0; transform: translateY(-100%); opacity: 0; transition: transform .35s ease, opacity .35s ease; }
     .site-header.show { transform: none; opacity: 1; }
     /* 헤더 없을 때: 중앙에 LIT 로고 (연구실 표시) */
-    .v3-toplogo { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); height: 40px; width: auto; z-index: 6; filter: brightness(0) invert(1); opacity: 0; transition: opacity 1.6s ease; }
+    .v3-toplogo { position: fixed; top: calc(var(--u) * 1.25); left: 50%; transform: translateX(-50%); height: max(28px, calc(var(--u) * 2.8)); width: auto; z-index: 6; filter: brightness(0) invert(1); opacity: 0; transition: opacity 1.6s ease; }
     .v3-toplogo.in { opacity: .95; }
     .v3-toplogo.hide { opacity: 0; pointer-events: none; }
     /* 헤더 숨김 상태에서도 언어 토글은 미리 노출 */
     .v3-toplang { position: fixed; top: 15px; right: 20px; z-index: 7; transition: opacity .35s ease; }
     .v3-toplang.hide { opacity: 0; pointer-events: none; }
-    .v3-eyebrow { font-family: var(--font-head); letter-spacing: .22em; text-transform: uppercase; font-size: .82rem; opacity: .8; margin: 0 0 18px; }
-    .v3-title { font-family: var(--font-head); font-weight: 700; font-size: clamp(2.4rem, 6.5vw, 5rem); line-height: 1.06; margin: 0; letter-spacing: .01em; }
+    .v3-eyebrow { font-family: var(--font-head); letter-spacing: .22em; text-transform: uppercase; font-size: max(11px, calc(var(--u) * .95)); opacity: .8; margin: 0 0 1.4em; }
+    .v3-title { font-family: var(--font-head); font-weight: 700; font-size: calc(var(--u) * 5); line-height: 1.06; margin: 0; letter-spacing: .01em; }
     .v3-title .ln { display: block; }
-    .v3-sub { font-size: clamp(1.05rem, 2vw, 1.4rem); opacity: .92; margin: 22px 0 0; }
-    .v3-cta { margin-top: 34px; display: flex; gap: 12px; flex-wrap: wrap; }
-    .v3-btn { font-family: var(--font-head); font-weight: 600; font-size: 1rem; padding: 12px 22px; border-radius: 999px; cursor: pointer; text-decoration: none; }
+    .v3-sub { font-size: max(14px, calc(var(--u) * 1.6)); opacity: .92; margin: .95em 0 0; }
+    .v3-cta { margin-top: calc(var(--u) * 2.4); display: flex; gap: .75em; flex-wrap: wrap; font-size: max(13px, calc(var(--u) * 1.1)); }
+    .v3-btn { font-family: var(--font-head); font-weight: 600; font-size: 1em; padding: .72em 1.4em; border-radius: 999px; cursor: pointer; text-decoration: none; }
     .v3-btn.primary { background: var(--header-active-bg); color: var(--header-active-fg); }
     .v3-btn.ghost { border: 1px solid currentColor; color: var(--header-fg); }
     .v3-btn:hover { text-decoration: none; transform: translateY(-1px); }
@@ -63,8 +72,53 @@
     .opt1-ctl button { font: inherit; font-size: .8rem; cursor: pointer; color: var(--header-fg); background: rgba(255,255,255,.1); border: 1px solid currentColor; border-radius: 999px; padding: 5px 12px; opacity: .85; }
     .opt1-ctl button.on { background: var(--header-active-bg); color: var(--header-active-fg); border-color: var(--header-active-bg); opacity: 1; font-weight: 700; }
     .opt1-ctl button:disabled { opacity: .35; cursor: not-allowed; }
-    .v3-scroll { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 2; font-family: var(--font-head); font-size: .75rem; letter-spacing: .18em; text-transform: uppercase; opacity: .7; animation: v3bob 1.8s ease-in-out infinite; }
+    .v3-scroll { position: absolute; left: 50%; bottom: calc(var(--u) * 1.5); transform: translateX(-50%); z-index: 2; font-family: var(--font-head); font-size: max(10px, calc(var(--u) * .78)); letter-spacing: .18em; text-transform: uppercase; opacity: .7; animation: v3bob 1.8s ease-in-out infinite; }
     @keyframes v3bob { 0%,100%{transform:translate(-50%,0)} 50%{transform:translate(-50%,7px)} }
+
+    /* 히어로 최신 소식 패널 (news.js renderLatest): 가로 화면 = 오른쪽 반투명 패널, 세로 화면 = 아래 카드(2건) */
+    .nd { position: absolute; z-index: 3; right: calc(var(--u) * 5); top: 50%; transform: translateY(-50%); width: calc(var(--u) * 27);
+      font-size: max(13px, calc(var(--u) * 1.0)); padding: 1.5em 1.7em 1.4em; border-radius: 1.3em;
+      background: rgba(0,0,0,.24); -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2);
+      border: 1px solid rgba(255,255,255,.16); box-shadow: 0 1.5em 3em rgba(0,0,0,.25);
+      opacity: 0; transition: opacity 1s ease .9s; }
+    .nd.in { opacity: 1; }
+    .nd:empty { display: none; }
+    .nd-label { font-family: var(--font-head); font-weight: 700; font-size: .78em; letter-spacing: .2em; text-transform: uppercase; display: inline-flex; align-items: center; gap: .7em; }
+    .nd-live { width: .62em; height: .62em; border-radius: 50%; background: #ffcf45; animation: ndlive 2s ease-out infinite; }
+    @keyframes ndlive { 0% { box-shadow: 0 0 0 0 rgba(255,207,69,.55); } 70%,100% { box-shadow: 0 0 0 .7em rgba(255,207,69,0); } }
+    .nd-h { font-family: var(--font-head); font-weight: 700; font-size: 1.6em; line-height: 1.15; margin: .35em 0 .55em; color: inherit; }
+    .nd-list { list-style: none; margin: 0; padding: 0; }
+    .nd-list a { display: block; padding: .85em 0; border-top: 1px solid rgba(255,255,255,.12); color: inherit; text-decoration: none; }
+    .nd-list a:hover .nd-t { text-decoration: underline; text-underline-offset: .2em; }
+    .nd-meta { display: flex; align-items: center; gap: .6em; margin-bottom: .45em; }
+    .nd-chip { --tc: #e2e8f0; display: inline-flex; align-items: center; gap: .45em; font-size: .78em; font-weight: 700; letter-spacing: .02em; line-height: 1.2;
+      padding: .28em .8em; border-radius: 999px; white-space: nowrap; color: var(--tc);
+      background: color-mix(in srgb, var(--tc) 14%, transparent); border: 1px solid color-mix(in srgb, var(--tc) 38%, transparent); }
+    .nd-chip::before { content: ""; width: .5em; height: .5em; border-radius: 50%; background: currentColor; }
+    .nd-chip[data-type="paper"] { --tc: #93c5fd; } .nd-chip[data-type="award"] { --tc: #fcd34d; }
+    .nd-chip[data-type="event"] { --tc: #6ee7b7; } .nd-chip[data-type="people"] { --tc: #d8b4fe; }
+    .nd-date { font-size: .86em; opacity: .72; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .nd-new { font-family: var(--font-head); font-size: .68em; font-weight: 700; letter-spacing: .08em; line-height: 1; padding: .32em .55em; border-radius: .35em;
+      background: var(--header-active-bg); color: var(--header-active-fg); }
+    .nd-t { font-weight: 600; line-height: 1.4; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+    .nd-btn { display: flex; justify-content: center; align-items: center; gap: .5em; margin-top: .5em; padding: .8em 1em; border-radius: .7em; text-decoration: none;
+      background: var(--header-active-bg); color: var(--header-active-fg); font-family: var(--font-head); font-weight: 700; transition: transform .2s ease; }
+    .nd-btn:hover { text-decoration: none; transform: translateY(-1px); }
+    .nd a:focus-visible { outline: 2px solid #ffcf45; outline-offset: 2px; }
+    /* 세로 화면(휴대폰·태블릿 세로): 카피는 위, 패널은 아래 흐름으로 */
+    @media (max-aspect-ratio: 1/1) {
+      .v3hero .wrap { padding: 0 calc(var(--u) * 2.6); }
+      .v3-eyebrow { font-size: max(11px, calc(var(--u) * 1.15)); }
+      .v3-title { font-size: calc(var(--u) * 4.6); }
+      .v3-sub { font-size: max(14px, calc(var(--u) * 1.85)); }
+      .v3-cta { font-size: max(13px, calc(var(--u) * 1.6)); }
+      .v3hero::before { background: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.45)); }
+      .v3-scroll { display: none; }
+      .nd { position: relative; z-index: 3; right: auto; top: auto; transform: none; width: auto; margin: 0 calc(var(--u) * 2.6) calc(var(--u) * 2.6);
+        font-size: max(13px, calc(var(--u) * 1.45)); padding: 1.1em 1.2em 1em; }
+      .nd-h { display: none; }
+      .nd-list li:nth-child(n+3) { display: none; }
+    }
 
     /* 연구 분야 풀스크린 섹션 */
     .area .wrap { width: 100%; }
@@ -99,7 +153,7 @@
     .v3hero .ru.d1 { transition-delay: .8s; }
     .v3hero .ru.d2 { transition-delay: 1.2s; }
     .v3hero .ru.d3 { transition-delay: 1.6s; }
-    @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} .ru{opacity:1;transform:none} .v3-scroll{animation:none} }
+    @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} .ru{opacity:1;transform:none} .v3-scroll,.nd-live{animation:none} .nd{opacity:1;transition:none} }
   </style>
 </head>
 <body>
@@ -168,6 +222,8 @@
         <a class="v3-btn ghost" href="contact.html" data-ko="함께하기" data-en="Join us">함께하기</a>
       </div>
     </div>
+    <!-- 최신 소식 패널: news.csv 최신 4건(부고 제외) → 클릭 시 뉴스 페이지에서 해당 글이 바로 열림 -->
+    <aside class="nd" id="heroNews" aria-label="Latest news"></aside>
     <div class="v3-scroll">Scroll ↓</div>
   </section>
 
@@ -230,8 +286,16 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
   <script src="assets/js/globe-land.js?v=20260624x"></script>
   <script src="assets/js/pubs.js?v=20260624x"></script>
+  <script src="assets/js/news.js?v=20260624x"></script>
   <script src="assets/js/i18n.js?v=20260624x"></script>
   <script>
+  /* 히어로 최신 소식 패널 — 부고는 홈 소식으로 노출하지 않음(뉴스 페이지에는 그대로) */
+  (function(){
+    var el=document.getElementById('heroNews');
+    if(!el||!window.News||!News.renderLatest) return;
+    News.renderLatest({ mount:'heroNews', csv:'data/news.csv', count:4, exclude:['obituary'],
+      onPaint:function(){ el.classList.add('in'); if(window.__fitGlobe) requestAnimationFrame(window.__fitGlobe); } });
+  })();
   /* 풀페이지: 휠/키/링크로 한 칸씩 천천히(1.3s) 이동 — 인덱스 상태로 제어해 흔들림 없음 */
   (function(){
     if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -431,10 +495,18 @@
       if(dragging){var dx=e.clientX-pxv,dy=e.clientY-pyv;pxv=e.clientX;pyv=e.clientY; if(Math.abs(dx)+Math.abs(dy)>3)moved=true;
         group.rotation.y+=dx*0.005; group.rotation.x=Math.max(-0.9,Math.min(0.9,group.rotation.x+dy*0.003)); } });
     canvas.addEventListener('pointerleave',function(){inside=false;});
-    function resize(){var w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();if(composer)composer.setSize(canvas.width,canvas.height);
+    // 지구 영역: 세로 화면에선 아래 뉴스 패널을 뺀 위쪽 영역의 가운데에, 그 영역 크기에 맞춰 배치(가로 화면은 기존과 동일)
+    var heroEl=canvas.parentNode, newsEl=document.getElementById('heroNews');
+    function zoneH(h){ if(!newsEl||getComputedStyle(newsEl).position==='absolute') return h;
+      var r=newsEl.getBoundingClientRect(); return r.height ? Math.min(h, r.top-heroEl.getBoundingClientRect().top) : h; }
+    function resize(){var w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);
+      var zh=zoneH(h), D=Math.min(0.83*zh,1.25*w);
+      camera.aspect=w/h;camera.setViewOffset(w,h,0,(h-zh)/2,w,h);camera.position.z=5.4*(0.83*h)/Math.max(D,1);
+      camera.updateProjectionMatrix();if(composer)composer.setSize(canvas.width,canvas.height);
       // 화면 높이에 반비례 + 저밀도(외장모니터 DPR1)에서 더 작게(맥북 레티나는 그대로)
       var pr=Math.min(window.devicePixelRatio||1,2);
       nodePts.material.size=Math.min(0.15, 105/Math.max(440,h))*(0.7+0.3*(pr-1)); hmat.size=nodePts.material.size*1.95; }
+    window.__fitGlobe=resize;
     window.addEventListener('resize',resize);resize();
     // 토글 버튼
     function syncBtns(){ document.querySelectorAll('.opt1-ctl [data-globe]').forEach(function(b){ b.classList.toggle('on',b.dataset.globe===curMode); b.disabled=(b.dataset.globe==='land'&&landFailed);}); }
