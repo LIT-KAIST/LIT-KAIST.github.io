@@ -796,8 +796,14 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .au-favdel { border: 0; background: transparent; color: #c0392b; cursor: pointer; font-size: .7rem; padding: 2px 4px; margin-left: -2px; border-radius: 4px; }
 .au-favdel:hover { background: rgba(192,57,43,.12); }
 .au-ko { color: #889; font-size: .8em; }
-.au-add { display: flex; gap: 6px; flex-wrap: wrap; }
-.au-add .au-input { flex: 1; min-width: 160px; }
+.au-ext { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.au-ext .au-en { flex: 2 1 200px; }
+.au-ext .au-kn { flex: 1 1 130px; }
+.au-ext .au-ab { flex: 1 1 110px; }
+.au-hint { font-size: .78rem; line-height: 1.5; }
+.au-pick.au-need { border-style: dashed; color: #8a6d00; }   /* 풀네임 미입력 즐겨찾기 */
+.au-favedit { border: 0; background: transparent; color: #8a6d00; cursor: pointer; font-size: .72rem; padding: 2px 4px; border-radius: 4px; }
+.au-favedit:hover { background: rgba(138,109,0,.12); }
 .au-preview { font-size: .85rem; }
 /* admin 저널/학회 선택기 */
 .ve-box { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px; margin-top: 6px; }

@@ -847,10 +847,19 @@
       return '<label class="am-field">' + lab +
         '<input type="hidden" data-name="' + fd.name + '" value="' + esc(initA) + '">' +
         '<div class="au-box">' +
-          '<div class="au-chips">' + chips.map(auChip).join("") + '</div>' +
+          '<div class="au-chips">' + chips.map(function (c) { return auChip(c); }).join("") + '</div>' +
           '<div class="au-group"><span class="au-glabel">구성원</span><span class="au-roster"><span class="muted" style="font-size:.82rem">불러오는 중…</span></span></div>' +
           '<div class="au-group"><span class="au-glabel">⭐ 즐겨찾기</span><span class="au-favs"></span></div>' +
-          '<div class="au-add"><input type="text" class="au-input" placeholder="이름 직접 입력 (예: J. Kim)"><button type="button" class="adm-btn au-addbtn">+ 추가</button><button type="button" class="adm-btn au-favbtn" title="입력한 이름을 즐겨찾기에 저장(공유)">⭐ 저장</button></div>' +
+          '<div class="au-group"><span class="au-glabel">외부 저자</span><div class="au-ext">' +
+            '<input type="text" class="au-en" list="auDirList" autocomplete="off" placeholder="영문 풀네임 (예: Kawon Han)">' +
+            '<input type="text" class="au-kn" placeholder="한글 이름 (선택, 예: 한가원)">' +
+            '<input type="text" class="au-ab" readonly tabindex="-1" placeholder="약어 (자동)" title="영문 풀네임에서 자동 생성 (K. Han 형식)">' +
+            '<button type="button" class="adm-btn au-addbtn">+ 추가</button>' +
+            '<button type="button" class="adm-btn au-favbtn" title="풀네임과 함께 즐겨찾기에 저장(공유)하고 저자에 추가">⭐ 저장</button>' +
+            '<datalist id="auDirList"></datalist>' +
+          '</div></div>' +
+          '<div class="au-hint muted">영문 풀네임을 넣으면 약어가 항상 K. Han 형식(이름 첫 글자. 성)으로 만들어집니다. 졸업생·저장된 공저자는 자동완성됩니다. ' +
+            '국제 논문엔 약어, 국내 논문엔 한글 이름, 자동 뉴스엔 풀네임으로 들어갑니다.</div>' +
           '<div class="au-preview muted"></div>' +
         '</div></label>';
     }
@@ -873,11 +882,16 @@
   function isVid(p) { return /\.(mp4|webm|mov|m4v)$/i.test(p || ""); }
 
   /* ---------- 저자 위젯(Publications) ---------- */
-  function abbrevName(en) { // "Seunghun Lee" → "S. Lee"
-    var t = (en || "").trim().split(/\s+/);
-    if (t.length < 2) return (en || "").trim();
+  // 저자 약어 — 구성원·외부 저자 공통으로 항상 "이름 첫 글자. 성" (K. Han 형식)
+  // "Seunghun Lee" → "S. Lee", "Kyung-Ho Lee" → "K. Lee", "Robert W. Heath Jr." → "R. Heath", "Han, Kawon" → "K. Han", "K.Han" → "K. Han"
+  function abbrevName(full) {
+    var s = (full || "").replace(/\./g, ". ").replace(/\s+/g, " ").trim().replace(/,?\s+(Jr|Sr)\.?$|\s+(II|III|IV)$/i, "");
+    var m = s.match(/^([^,]+),\s*(.+)$/); if (m) s = m[2] + " " + m[1]; // "성, 이름"
+    var t = s.split(" ");
+    if (t.length < 2) return s;
     return t[0].charAt(0).toUpperCase() + ". " + t[t.length - 1];
   }
+  function looksAbbrev(s) { return /^[A-Za-z]\s*\./.test((s || "").trim()); } // "J. Kim", "K.Han" 처럼 약어로 입력한 경우
   function parseAuthors(str) { // 기존 저자 문자열 → 개별 저자 배열
     if (!str) return [];
     var parts = String(str).split(/\s*,\s*/).map(function (s) { return s.replace(/^and\s+/i, "").trim(); }).filter(Boolean);
@@ -891,28 +905,84 @@
     if (a.length === 2) return a[0] + " and " + a[1];
     return a.slice(0, -1).join(", ") + ", and " + a[a.length - 1];
   }
-  function auChip(name) {
-    return '<span class="au-chip" data-nm="' + esc(name) + '">' +
+  function isIntlPub() { return /international/i.test(curPubTarget || ""); }
+  // 저자 표기 양식: 국제 = 약어(K. Han), 국내 = 한글 이름(없으면 영문 풀네임)
+  function authorLabel(p, intl) { return intl ? (p.abbr || abbrevName(p.en) || p.ko || "") : (p.ko || p.en || p.abbr || ""); }
+  function joinAuthors(names, intl) { return intl ? oxfordJoin(names) : names.filter(Boolean).join(", "); }
+  // 칩은 표기(data-nm)와 함께 그 사람의 풀네임(data-en/data-ko)을 들고 있음 → 자동 뉴스에서 약어가 같은 사람도 구분
+  function auChip(name, en, ko) {
+    return '<span class="au-chip" data-nm="' + esc(name) + '"' + (en ? ' data-en="' + esc(en) + '"' : "") + (ko ? ' data-ko="' + esc(ko) + '"' : "") +
+      ((en || ko) ? ' title="' + esc([en, ko].filter(Boolean).join(" · ")) + '"' : "") + '>' +
       '<button type="button" class="au-mv au-l" title="앞으로">◀</button>' +
       '<span class="au-nm">' + esc(name) + '</span>' +
       '<button type="button" class="au-mv au-r" title="뒤로">▶</button>' +
       '<button type="button" class="au-del" title="삭제">✕</button></span>';
   }
-  function auPickBtn(nm, label, removable) {
-    return '<span class="au-pickwrap"><button type="button" class="au-pick" data-nm="' + esc(nm) + '">' + esc(nm) +
-      (label ? ' <span class="au-ko">' + esc(label) + '</span>' : '') + '</button>' +
-      (removable ? '<button type="button" class="au-favdel" data-nm="' + esc(nm) + '" title="즐겨찾기 삭제">✕</button>' : '') + '</span>';
+  function auPickBtn(p, intl, fav) { // p = { abbr, en, ko }
+    var need = fav && !p.en; // 풀네임 미입력 즐겨찾기 → ✎ 로 보완
+    var d = ' data-ab="' + esc(p.abbr || "") + '" data-en="' + esc(p.en || "") + '" data-ko="' + esc(p.ko || "") + '"';
+    var sub = intl ? p.ko : "";
+    return '<span class="au-pickwrap"><button type="button" class="au-pick' + (need ? " au-need" : "") + '"' + d +
+      (need ? ' title="풀네임 미입력 — ✎로 입력하면 뉴스에 풀네임으로 표시됩니다"' : "") + '>' + esc(authorLabel(p, intl)) +
+      (sub ? ' <span class="au-ko">' + esc(sub) + '</span>' : '') + '</button>' +
+      (need ? '<button type="button" class="au-favedit"' + d + ' title="풀네임 입력">✎</button>' : "") +
+      (fav ? '<button type="button" class="au-favdel"' + d + ' title="즐겨찾기 삭제">✕</button>' : '') + '</span>';
   }
-  // 즐겨찾기 추가/삭제 → data/author_favorites.csv 커밋(공유)
-  function commitFav(action, name, label) {
-    return commitCsv("data/author_favorites.csv", (action === "add" ? "Add" : "Remove") + " author favorite: " + name, function (rows) {
+  // 즐겨찾기(외부 공저자) 저장·삭제 → data/author_favorites.csv 커밋(공유)
+  // 열: name(약어) · name_english · name_korean. 같은 영문 풀네임이면 갱신, 풀네임이 비어 있던 같은 약어(p.from) 항목은 채워 넣음
+  var FAV_COLS = ["name", "name_english", "name_korean"];
+  function commitFav(action, p) {
+    return commitCsv("data/author_favorites.csv", (action === "add" ? "Save" : "Remove") + " co-author: " + (p.en || p.abbr), function (rows) {
       var ix = colIndex(rows);
-      if (ix.name == null) { rows[0] = ["name", "label"]; ix = { name: 0, label: 1 }; }
+      FAV_COLS.forEach(function (c) { // 예전 형식(name,label) 파일이면 열 추가
+        if (ix[c] != null) return;
+        ix[c] = rows[0].length;
+        rows.forEach(function (r, i) { while (r.length < ix[c]) r.push(""); r[ix[c]] = i ? "" : c; });
+      });
+      function cell(r, c) { return (r[ix[c]] || "").trim(); }
       var found = -1;
-      for (var i = 1; i < rows.length; i++) { if ((rows[i][ix.name] || "").trim() === name) { found = i; break; } }
-      if (action === "add") { if (found < 0) { var cells = new Array(rows[0].length).fill(""); cells[ix.name] = name; if (ix.label != null) cells[ix.label] = label || ""; rows.splice(1, 0, cells); } }
-      else if (found >= 0) rows.splice(found, 1);
-    }, ["name", "label"]);
+      for (var i = 1; i < rows.length; i++) {
+        var en = cell(rows[i], "name_english"), legacy = !en && cell(rows[i], "name") === (p.from || p.abbr);
+        if (p.en ? (en === p.en || legacy) : legacy) { found = i; break; }
+      }
+      if (action === "add") {
+        var cells = found >= 0 ? rows[found] : new Array(rows[0].length).fill("");
+        cells[ix.name] = p.abbr; cells[ix.name_english] = p.en || ""; cells[ix.name_korean] = p.ko || "";
+        if (found < 0) rows.splice(1, 0, cells);
+      } else if (found >= 0) rows.splice(found, 1);
+    }, FAV_COLS);
+  }
+  // 저자 디렉터리: 교수·현재 구성원 / 졸업생 / 외부 공저자(즐겨찾기) — 각 { abbr, en, ko }
+  var PI = { abbr: "H. Park", en: "Hyuncheol Park", ko: "박현철" };
+  function fetchRows(path) {
+    return fetch(path + "?z=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; })
+      .then(function (t) { return t && P ? P._rowsToObjects(P._parseCSV(t)) : []; }).catch(function () { return []; });
+  }
+  function loadAuthorDir() {
+    function person(r) { var en = (r.name_english || "").trim(); return { abbr: abbrevName(en), en: en, ko: (r.name_korean || "").trim() }; }
+    function hasEn(p) { return p.en; }
+    return Promise.all([fetchRows("data/people_members.csv"), fetchRows("data/people_alumni.csv"), fetchRows("data/author_favorites.csv")]).then(function (res) {
+      return {
+        members: [PI].concat(res[0].map(person).filter(hasEn)),
+        alumni: res[1].map(person).filter(hasEn),
+        ext: res[2].map(function (r) {
+          var en = (r.name_english || "").trim();   // 풀네임이 있으면 약어는 항상 풀네임에서 생성
+          return { abbr: en ? abbrevName(en) : (r.name || "").trim(), en: en, ko: (r.name_korean || "").trim() };
+        }).filter(function (p) { return p.abbr; })
+      };
+    });
+  }
+  // 표기(약어·한글·영문)로 사람 찾기 — 구성원 → 외부 공저자 → 졸업생 순, 그 단계에서 한 명으로 특정될 때만(겹치면 null)
+  function resolveAuthor(dir, label) {
+    var key = (label || "").replace(/\s+/g, " ").trim(), ab = key.replace(/\.\s*/g, ". ").trim(); // "J.Kwon" → "J. Kwon"
+    var groups = [dir.members, dir.ext, dir.alumni];
+    for (var g = 0; g < groups.length; g++) {
+      var hit = {};
+      groups[g].forEach(function (p) { if (p.abbr === ab || (p.ko && p.ko === key) || (p.en && p.en === key)) hit[p.en || p.abbr] = p; });
+      var ks = Object.keys(hit);
+      if (ks.length) return ks.length === 1 ? hit[ks[0]] : null;
+    }
+    return null;
   }
   // 저널/학회 즐겨찾기 → data/venues.csv 커밋(공유)
   function commitVenue(action, type, name) {
@@ -991,58 +1061,93 @@
     var chipsEl = box.querySelector(".au-chips");
     var hidden = box.parentNode.querySelector('input[type=hidden][data-name]');
     var preview = box.querySelector(".au-preview");
-    var input = box.querySelector(".au-input");
+    var inEn = box.querySelector(".au-en"), inKo = box.querySelector(".au-kn"), inAb = box.querySelector(".au-ab");
     var roster = box.querySelector(".au-roster");
     var favsEl = box.querySelector(".au-favs");
-    var favs = [];
+    var dlist = box.querySelector("datalist");
+    var intl = isIntlPub(), dir = null, favs = [];
+    var editFrom = ""; // ✎(즐겨찾기 풀네임 보완) 중인 항목의 기존 약어
     function names() { return Array.prototype.map.call(chipsEl.querySelectorAll(".au-chip"), function (c) { return c.getAttribute("data-nm"); }); }
-    function sync() { var s = oxfordJoin(names()); if (hidden) hidden.value = s; preview.textContent = s ? ("표시: " + s) : "저자를 추가하세요"; }
-    function add(nm) { nm = (nm || "").trim(); if (!nm) return; chipsEl.insertAdjacentHTML("beforeend", auChip(nm)); sync(); }
+    function sync() { var s = joinAuthors(names(), intl); if (hidden) hidden.value = s; preview.textContent = s ? ("표시: " + s) : "저자를 추가하세요"; }
+    function add(p) { var nm = authorLabel(p, intl).trim(); if (!nm) return; chipsEl.insertAdjacentHTML("beforeend", auChip(nm, p.en, p.ko)); sync(); }
+    function pOf(el) { return { abbr: el.getAttribute("data-ab") || "", en: el.getAttribute("data-en") || "", ko: el.getAttribute("data-ko") || "" }; }
+    function samePerson(a, b) { var old = b.from || b.abbr; return b.en ? (a.en === b.en || (!a.en && a.abbr === old)) : (!a.en && a.abbr === old); }
     function renderFavs() {
-      favsEl.innerHTML = favs.length ? favs.map(function (f) { return auPickBtn(f.name, f.label, true); }).join("")
-        : '<span class="muted" style="font-size:.8rem">이름 입력 후 “⭐ 저장”으로 자주 쓰는 공저자를 등록하세요</span>';
+      favsEl.innerHTML = favs.length ? favs.map(function (f) { return auPickBtn(f, intl, true); }).join("")
+        : '<span class="muted" style="font-size:.8rem">외부 저자 칸에 입력 후 “⭐ 저장”으로 자주 쓰는 공저자를 등록하세요</span>';
     }
-    // 구성원(교수 + 현재 멤버)
-    var people = [{ en: "H. Park", ko: "박현철" }];
-    fetch("data/people_members.csv?z=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
-      if (t && P) P._rowsToObjects(P._parseCSV(t)).forEach(function (m) {
-        var en = (m.name_english || "").trim(); if (en) people.push({ en: abbrevName(en), ko: (m.name_korean || "").trim() });
+    loadAuthorDir().then(function (d) {
+      dir = d;
+      var seen = {};
+      roster.innerHTML = d.members.filter(function (p) { if (seen[p.en]) return false; seen[p.en] = 1; return true; })
+        .map(function (p) { return auPickBtn(p, intl, false); }).join("");
+      favs = d.ext.slice(); renderFavs();
+      // 영문 풀네임 자동완성: 졸업생 + 저장된 외부 공저자 (현재 구성원은 위 버튼)
+      var opts = {};
+      d.ext.concat(d.alumni).forEach(function (p) { if (p.en && !opts[p.en]) opts[p.en] = p; });
+      dlist.innerHTML = Object.keys(opts).map(function (en) { return '<option value="' + esc(en) + '">' + esc(opts[en].ko) + '</option>'; }).join("");
+      // 수정 화면의 기존 칩: 한 명으로 특정되면 풀네임 보강
+      Array.prototype.forEach.call(chipsEl.querySelectorAll(".au-chip:not([data-en])"), function (c) {
+        var p = resolveAuthor(d, c.getAttribute("data-nm"));
+        if (p && p.en) c.setAttribute("data-en", p.en);
+        if (p && p.ko) c.setAttribute("data-ko", p.ko);
       });
-      var seen = {}, uniq = [];
-      people.forEach(function (p) { if (!seen[p.en]) { seen[p.en] = 1; uniq.push(p); } });
-      roster.innerHTML = uniq.map(function (p) { return auPickBtn(p.en, p.ko, false); }).join("");
-    }).catch(function () { roster.innerHTML = ""; });
-    // 즐겨찾기
-    fetch("data/author_favorites.csv?z=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
-      if (t && P) favs = P._rowsToObjects(P._parseCSV(t)).map(function (r) { return { name: (r.name || "").trim(), label: (r.label || "").trim() }; }).filter(function (f) { return f.name; });
-      renderFavs();
-    }).catch(renderFavs);
+    }).catch(function () { roster.innerHTML = ""; renderFavs(); });
 
-    function saveFav(nm) {
-      nm = (nm || "").trim(); if (!nm) return;
-      if (favs.some(function (f) { return f.name === nm; })) { add(nm); return; }
-      if (!token()) { setFormMsg("즐겨찾기 저장은 GitHub 토큰이 필요합니다.", "err"); return; }
-      favs.push({ name: nm, label: "" }); renderFavs(); add(nm); input.value = "";
-      commitFav("add", nm, "").catch(function (e) { setFormMsg("즐겨찾기 저장 실패: " + e.message, "err"); });
+    // 외부 저자 입력: 영문 풀네임 → 약어 자동(항상 K. Han 형식), 자동완성(졸업생·공저자)을 고르면 한글 이름도 채움
+    // 영문 칸에 약어(J. Kim)를 넣으면 풀네임 없이 약어로만 추가
+    function extVal() {
+      var raw = inEn.value.replace(/\s+/g, " ").trim();
+      return { en: looksAbbrev(raw) ? "" : raw, ko: inKo.value.trim(), abbr: raw ? abbrevName(raw) : "", from: editFrom };
     }
-    function removeFav(nm) {
+    function clearExt() { inEn.value = inKo.value = inAb.value = ""; editFrom = ""; }
+    inEn.addEventListener("input", function () {
+      var en = inEn.value.replace(/\s+/g, " ").trim();
+      var hit = dir ? dir.ext.concat(dir.alumni).filter(function (p) { return p.en === en; })[0] : null;
+      if (hit && hit.ko && !inKo.value.trim()) inKo.value = hit.ko;
+      inAb.value = en ? abbrevName(en) : "";
+    });
+    function addExt() {
+      var p = extVal();
+      if (!p.en && !p.ko && !p.abbr) { inEn.focus(); return; }
+      add(p); clearExt(); inEn.focus();
+    }
+    function saveFav() {
+      var p = extVal();
+      if (!p.abbr) { setFormMsg("즐겨찾기 저장엔 영문 풀네임(또는 약어)이 필요합니다.", "err"); inEn.focus(); return; }
+      if (!token()) { setFormMsg("즐겨찾기 저장은 GitHub 토큰이 필요합니다.", "err"); return; }
+      favs = favs.filter(function (f) { return !samePerson(f, p); }); favs.unshift(p); renderFavs();
+      if (dir) { dir.ext = dir.ext.filter(function (f) { return !samePerson(f, p); }); dir.ext.unshift(p); }
+      if (!editFrom) add(p);
+      clearExt();
+      commitFav("add", p).catch(function (e) { setFormMsg("즐겨찾기 저장 실패: " + e.message, "err"); });
+    }
+    function removeFav(p) {
       if (!token()) { setFormMsg("즐겨찾기 삭제는 GitHub 토큰이 필요합니다.", "err"); return; }
-      favs = favs.filter(function (f) { return f.name !== nm; }); renderFavs();
-      commitFav("remove", nm, "").catch(function (e) { setFormMsg("즐겨찾기 삭제 실패: " + e.message, "err"); });
+      favs = favs.filter(function (f) { return !(f.abbr === p.abbr && f.en === p.en); }); renderFavs();
+      commitFav("remove", p).catch(function (e) { setFormMsg("즐겨찾기 삭제 실패: " + e.message, "err"); });
     }
 
     box.addEventListener("click", function (e) {
       if (!e.target.closest) return;
-      var favdel = e.target.closest(".au-favdel"); if (favdel) { removeFav(favdel.getAttribute("data-nm")); return; }
-      var pick = e.target.closest(".au-pick"); if (pick) { add(pick.getAttribute("data-nm")); return; }
-      if (e.target.closest(".au-favbtn")) { saveFav(input.value); return; }
-      if (e.target.closest(".au-addbtn")) { add(input.value); input.value = ""; input.focus(); return; }
+      var t;
+      if ((t = e.target.closest(".au-favdel"))) { removeFav(pOf(t)); return; }
+      if ((t = e.target.closest(".au-favedit"))) {
+        var q = pOf(t); inEn.value = q.en; inKo.value = q.ko; inAb.value = q.abbr; editFrom = q.abbr; inEn.focus();
+        setFormMsg("“" + q.abbr + "”의 영문 풀네임(과 한글 이름)을 입력하고 ⭐ 저장을 누르면 즐겨찾기가 갱신됩니다.", "");
+        return;
+      }
+      if ((t = e.target.closest(".au-pick"))) { add(pOf(t)); return; }
+      if (e.target.closest(".au-favbtn")) { saveFav(); return; }
+      if (e.target.closest(".au-addbtn")) { addExt(); return; }
       var chip = e.target.closest(".au-chip"); if (!chip) return;
       if (e.target.closest(".au-del")) { chip.parentNode.removeChild(chip); sync(); }
       else if (e.target.closest(".au-l") && chip.previousElementSibling) { chipsEl.insertBefore(chip, chip.previousElementSibling); sync(); }
       else if (e.target.closest(".au-r") && chip.nextElementSibling) { chipsEl.insertBefore(chip.nextElementSibling, chip); sync(); }
     });
-    input.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); add(input.value); input.value = ""; } });
+    [inEn, inKo, inAb].forEach(function (el) {
+      el.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); if (editFrom) saveFav(); else addExt(); } });
+    });
     sync();
   }
 
@@ -1291,39 +1396,40 @@
     }).catch(function () {});
   }
 
-  // 새 논문 저장 시 → data/news.csv 에 "게재 accept" 뉴스 자동 작성 (기존 양식 동일)
+  // 새 논문 저장 시 → data/news.csv 에 "게재" 뉴스 자동 작성
+  // 한국어 칸 = 한국어 문장. 영어 논문은 "제목 by 저자(영문 풀네임)"를 영어 칸과 똑같이 두고 나머지만 한국어,
+  //             한글 논문은 "제목" 논문(저자 한글 이름) 형식 / 영어 칸 = 영어 제목·본문(저자 영문 풀네임)
+  // 저자는 위젯에서 고른 사람(칩)의 풀네임을 우선 사용 → 약어가 같은 사람(H. Kim 등)도 정확히 구분
   function maybeCreateNews(col, row) {
     if (editingId || !col.isPub) return Promise.resolve();  // 새 논문만
     var cb = document.querySelector('#admForm input[type=checkbox][data-name="__makenews"]');
     if (!(cb && cb.checked)) return Promise.resolve();
-    var isIntl = /international/i.test(curPubTarget || "");
     var venue = (row.journal || row.booktitle || "").trim();
     var title = (row.title || "").trim();
     if (!title || !venue) return Promise.resolve();
-    var authorsRaw = (row.author || "").trim();
-    // 국제: 약어(S. Lee)를 구성원 풀네임(Seunghun Lee)으로 변환 / 국내: 원본(한글) 유지
-    var prep = isIntl
-      ? fetch("data/people_members.csv?z=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
-          var map = { "H. Park": "Hyuncheol Park" };
-          if (t && P) P._rowsToObjects(P._parseCSV(t)).forEach(function (m) { var en = (m.name_english || "").trim(); if (en) map[abbrevName(en)] = en; });
-          return oxfordJoin(parseAuthors(authorsRaw).map(function (a) { return map[a] || a; }));
-        })
-      : Promise.resolve(authorsRaw);
-    return prep.then(function (authors) {
+    var picked = Array.prototype.map.call(document.querySelectorAll("#admForm .au-chip"), function (c) {
+      return { label: c.getAttribute("data-nm") || "", en: c.getAttribute("data-en") || "", ko: c.getAttribute("data-ko") || "" };
+    });
+    if (!picked.length) picked = parseAuthors(row.author).map(function (a) { return { label: a, en: "", ko: "" }; });
+    return loadAuthorDir().then(function (dir) {
+      // 직접 입력한 약어/이름은 한 명으로 특정될 때만 풀네임으로 (겹치면 입력한 그대로)
+      picked.forEach(function (a) { if (a.en || a.ko) return; var p = resolveAuthor(dir, a.label); if (p) { a.en = p.en; a.ko = p.ko; } });
+      var authorsEn = oxfordJoin(picked.map(function (a) { return a.en || a.label; }));
+      var authorsKo = picked.map(function (a) { return a.ko || a.en || a.label; }).filter(Boolean).join(", ");
       var stamp = (row.date && /^\d{4}-\d{2}-\d{2}/.test(row.date)) ? row.date : nowStamp();
       var nd = /\d{2}:\d{2}/.test(stamp) ? stamp : (stamp.slice(0, 10) + " " + nowStamp().slice(11));
       // 제목엔 짧은 이름 사용: 학회 "…(ICC 2026)" → "ICC 2026", 저널은 전체명
-      var vm = venue.match(/\(([^)]+)\)\s*$/);
-      var nTitle = (vm ? vm[1].trim() : venue) + " paper is accepted!";
-      var nContent, nContentEn;
-      if (isIntl) {
-        nContent = 'One paper "' + title + ' by ' + authors + '" has been accepted to ' + venue + '! Congratulations!';
-        nContentEn = nContent;
-      } else {
-        nContent = '"' + title + '(' + authors + ')"이 ' + venue + '에 accept 되었습니다. 축하드립니다!';
-        nContentEn = 'One paper "' + title + ' (' + authors + ')" has been accepted to ' + venue + '. Congratulations!';
-      }
-      var nr = { date: nd, year: nd.slice(0, 4), forum: "Board", title: nTitle, title_en: nTitle, content: nContent, content_en: nContentEn, links: "", status: "publish" };
+      var vm = venue.match(/\(([^)]+)\)\s*$/), short = vm ? vm[1].trim() : venue;
+      var byEn = '"' + title + (authorsEn ? " by " + authorsEn : "") + '"';
+      var koPaper = /[가-힣]/.test(title)
+        ? '"' + title + '" 논문' + (authorsKo ? "(" + authorsKo + ")" : "") + "이"
+        : byEn + " 논문이";
+      var nr = { date: nd, year: nd.slice(0, 4), forum: "Board",
+        title: short + " 논문이 게재되었습니다!",
+        title_en: short + " paper is accepted!",
+        content: koPaper + " " + venue + "에 게재되었습니다. 축하드립니다!",
+        content_en: "One paper " + byEn + " has been accepted to " + venue + "! Congratulations!",
+        links: "", status: "publish" };
       return commitCsv("data/news.csv", "Auto news for accepted paper: " + title.slice(0, 60), function (rows) {
         var ix = colIndex(rows);
         var cells = new Array((rows[0] || []).length).fill("");
