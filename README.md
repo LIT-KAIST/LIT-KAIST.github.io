@@ -12,7 +12,7 @@ KAIST 정보전송연구실(LIT) 웹사이트입니다. **빌드 도구 없이 �
 
 | 페이지 | 내용 | 데이터 소스 |
 |---|---|---|
-| `index.html` | 홈 (히어로 + 최신 소식 패널, 연구분야, 갤러리) — 패널은 `news.csv` 최신 4건 자동 표시(**부고 유형은 제외**, 뉴스 페이지엔 그대로) | `news.csv`, `album.csv`, `assets/img/research/` |
+| `index.html` | 홈 (히어로 + 최신 소식 카드, 연구분야, 갤러리) — 첫 화면 왼쪽 아래 카드에 `news.csv` 최신 3건을 한 줄씩 자동 표시(**부고 유형은 제외**, 뉴스 페이지엔 그대로) | `news.csv`, `album.csv`, `assets/img/research/` |
 | `about.html` | 소개 (소개·비전, 현황, 연구 분야, 대표 성과) | HTML 직접 작성 + `assets/img/research/` |
 | `people.html` | 구성원 (Faculty / Members / Alumni 탭) | `faculty(_ko).md`, `people_members.csv`, `people_alumni.csv` |
 | `journal/conferences/patents.html` | 출판물 (International / Domestic 탭) | `*_international.csv`, `*_domestic.csv` |

@@ -560,8 +560,8 @@
     function paint() {
       if (!recent) return;
       mount.innerHTML =
-        '<span class="nd-label"><span class="nd-live" aria-hidden="true"></span>' + T("최신 소식", "Latest News") + "</span>" +
-        '<h2 class="nd-h">' + T("연구실 소식", "Lab News") + "</h2>" +
+        '<div class="nd-head"><span class="nd-label"><span class="nd-live" aria-hidden="true"></span>' + T("최신 소식", "Latest News") + "</span>" +
+          '<a class="nd-all" href="news.html">' + T("모든 소식 보기", "See all news") + " →</a></div>" +
         (recent.length ? '<ul class="nd-list">' + recent.map(function (r) {
           var t = newsType(r);
           return '<li><a href="news.html#' + slug(r.date) + '">' +
@@ -569,15 +569,14 @@
             '<span class="nd-date">' + esc(dateLabel(r)) + "</span>" +
             (isNew(r) ? '<span class="nd-new">NEW</span>' : "") + "</span>" +
             '<span class="nd-t">' + esc(pick(r, "title")) + "</span></a></li>";
-        }).join("") + "</ul>" : "") +
-        '<a class="nd-btn" href="news.html">' + T("모든 소식 보기", "See all news") + " →</a>";
+        }).join("") + "</ul>" : "");
       if (cfg.onPaint) cfg.onPaint();
     }
     document.addEventListener("lit:lang", paint);
     loadNews(cfg.csv).then(function (rows) {
       recent = rows.filter(function (r) { return exclude.indexOf(newsType(r).key) < 0; }).slice(0, count);
       paint();
-    }).catch(function () { recent = []; paint(); });   // 실패해도 '모든 소식 보기' 버튼은 표시
+    }).catch(function () { recent = []; paint(); });   // 실패해도 '모든 소식 보기' 링크는 표시
   }
 
   /* ====================== 뉴스 확대 모달 ====================== */

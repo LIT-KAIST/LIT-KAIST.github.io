@@ -75,37 +75,39 @@
     .v3-scroll { position: absolute; left: 50%; bottom: calc(var(--u) * 1.5); transform: translateX(-50%); z-index: 2; font-family: var(--font-head); font-size: max(10px, calc(var(--u) * .78)); letter-spacing: .18em; text-transform: uppercase; opacity: .7; animation: v3bob 1.8s ease-in-out infinite; }
     @keyframes v3bob { 0%,100%{transform:translate(-50%,0)} 50%{transform:translate(-50%,7px)} }
 
-    /* 히어로 최신 소식 패널 (news.js renderLatest): 가로 화면 = 오른쪽 반투명 패널, 세로 화면 = 아래 카드(2건) */
-    .nd { position: absolute; z-index: 3; right: calc(var(--u) * 5); top: 50%; transform: translateY(-50%); width: calc(var(--u) * 27);
-      font-size: max(13px, calc(var(--u) * 1.0)); padding: 1.5em 1.7em 1.4em; border-radius: 1.3em;
+    /* 히어로 최신 소식 카드 (news.js renderLatest) — 2안: 문구 시작선에 맞춘 왼쪽 아래 카드(3건, 한 줄씩)
+       문구는 카드 위 남은 공간의 가운데, 지구는 오른쪽으로 비켜 섬. 세로 화면은 아래 전체 폭 카드.
+       ▶ 조정 포인트: --nd-w 카드 폭(u) · --nd-bottom 아래 여백(u) · --gx 지구 가로 위치(화면 폭 비율) · 개수 = 아래 스크립트 count */
+    .v3hero { --nd-w: 40; --nd-bottom: 4.4; --gx: .6; }
+    .nd { position: relative; z-index: 3; align-self: flex-start; width: calc(var(--u) * var(--nd-w));
+      margin: 0 0 calc(var(--u) * var(--nd-bottom)) calc(var(--u) * 8);
+      font-size: max(13px, calc(var(--u) * 1.0)); padding: 1.15em 1.35em 1em; border-radius: 1.3em;
       background: rgba(0,0,0,.24); -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2);
       border: 1px solid rgba(255,255,255,.16); box-shadow: 0 1.5em 3em rgba(0,0,0,.25);
       opacity: 0; transition: opacity 1s ease .9s; }
     .nd.in { opacity: 1; }
     .nd:empty { display: none; }
+    .nd-head { display: flex; align-items: center; justify-content: space-between; gap: 1em; margin-bottom: .35em; }
     .nd-label { font-family: var(--font-head); font-weight: 700; font-size: .78em; letter-spacing: .2em; text-transform: uppercase; display: inline-flex; align-items: center; gap: .7em; }
+    .nd-all { color: inherit; font-size: .84em; opacity: .85; white-space: nowrap; text-decoration: none; }
+    .nd-all:hover { opacity: 1; text-decoration: underline; }
     .nd-live { width: .62em; height: .62em; border-radius: 50%; background: #ffcf45; animation: ndlive 2s ease-out infinite; }
     @keyframes ndlive { 0% { box-shadow: 0 0 0 0 rgba(255,207,69,.55); } 70%,100% { box-shadow: 0 0 0 .7em rgba(255,207,69,0); } }
-    .nd-h { font-family: var(--font-head); font-weight: 700; font-size: 1.6em; line-height: 1.15; margin: .35em 0 .55em; color: inherit; }
     .nd-list { list-style: none; margin: 0; padding: 0; }
-    .nd-list a { display: block; padding: .85em 0; border-top: 1px solid rgba(255,255,255,.12); color: inherit; text-decoration: none; }
+    .nd-list a { display: flex; align-items: center; gap: .75em; padding: .62em 0; border-top: 1px solid rgba(255,255,255,.12); color: inherit; text-decoration: none; }
     .nd-list a:hover .nd-t { text-decoration: underline; text-underline-offset: .2em; }
-    .nd-meta { display: flex; align-items: center; gap: .6em; margin-bottom: .45em; }
-    .nd-chip { --tc: #e2e8f0; display: inline-flex; align-items: center; gap: .45em; font-size: .78em; font-weight: 700; letter-spacing: .02em; line-height: 1.2;
-      padding: .28em .8em; border-radius: 999px; white-space: nowrap; color: var(--tc);
-      background: color-mix(in srgb, var(--tc) 14%, transparent); border: 1px solid color-mix(in srgb, var(--tc) 38%, transparent); }
-    .nd-chip::before { content: ""; width: .5em; height: .5em; border-radius: 50%; background: currentColor; }
+    .nd-meta { display: flex; align-items: center; gap: .6em; flex: none; }
+    /* 유형 = 색 점(논문·수상·인사…) — 한 줄에 제목 공간 확보. 유형 글자는 화면에선 숨기고 스크린리더용으로 남김 */
+    .nd-chip { --tc: #e2e8f0; flex: none; width: .55em; height: .55em; border-radius: 50%; background: var(--tc);
+      overflow: hidden; color: transparent; text-indent: 1em; white-space: nowrap; }
     .nd-chip[data-type="paper"] { --tc: #93c5fd; } .nd-chip[data-type="award"] { --tc: #fcd34d; }
     .nd-chip[data-type="event"] { --tc: #6ee7b7; } .nd-chip[data-type="people"] { --tc: #d8b4fe; }
     .nd-date { font-size: .86em; opacity: .72; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .nd-new { font-family: var(--font-head); font-size: .68em; font-weight: 700; letter-spacing: .08em; line-height: 1; padding: .32em .55em; border-radius: .35em;
       background: var(--header-active-bg); color: var(--header-active-fg); }
-    .nd-t { font-weight: 600; line-height: 1.4; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
-    .nd-btn { display: flex; justify-content: center; align-items: center; gap: .5em; margin-top: .5em; padding: .8em 1em; border-radius: .7em; text-decoration: none;
-      background: var(--header-active-bg); color: var(--header-active-fg); font-family: var(--font-head); font-weight: 700; transition: transform .2s ease; }
-    .nd-btn:hover { text-decoration: none; transform: translateY(-1px); }
+    .nd-t { font-weight: 600; min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .nd a:focus-visible { outline: 2px solid #ffcf45; outline-offset: 2px; }
-    /* 세로 화면(휴대폰·태블릿 세로): 카피는 위, 패널은 아래 흐름으로 */
+    /* 세로 화면(휴대폰·태블릿 세로): 카피는 위, 카드는 아래 전체 폭으로 */
     @media (max-aspect-ratio: 1/1) {
       .v3hero .wrap { padding: 0 calc(var(--u) * 2.6); }
       .v3-eyebrow { font-size: max(11px, calc(var(--u) * 1.15)); }
@@ -114,10 +116,8 @@
       .v3-cta { font-size: max(13px, calc(var(--u) * 1.6)); }
       .v3hero::before { background: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.45)); }
       .v3-scroll { display: none; }
-      .nd { position: relative; z-index: 3; right: auto; top: auto; transform: none; width: auto; margin: 0 calc(var(--u) * 2.6) calc(var(--u) * 2.6);
+      .nd { align-self: stretch; width: auto; margin: 0 calc(var(--u) * 2.6) calc(var(--u) * 2.6);
         font-size: max(13px, calc(var(--u) * 1.45)); padding: 1.1em 1.2em 1em; }
-      .nd-h { display: none; }
-      .nd-list li:nth-child(n+3) { display: none; }
     }
 
     /* 연구 분야 풀스크린 섹션 */
@@ -222,7 +222,7 @@
         <a class="v3-btn ghost" href="contact.html" data-ko="함께하기" data-en="Join us">함께하기</a>
       </div>
     </div>
-    <!-- 최신 소식 패널: news.csv 최신 4건(부고 제외) → 클릭 시 뉴스 페이지에서 해당 글이 바로 열림 -->
+    <!-- 최신 소식 카드: news.csv 최신 3건(부고 제외, 한 줄씩) → 클릭 시 뉴스 페이지에서 해당 글이 바로 열림 -->
     <aside class="nd" id="heroNews" aria-label="Latest news"></aside>
     <div class="v3-scroll">Scroll ↓</div>
   </section>
@@ -289,11 +289,11 @@
   <script src="assets/js/news.js?v=20260624x"></script>
   <script src="assets/js/i18n.js?v=20260624x"></script>
   <script>
-  /* 히어로 최신 소식 패널 — 부고는 홈 소식으로 노출하지 않음(뉴스 페이지에는 그대로) */
+  /* 히어로 최신 소식 카드 — 부고는 홈 소식으로 노출하지 않음(뉴스 페이지에는 그대로) */
   (function(){
     var el=document.getElementById('heroNews');
     if(!el||!window.News||!News.renderLatest) return;
-    News.renderLatest({ mount:'heroNews', csv:'data/news.csv', count:4, exclude:['obituary'],
+    News.renderLatest({ mount:'heroNews', csv:'data/news.csv', count:3, exclude:['obituary'],
       onPaint:function(){ el.classList.add('in'); if(window.__fitGlobe) requestAnimationFrame(window.__fitGlobe); } });
   })();
   /* 풀페이지: 휠/키/링크로 한 칸씩 천천히(1.3s) 이동 — 인덱스 상태로 제어해 흔들림 없음 */
@@ -495,13 +495,14 @@
       if(dragging){var dx=e.clientX-pxv,dy=e.clientY-pyv;pxv=e.clientX;pyv=e.clientY; if(Math.abs(dx)+Math.abs(dy)>3)moved=true;
         group.rotation.y+=dx*0.005; group.rotation.x=Math.max(-0.9,Math.min(0.9,group.rotation.x+dy*0.003)); } });
     canvas.addEventListener('pointerleave',function(){inside=false;});
-    // 지구 영역: 세로 화면에선 아래 뉴스 패널을 뺀 위쪽 영역의 가운데에, 그 영역 크기에 맞춰 배치(가로 화면은 기존과 동일)
-    var heroEl=canvas.parentNode, newsEl=document.getElementById('heroNews');
-    function zoneH(h){ if(!newsEl||getComputedStyle(newsEl).position==='absolute') return h;
+    // 지구 위치: 가로 화면은 --gx(화면 폭 비율)로 오른쪽으로 비켜 서고, 세로 화면은 아래 소식 카드를 뺀 위쪽 영역의 가운데에 그 영역 크기에 맞춰
+    var heroEl=canvas.parentNode, newsEl=document.getElementById('heroNews'), portraitMQ=window.matchMedia('(max-aspect-ratio: 1/1)');
+    function gx(){ if(portraitMQ.matches) return .5; var v=parseFloat(getComputedStyle(heroEl).getPropertyValue('--gx')); return isNaN(v)?.5:v; }
+    function zoneH(h){ if(!portraitMQ.matches||!newsEl) return h;
       var r=newsEl.getBoundingClientRect(); return r.height ? Math.min(h, r.top-heroEl.getBoundingClientRect().top) : h; }
     function resize(){var w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);
       var zh=zoneH(h), D=Math.min(0.83*zh,1.25*w);
-      camera.aspect=w/h;camera.setViewOffset(w,h,0,(h-zh)/2,w,h);camera.position.z=5.4*(0.83*h)/Math.max(D,1);
+      camera.aspect=w/h;camera.setViewOffset(w,h,w*(.5-gx()),(h-zh)/2,w,h);camera.position.z=5.4*(0.83*h)/Math.max(D,1);
       camera.updateProjectionMatrix();if(composer)composer.setSize(canvas.width,canvas.height);
       // 화면 높이에 반비례 + 저밀도(외장모니터 DPR1)에서 더 작게(맥북 레티나는 그대로)
       var pr=Math.min(window.devicePixelRatio||1,2);
