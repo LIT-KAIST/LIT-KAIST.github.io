@@ -75,12 +75,12 @@
     .v3-scroll { position: absolute; left: 50%; bottom: calc(var(--u) * 1.5); transform: translateX(-50%); z-index: 2; font-family: var(--font-head); font-size: max(10px, calc(var(--u) * .78)); letter-spacing: .18em; text-transform: uppercase; opacity: .7; animation: v3bob 1.8s ease-in-out infinite; }
     @keyframes v3bob { 0%,100%{transform:translate(-50%,0)} 50%{transform:translate(-50%,7px)} }
 
-    /* 히어로 최신 소식 카드 (news.js renderLatest) — 2안: 문구 시작선에 맞춘 왼쪽 아래 카드(3건, 한 줄씩)
-       문구는 카드 위 남은 공간의 가운데, 지구는 오른쪽으로 비켜 섬. 세로 화면은 아래 전체 폭 카드.
-       ▶ 조정 포인트: --nd-w 카드 폭(u) · --nd-bottom 아래 여백(u) · --gx 지구 가로 위치(화면 폭 비율) · 개수 = 아래 스크립트 count */
-    .v3hero { --nd-w: 40; --nd-bottom: 4.4; --gx: .6; }
-    .nd { position: relative; z-index: 3; align-self: flex-start; width: calc(var(--u) * var(--nd-w));
-      margin: 0 0 calc(var(--u) * var(--nd-bottom)) calc(var(--u) * 8);
+    /* 히어로 최신 소식 카드 (news.js renderLatest) — 문구(버튼) 바로 아래에 붙은 카드, 3건 한 줄씩
+       문구와 카드가 한 덩어리로 세로 가운데 → 큰 제목과의 거리가 화면 크기와 상관없이 일정. 지구는 가로 화면에서 오른쪽으로 비켜 섬.
+       ▶ 조정 포인트: --nd-w 카드 폭(u) · --nd-gap 버튼과 카드 사이(u) · --gx 지구 가로 위치(화면 폭 비율) · 개수 = 아래 스크립트 count */
+    .v3hero { --nd-w: 40; --nd-gap: 3.2; --gx: .6; }
+    .nd { position: relative; z-index: 3; width: calc(var(--u) * var(--nd-w)); max-width: 100%; margin-top: calc(var(--u) * var(--nd-gap));
+      pointer-events: auto;
       font-size: max(13px, calc(var(--u) * 1.0)); padding: 1.15em 1.35em 1em; border-radius: 1.3em;
       background: rgba(0,0,0,.24); -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2);
       border: 1px solid rgba(255,255,255,.16); box-shadow: 0 1.5em 3em rgba(0,0,0,.25);
@@ -107,7 +107,7 @@
       background: var(--header-active-bg); color: var(--header-active-fg); }
     .nd-t { font-weight: 600; min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .nd a:focus-visible { outline: 2px solid #ffcf45; outline-offset: 2px; }
-    /* 세로 화면(휴대폰·태블릿 세로): 카피는 위, 카드는 아래 전체 폭으로 */
+    /* 세로 화면(휴대폰·태블릿 세로): 카드는 문구 아래 전체 폭으로 */
     @media (max-aspect-ratio: 1/1) {
       .v3hero .wrap { padding: 0 calc(var(--u) * 2.6); }
       .v3-eyebrow { font-size: max(11px, calc(var(--u) * 1.15)); }
@@ -116,7 +116,7 @@
       .v3-cta { font-size: max(13px, calc(var(--u) * 1.6)); }
       .v3hero::before { background: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.45)); }
       .v3-scroll { display: none; }
-      .nd { align-self: stretch; width: auto; margin: 0 calc(var(--u) * 2.6) calc(var(--u) * 2.6);
+      .nd { width: auto; margin-top: calc(var(--u) * 3);
         font-size: max(13px, calc(var(--u) * 1.45)); padding: 1.1em 1.2em 1em; }
     }
 
@@ -221,9 +221,9 @@
         <a class="v3-btn primary" href="#area1" data-ko="연구 보기" data-en="Explore research">연구 보기</a>
         <a class="v3-btn ghost" href="contact.html" data-ko="함께하기" data-en="Join us">함께하기</a>
       </div>
+      <!-- 최신 소식 카드: news.csv 최신 3건(부고 제외, 한 줄씩) → 클릭 시 뉴스 페이지에서 해당 글이 바로 열림 -->
+      <aside class="nd" id="heroNews" aria-label="Latest news"></aside>
     </div>
-    <!-- 최신 소식 카드: news.csv 최신 3건(부고 제외, 한 줄씩) → 클릭 시 뉴스 페이지에서 해당 글이 바로 열림 -->
-    <aside class="nd" id="heroNews" aria-label="Latest news"></aside>
     <div class="v3-scroll">Scroll ↓</div>
   </section>
 
@@ -495,14 +495,12 @@
       if(dragging){var dx=e.clientX-pxv,dy=e.clientY-pyv;pxv=e.clientX;pyv=e.clientY; if(Math.abs(dx)+Math.abs(dy)>3)moved=true;
         group.rotation.y+=dx*0.005; group.rotation.x=Math.max(-0.9,Math.min(0.9,group.rotation.x+dy*0.003)); } });
     canvas.addEventListener('pointerleave',function(){inside=false;});
-    // 지구 위치: 가로 화면은 --gx(화면 폭 비율)로 오른쪽으로 비켜 서고, 세로 화면은 아래 소식 카드를 뺀 위쪽 영역의 가운데에 그 영역 크기에 맞춰
-    var heroEl=canvas.parentNode, newsEl=document.getElementById('heroNews'), portraitMQ=window.matchMedia('(max-aspect-ratio: 1/1)');
+    // 지구 위치: 가로 화면은 --gx(화면 폭 비율)로 오른쪽으로 비켜 서고, 세로 화면은 가운데. 크기는 화면 높이(세로 화면은 폭)에 맞춤
+    var heroEl=canvas.parentNode, portraitMQ=window.matchMedia('(max-aspect-ratio: 1/1)');
     function gx(){ if(portraitMQ.matches) return .5; var v=parseFloat(getComputedStyle(heroEl).getPropertyValue('--gx')); return isNaN(v)?.5:v; }
-    function zoneH(h){ if(!portraitMQ.matches||!newsEl) return h;
-      var r=newsEl.getBoundingClientRect(); return r.height ? Math.min(h, r.top-heroEl.getBoundingClientRect().top) : h; }
     function resize(){var w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);
-      var zh=zoneH(h), D=Math.min(0.83*zh,1.25*w);
-      camera.aspect=w/h;camera.setViewOffset(w,h,w*(.5-gx()),(h-zh)/2,w,h);camera.position.z=5.4*(0.83*h)/Math.max(D,1);
+      var D=Math.min(0.83*h,1.25*w);
+      camera.aspect=w/h;camera.setViewOffset(w,h,w*(.5-gx()),0,w,h);camera.position.z=5.4*(0.83*h)/Math.max(D,1);
       camera.updateProjectionMatrix();if(composer)composer.setSize(canvas.width,canvas.height);
       // 화면 높이에 반비례 + 저밀도(외장모니터 DPR1)에서 더 작게(맥북 레티나는 그대로)
       var pr=Math.min(window.devicePixelRatio||1,2);
