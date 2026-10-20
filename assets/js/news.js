@@ -557,17 +557,20 @@
       var d = new Date((r.date || "").slice(0, 10) + "T00:00:00");
       return !isNaN(d) && (Date.now() - d) / 864e5 <= newDays;
     }
+    // 날짜: 연도/월·일을 나눠 두어 디자인에 따라 연도를 숨기거나 크기를 달리할 수 있게
+    function dateHtml(r) {
+      var d = dateLabel(r), m = /^(\d{4}\.)(.+)$/.exec(d);
+      return m ? '<span class="nd-y">' + esc(m[1]) + '</span><span class="nd-md">' + esc(m[2]) + "</span>" : esc(d);
+    }
     function paint() {
       if (!recent) return;
       mount.innerHTML =
-        '<div class="nd-head"><span class="nd-label"><span class="nd-live" aria-hidden="true"></span>' + T("최신 소식", "Latest News") + "</span>" +
-          '<a class="nd-all" href="news.html">' + T("모든 소식 보기", "See all news") + " →</a></div>" +
+        '<div class="nd-head"><span class="nd-label">' + T("최신 소식", "Latest News") + "</span>" +
+          '<a class="nd-all" href="news.html">' + T("모든 소식 보기", "See all news") + '<span class="nd-arr" aria-hidden="true">→</span></a></div>' +
         (recent.length ? '<ul class="nd-list">' + recent.map(function (r) {
-          var t = newsType(r);
           return '<li><a href="news.html#' + slug(r.date) + '">' +
-            '<span class="nd-meta"><span class="nd-chip" data-type="' + t.key + '">' + esc(lang() === "en" ? t.en : t.ko) + "</span>" +
-            '<span class="nd-date">' + esc(dateLabel(r)) + "</span>" +
-            (isNew(r) ? '<span class="nd-new">NEW</span>' : "") + "</span>" +
+            '<span class="nd-meta"><span class="nd-date">' + dateHtml(r) + "</span>" +
+            (isNew(r) ? '<span class="nd-new">New</span>' : "") + "</span>" +
             '<span class="nd-t">' + esc(pick(r, "title")) + "</span></a></li>";
         }).join("") + "</ul>" : "");
       if (cfg.onPaint) cfg.onPaint();
