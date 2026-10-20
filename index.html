@@ -89,6 +89,8 @@
       /* 살짝 떠 있게: 바로 아래 짧은 그림자 + 멀리 퍼지는 그림자, 마우스를 올리면 조금 더 */
       transform: translateY(-.3em); box-shadow: 0 .2em .4em rgba(0,0,0,.18), 0 1.6em 3em -1.2em rgba(0,0,0,.6);
       opacity: 0; transition: opacity 1s ease .9s, transform .35s ease, box-shadow .35s ease; }
+    /* 겨울: 팔레트의 가장 밝은 색이 하늘색(#BDE8F5)이라 판이 진해 보임 → 흰색 50%를 섞어 다른 계절과 밝기 맞춤 */
+    html[data-season="winter"] .nd { background: color-mix(in srgb, color-mix(in srgb, var(--header-active-bg) 50%, #fff) 85%, transparent); }
     .nd.in { opacity: 1; }
     .nd:hover { transform: translateY(-.6em); box-shadow: 0 .3em .6em rgba(0,0,0,.2), 0 2.2em 3.6em -1.2em rgba(0,0,0,.65); }
     .nd:empty { display: none; }
