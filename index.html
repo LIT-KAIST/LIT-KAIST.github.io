@@ -75,7 +75,7 @@
     .v3-scroll { position: absolute; left: 50%; bottom: calc(var(--u) * 1.5); transform: translateX(-50%); z-index: 2; font-family: var(--font-head); font-size: max(10px, calc(var(--u) * .78)); letter-spacing: .18em; text-transform: uppercase; opacity: .7; animation: v3bob 1.8s ease-in-out infinite; }
     @keyframes v3bob { 0%,100%{transform:translate(-50%,0)} 50%{transform:translate(-50%,7px)} }
 
-    /* 히어로 최신 소식 카드 (news.js renderLatest) — 공지판형: 밝은 반투명 판(계절 테마색 65%) · 각진 모서리 · 살짝 떠 있는 그림자
+    /* 히어로 최신 소식 카드 (news.js renderLatest) — 공지판형: 밝은 반투명 판(계절 테마색 85%) · 각진 모서리 · 살짝 떠 있는 그림자
        문구 시작선에 맞춘 왼쪽 아래, 4건 · 제목 전체(잘림 없음, 넘치면 줄바꿈). 문구는 카드 위 남은 공간의 가운데, 지구는 오른쪽으로 비켜 섬.
        세로 화면은 아래 전체 폭 카드(날짜 줄 아래 제목).
        가로 화면: 카드 폭 = 가장 긴 소식 제목이 한 줄에 들어가는 폭 + 여유(--nd-slack). 화면이 그보다 좁을 때만 줄바꿈.
@@ -84,7 +84,7 @@
     .nd { position: relative; z-index: 3; align-self: flex-start; width: max-content; max-width: calc(100% - var(--u) * 16);
       margin: 0 0 calc(var(--u) * var(--nd-bottom)) calc(var(--u) * 8);
       font-size: max(13px, calc(var(--u) * 1.0)); padding: 1em 1.5em .55em; border-radius: 3px;
-      background: color-mix(in srgb, var(--header-active-bg) 65%, transparent); color: var(--header-active-fg);   /* 살짝 비치게 → 어두운 배경과 대비 완화 */
+      background: color-mix(in srgb, var(--header-active-bg) 85%, transparent); color: var(--header-active-fg);   /* 살짝만 비치게(85%) → 밝게 유지하면서 배경과 이어짐 */
       -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
       /* 살짝 떠 있게: 바로 아래 짧은 그림자 + 멀리 퍼지는 그림자, 마우스를 올리면 조금 더 */
       transform: translateY(-.3em); box-shadow: 0 .2em .4em rgba(0,0,0,.18), 0 1.6em 3em -1.2em rgba(0,0,0,.6);
