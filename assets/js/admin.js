@@ -1565,19 +1565,27 @@
   }
 
   /* ---------------- Member → Alumni 이동 ---------------- */
+  // 석사 재학생 직함(입학 학기) → 졸업 예정 연월(입학 2년 뒤): "M.S. (2025 Spring)" → "M.S. (2027 February)", Fall → August
+  function msGradTitle(t) {
+    var m = String(t || "").match(/^\s*M\.S\.\s*\(\s*(\d{4})\s+(Spring|Fall)\s*\)\s*$/i);
+    if (!m) return t;
+    return "M.S. (" + (+m[1] + 2) + " " + (/^spring$/i.test(m[2]) ? "February" : "August") + ")";
+  }
   function openMove(member) {
     if (!token()) { setMsg("먼저 GitHub 토큰을 저장하세요.", "err"); return; }
     if (!member) return;
     editingId = null; pendingFiles = {};
+    var title = member["직함"], gradTitle = msGradTitle(title);
     document.getElementById("admFormTitle").textContent = "Alumni로 이동 — " + (member.name_english || "");
     document.getElementById("admForm").innerHTML =
-      '<p class="am-note">아래 졸업 정보를 입력하면 members에서 빼고 alumni로 옮깁니다. (사진도 함께 이동)</p>' +
+      '<p class="am-note">아래 졸업 정보를 입력하면 members에서 빼고 alumni로 옮깁니다. (사진도 함께 이동)' +
+        (gradTitle !== title ? "<br>직함은 입학 학기(" + esc(title) + ")에서 졸업 예정 연월로 자동 변환했습니다. 실제 졸업 시기와 다르면 고쳐 주세요." : "") + "</p>" +
       field("이름 (한국어)", "mv_ko", member.name_korean) +
       field("Name (English)", "mv_en", member.name_english) +
       '<label class="am-field"><span>학위</span><select data-name="mv_deg">' +
         DEGREE_A.map(function (o) { return '<option' + (o === member["학위"] ? " selected" : "") + ">" + o + "</option>"; }).join("") +
       "</select></label>" +
-      field("직함 (예: Ph.D. (2026 August) · M.S. (2026 August))", "mv_title", member["직함"]) +
+      field("직함 (예: Ph.D. (2026 August) · M.S. (2026 August))", "mv_title", gradTitle) +
       field("현 소속", "mv_pos", "") +
       field("졸업논문 제목", "mv_thesis", "") +
       field("이메일", "mv_email", member.email);
