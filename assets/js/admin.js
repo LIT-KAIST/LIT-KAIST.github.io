@@ -163,7 +163,7 @@
       fields: [
         { name: "name_english", label: "Name (English)", required: true },
         { name: "name_korean", label: "이름 (한국어)" },
-        { name: "직함", label: "직함 (예: Ph.D. course · M.S. (1st year))" },
+        { name: "직함", label: "직함 (예: Ph.D. course · M.S. (2026 Spring))" },
         { name: "학위", label: "학위", type: "select", options: DEGREE_M },
         { name: "랩장", label: "연구실 대표 학생 (랩장) — 이름 앞 왕관 + 배지 표시", type: "check" },
         { name: "관심분야", label: "관심 분야" },
