@@ -163,7 +163,7 @@
       fields: [
         { name: "name_english", label: "Name (English)", required: true },
         { name: "name_korean", label: "이름 (한국어)" },
-        { name: "직함", label: "직함 (예: Ph.D. course)" },
+        { name: "직함", label: "직함 (예: Ph.D. course · M.S. (1st year))" },
         { name: "학위", label: "학위", type: "select", options: DEGREE_M },
         { name: "랩장", label: "연구실 대표 학생 (랩장) — 이름 앞 왕관 + 배지 표시", type: "check" },
         { name: "관심분야", label: "관심 분야" },
@@ -183,7 +183,7 @@
       fields: [
         { name: "name_english", label: "Name (English)", required: true },
         { name: "name_korean", label: "이름 (한국어)" },
-        { name: "직함", label: "직함 (예: Ph.D. (2026 August))" },
+        { name: "직함", label: "직함 (예: Ph.D. (2026 August) · M.S. (2026 August))" },
         { name: "학위", label: "학위", type: "select", options: DEGREE_A },
         { name: "current_position", label: "현 소속" },
         { name: "졸업논문", label: "졸업논문 제목" },
@@ -1577,7 +1577,7 @@
       '<label class="am-field"><span>학위</span><select data-name="mv_deg">' +
         DEGREE_A.map(function (o) { return '<option' + (o === member["학위"] ? " selected" : "") + ">" + o + "</option>"; }).join("") +
       "</select></label>" +
-      field("직함 (예: Ph.D. (2026 August))", "mv_title", member["직함"]) +
+      field("직함 (예: Ph.D. (2026 August) · M.S. (2026 August))", "mv_title", member["직함"]) +
       field("현 소속", "mv_pos", "") +
       field("졸업논문 제목", "mv_thesis", "") +
       field("이메일", "mv_email", member.email);
