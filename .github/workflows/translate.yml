@@ -9,6 +9,8 @@ on:
     paths:
       - data/news.csv
       - data/album.csv
+      - .github/workflows/translate.yml     # 번역 설정을 고치면 바로 한 번 실행
+      - .github/scripts/translate.py
   schedule:
     - cron: '30 0 * * *'   # 매일 09:30 KST — 실패·한도 초과로 남은 빈칸 다시 시도
   workflow_dispatch: {}     # Actions 탭에서 수동 실행 가능
@@ -25,9 +27,10 @@ jobs:
   translate:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      WORK: ${{ runner.temp }}/translate
     steps:
+      # 작업 파일(job/result/commit_msg)은 저장소 밖 임시 폴더에 둠 — runner 컨텍스트는 job 수준 env 에서 못 씀
+      - name: Set work folder
+        run: echo "WORK=$RUNNER_TEMP/translate" >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
         with:
           ref: main
