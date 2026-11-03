@@ -135,7 +135,7 @@
     return /^(y|yes|1|true|o|예|✓)$/i.test((p["랩장"] || "").trim());
   }
   var COORD_BADGE =
-    '<span class="p-coord"><span data-ko="연구실 대표 학생" data-en="Lab Coordinator">연구실 대표 학생</span></span>';
+    '<span class="p-coord"><span data-ko="연구실 대표 학생" data-en="Student Representative">연구실 대표 학생</span></span>';
 
   function nameBlock(p) {
     var en = esc(p.name_english || "");
