@@ -1,4 +1,4 @@
-"""앨범에서 한국어만 있는 글의 영어 칸을 Claude 로 채움 (.github/workflows/translate.yml 에서 실행).
+"""뉴스·앨범에서 한국어만 있는 글의 영어 칸을 Claude 로 채움 (.github/workflows/translate.yml 에서 실행).
 
   python translate.py collect    영어 칸이 빈 항목을 모아 $WORK/job.json 으로 (GITHUB_OUTPUT 에 count)
   python translate.py translate  job.json → Claude Code(구독 토큰) → $WORK/result.json (검증 포함)
@@ -18,8 +18,9 @@ WORK = os.environ.get("WORK") or os.path.join(ROOT, ".translate-work")
 SINCE = "2025-01-01"          # 이 날짜 이후 글만 (옛 글엔 예전 홈페이지 HTML 이 섞여 있음)
 MAX_ITEMS = 150               # 한 번에 번역할 최대 칸 수 (나머지는 다음 실행)
 
-# 번역 대상: 파일 → 한국어 칸 → 영어 칸. 행은 date 칸으로 식별. (지금은 앨범만 — 뉴스 영어는 사람이 씀)
+# 번역 대상: 파일 → 한국어 칸 → 영어 칸. 행은 date 칸으로 식별. (뉴스·앨범, SINCE 이후 글)
 TARGETS = [
+    {"file": "data/news.csv", "pairs": [("title", "title_en"), ("content", "content_en")]},
     {"file": "data/album.csv", "pairs": [("title", "title_en"), ("content", "content_en")]},
 ]
 
@@ -56,7 +57,7 @@ Rules:
 - Write dates naturally in English (e.g. "10/15" → "October 15", "8월 26일 (수)" → "Wednesday, August 26").
 - Keep the line breaks of the source.
 - Titles are short headlines; contents are full sentences.
-- In titles, refer to people by name only: drop position labels attached to a name, such as 박사과정, 석사과정, 석박통합과정 or 박사후연구원 (e.g. "김현우 박사과정 훈련소 입소" → "Hyunwoo Kim enters military basic training"). Keep the degree or position when it is what the news is about, such as an admission, a graduation, a dissertation defense or an appointment."""
+- In titles, never translate position or seniority labels such as 박사과정, 석사과정, 석박통합과정, 박사후연구원 or 선배(님): leave them out and use the name only, even when the news is about an admission, a graduation or a dissertation defense. Do not write "Ph.D.", "M.S.", "student", "candidate" or "Senior" for them. For example: "김현우 박사과정 훈련소 입소" → "Hyunwoo Kim enters military basic training"; "박휘성 박사과정 졸업" → "Hwisung Park graduates"; "최중섭 선배님 공군 중령 진급" → "Joongsub Choi promoted to Lieutenant Colonel in the Air Force". Titles such as Dr. or Prof. may stay. In contents, positions may be translated as usual."""
 
 SCHEMA = {
     "type": "object",

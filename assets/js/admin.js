@@ -242,9 +242,9 @@
       sub: function (r) { return (r.date || "").slice(0, 10); },
       fields: [
         { name: "title", label: "제목 (한국어)", required: true },
-        { name: "title_en", label: "Title (English)" },
+        { name: "title_en", label: "Title (English) — 비워 두면 저장 후 1~3분 안에 자동 번역 (한국어를 고친 뒤 다시 번역하려면 이 칸을 비우세요)" },
         { name: "content", label: "본문 (한국어)", type: "textarea" },
-        { name: "content_en", label: "Content (English)", type: "textarea" },
+        { name: "content_en", label: "Content (English) — 비워 두면 저장 후 1~3분 안에 자동 번역 (한국어를 고친 뒤 다시 번역하려면 이 칸을 비우세요)", type: "textarea" },
         { name: "image", label: "대표 이미지 (1장, 자동 리사이즈) — 앨범 연동 시 안 올리면 앨범 대표사진 사용", type: "image",
           dir: function () { return "assets/img/news/" + (editingId || nowStamp()).slice(0, 4); },
           filename: function (f) { return "news-" + Math.round(performance.now()) + ".jpg"; } },

@@ -1,12 +1,13 @@
 name: Translate Korean to English
 
-# 앨범에서 한국어만 있고 영어 칸이 빈 글을 Claude 로 번역해 영어 칸을 채움.
+# 뉴스·앨범에서 한국어만 있고 영어 칸이 빈 글을 Claude 로 번역해 영어 칸을 채움.
 # 이미 영어가 있는 칸은 덮어쓰지 않음. 동작·규칙은 .github/scripts/translate.py 참고.
 # 인증: 저장소 Secret CLAUDE_CODE_OAUTH_TOKEN (`claude setup-token` 으로 만든 1년짜리 구독 토큰).
 on:
   push:
     branches: [main]
     paths:
+      - data/news.csv
       - data/album.csv
       - .github/workflows/translate.yml     # 번역 설정을 고치면 바로 한 번 실행
       - .github/scripts/translate.py
@@ -67,7 +68,7 @@ jobs:
             git reset -q --hard origin/main
             python .github/scripts/translate.py apply
             if git diff --quiet -- data/; then echo "nothing to write"; exit 0; fi
-            git add data/album.csv
+            git add data/news.csv data/album.csv
             git commit -q -F "$WORK/commit_msg.txt"
             if git push -q origin HEAD:main; then pushed=1; break; fi
             sleep 5
