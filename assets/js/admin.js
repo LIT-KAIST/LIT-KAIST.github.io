@@ -609,6 +609,7 @@
           '<div class="adm-row-main"><span class="adm-row-title">' + esc(disp) + "</span>" +
           '<span class="adm-row-sub">' + esc(col.sub ? col.sub(r) : "") + "</span></div>" +
           '<div class="adm-row-act">' +
+            (col.isPub ? statusSelHtml(r, id) : "") +
             (col.auto ? '<button type="button" class="adm-mini" data-act="dl" data-id="' + esc(id) + '">📥 사진</button>' : "") +
             (col.moveToAlumni ? '<button type="button" class="adm-mini" data-act="move" data-id="' + esc(id) + '">→ Alumni</button>' : "") +
             (col.moveTo ? '<button type="button" class="adm-mini" data-act="move2" data-id="' + esc(id) + '">' + esc(col.moveTo.label || "→ 이동") + "</button>" : "") +
@@ -626,6 +627,47 @@
         else if (act === "dl") downloadAlbumMedia(id);
       });
     });
+    Array.prototype.forEach.call(listEl.querySelectorAll(".adm-stsel"), function (s) {
+      s.addEventListener("change", function () { quickStatus(s); });
+    });
+  }
+
+  // Publications 목록에서 상태(publish · early access · forthcoming)를 바로 변경 — 수정 창 없이 즉시 커밋
+  var PUB_STATUS = ["publish", "early access", "forthcoming"];
+  function pubStatusOf(v) {
+    var s = String(v || "").trim().toLowerCase().replace(/[\s_-]+/g, " ");
+    return (s === "" || s === "published") ? "publish" : s;   // published(옛 표기·자동 업데이트) = publish
+  }
+  function statusSelHtml(r, id) {
+    var cur = pubStatusOf(r.status), opts = PUB_STATUS.indexOf(cur) < 0 ? PUB_STATUS.concat([cur]) : PUB_STATUS;
+    return '<select class="adm-stsel st-' + esc(cur.replace(/\s+/g, "-")) + '" data-id="' + esc(id) + '" data-cur="' + esc(cur) + '" title="상태 바로 변경">' +
+      opts.map(function (o) { return '<option value="' + esc(o) + '"' + (o === cur ? " selected" : "") + ">" + esc(o) + "</option>"; }).join("") +
+      "</select>";
+  }
+  var statusQueue = Promise.resolve();   // 연달아 바꿔도 커밋이 겹치지 않게 한 건씩
+  function quickStatus(sel) {
+    var col = COLLECTIONS[curKey], id = sel.getAttribute("data-id"), prev = sel.getAttribute("data-cur"), next = sel.value;
+    if (!token()) { sel.value = prev; setMsg("먼저 GitHub 토큰을 저장하세요.", "err"); return; }
+    sel.disabled = true;
+    setMsg("상태 변경 중… " + id.slice(0, 50) + " → " + next, "");
+    statusQueue = statusQueue.then(function () {
+      return commitCsv(csvPathOf(col), "Update Publications status: " + id.slice(0, 60) + " → " + next, function (rows) {
+        var ix = colIndex(rows), idi = ix[col.idCol];
+        if (ix.status == null) throw new Error("status 열이 없습니다.");
+        for (var i = 1; i < rows.length; i++) {
+          if ((rows[i][idi] || "").trim() === id) { rows[i][ix.status] = next; return; }
+        }
+        throw new Error("목록에서 항목을 찾지 못했습니다.");
+      });
+    }).then(function () {
+      var row = findRow(id); if (row) row.status = next;
+      sel.setAttribute("data-cur", next);
+      sel.className = "adm-stsel st-" + next.replace(/\s+/g, "-");
+      setMsg("상태를 '" + next + "'(으)로 바꿨습니다 — " + id.slice(0, 50) + " · 1~2분 후 반영", "ok");
+    }, function (e) {
+      sel.value = prev;
+      setMsg("상태 변경 실패: " + e.message, "err");
+    }).then(function () { sel.disabled = false; });
   }
 
   // 앨범 사진/영상을 ZIP으로 다운로드(원본, 사이트에 올라간 파일 기준)

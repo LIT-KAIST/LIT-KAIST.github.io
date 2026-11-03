@@ -1170,6 +1170,12 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .adm-mini:hover { border-color: var(--accent); }
 .adm-mini.adm-danger { color: #b91c1c; }
 .adm-mini.adm-danger:hover { border-color: #b91c1c; }
+/* Publications 목록: 상태 바로 변경 (색 = 사이트 배지와 같음) */
+.adm-stsel { font: inherit; font-size: .8rem; cursor: pointer; border: 1px solid var(--line); border-radius: 7px;
+  background: #fff; padding: 3px 6px; color: var(--fg); }
+.adm-stsel.st-forthcoming { background: #fef3c7; color: var(--badge); }
+.adm-stsel.st-early-access { background: #dbeafe; color: #1d4ed8; }
+.adm-stsel:disabled { opacity: .6; cursor: progress; }
 .am-cur { display: block; font-size: .8rem; color: var(--muted); margin-bottom: 4px; word-break: break-all; }
 
 /* ---------- footer ---------- */
