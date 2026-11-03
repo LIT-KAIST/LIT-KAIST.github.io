@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /admin.html
+Disallow: /center/
 
 Sitemap: https://lit.kaist.ac.kr/sitemap.xml

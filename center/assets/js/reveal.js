@@ -1,0 +1,102 @@
+/* ==========================================================================
+   LIT @ KAIST — 스크롤 인터랙션
+   1) .reveal 요소: 화면에 들어오면 fade-in (아래에서 살짝 떠오름)
+   2) #heroSlider: 스크롤을 내리면 히어로 텍스트가 fade-out
+   의존성 없음. 동작 안 하는 환경/모션 최소화 설정에서는 그냥 보이게 처리.
+
+   동적으로 추가된 요소에도 적용하려면:  LitReveal.observe(elementsOrNodeList)
+   ========================================================================== */
+(function () {
+  var reduceMotion =
+    window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var io = null;
+  if (!reduceMotion && "IntersectionObserver" in window) {
+    io = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) {
+            en.target.classList.add("is-visible");
+            io.unobserve(en.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
+    );
+  }
+
+  function observe(els) {
+    if (!els) return;
+    var list = els.length !== undefined ? els : [els];
+    Array.prototype.forEach.call(list, function (e) {
+      if (!e) return;
+      if (io) io.observe(e);
+      else e.classList.add("is-visible"); // 폴백: 바로 표시
+    });
+  }
+
+  // 노출 (people.js 등 동적 렌더링에서 사용)
+  window.LitReveal = { observe: observe };
+
+  /* ---- 패널 스크롤 애니메이션 (.panel .panel-content): 오른쪽에서 페이드인, 한 번 나타나면 유지 ---- */
+  (function () {
+    var contents = Array.prototype.slice.call(document.querySelectorAll(".panel .panel-content"));
+    if (!contents.length) return;
+    if (reduceMotion) { contents.forEach(function (c) { c.style.opacity = 1; }); return; }
+    function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+    var ticking = false;
+    function paint() {
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+      contents.forEach(function (c) {
+        var r = c.getBoundingClientRect();
+        // 요소 상단이 화면 하단(vh)에서 0.72*vh 까지 올라오는 동안만 등장 → 이후엔 계속 보임(사라지지 않음)
+        var p = clamp((vh - r.top) / (vh * 0.28), 0, 1);
+        c.style.opacity = p.toFixed(3);
+        c.style.transform = "translateX(" + ((1 - p) * 80).toFixed(1) + "px)";
+      });
+      ticking = false;
+    }
+    function onScroll() { if (!ticking) { window.requestAnimationFrame(paint); ticking = true; } }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    paint();
+  })();
+
+  /* ---- 1) 초기 .reveal 요소 ---- */
+  observe(document.querySelectorAll(".reveal"));
+
+  /* ---- 2) hero fade-out on scroll ---- */
+  var hero = document.getElementById("heroSlider");
+  if (hero && !reduceMotion) {
+    var ticking = false;
+    function update() {
+      var h = hero.offsetHeight || 1;
+      var p = Math.min(1, Math.max(0, window.pageYOffset / (h * 0.85)));
+      hero.style.setProperty("--hero-fade", String(1 - p));
+      ticking = false;
+    }
+    window.addEventListener(
+      "scroll",
+      function () {
+        if (!ticking) {
+          window.requestAnimationFrame(update);
+          ticking = true;
+        }
+      },
+      { passive: true }
+    );
+    update();
+  }
+
+  /* ---- 3) 스크롤 내리면 헤더를 흰 배경으로 ---- */
+  var header = document.querySelector(".site-header");
+  if (header) {
+    var hTick = false;
+    function hUpdate() { header.classList.toggle("scrolled", window.pageYOffset > 8); hTick = false; }
+    window.addEventListener("scroll", function () {
+      if (!hTick) { window.requestAnimationFrame(hUpdate); hTick = true; }
+    }, { passive: true });
+    hUpdate();
+  }
+})();

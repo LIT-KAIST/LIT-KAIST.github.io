@@ -21,6 +21,7 @@ KAIST 정보전송연구실(LIT) 웹사이트입니다. **빌드 도구 없이 �
 | `news.html` | 소식/게시판 (한·영) | `news.csv` |
 | `album.html` | 앨범 (연도별, 라이트박스) | `album.csv` + `assets/img/album/` |
 | `i2sac.html` | 지능통감융합연구센터(I²SAC) 소개 — 센터 개요·연구 목표·기간·연구 내용·체계·참여연구원(세부별 교수·기업) | HTML 직접 작성 + `i2sac_members.csv` + `assets/img/i2sac/` |
+| `center/` | **I²SAC 센터 사이트 이전 준비본** — 독립 사이트로 옮길 때 폴더 안 파일을 새 저장소에 그대로 올림 (`lit.kaist.ac.kr/center/` 미리보기, 검색 제외). 자세한 순서는 `center/README.md` | `center/data/i2sac_members.csv` (LIT 쪽과 따로 관리) |
 | `contact.html` | 연락처·오시는 길·모집 안내 (지도) | HTML 직접 작성 |
 | `admin.html` | 관리자 (토큰 기반 데이터 편집) | — |
 

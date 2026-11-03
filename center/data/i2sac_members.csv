@@ -1,0 +1,11 @@
+﻿세부,구분,name_korean,name_english,소속,소속_en,역할,역할_en,배지,배지_en,연구실,링크,photo_path
+1,교수,박현철,Hyuncheol Park,KAIST 전기및전자공학부,"School of Electrical Engineering, KAIST",초정밀·초고용량 I²SAC 기술 개발,"Ultra-precise, ultra-high-capacity I²SAC",센터장,Center Director,LIT,https://lit.kaist.ac.kr/people.html#faculty,assets/img/people/hyuncheol-park.jpg
+1,교수,최진석,Jinseok Choi,KAIST 전기및전자공학부,"School of Electrical Engineering, KAIST",저지연·보안 I²SAC 기술 개발,Low-latency and secure I²SAC,,,SIC-X Lab,https://sic-x.kaist.ac.kr/,assets/img/people/jinseok-choi.jpg
+1,교수,전주환,Joohwan Chun,KAIST 전기및전자공학부,"School of Electrical Engineering, KAIST",초정밀·초고용량 I²SAC 기술 개발,"Ultra-precise, ultra-high-capacity I²SAC",,,,,assets/img/people/joohwan-chun.jpg
+1,기업,(주)시그웍스,SigWorks,,,I²SAC 기술 연구 및 개발 기술 검증,I²SAC research and validation of developed technologies,,,,,assets/img/partners/sigworks.png
+2,교수,정준선,Joon Son Chung,KAIST 전기및전자공학부,"School of Electrical Engineering, KAIST",멀티모달 기반 음성인식 및 상황인식 모델 개발,Multimodal speech and situation recognition models,,,Multimodal AI Lab,https://mm.kaist.ac.kr/,assets/img/people/joon-son-chung.jpg
+3,교수,박지홍,Jihong Park,싱가포르 과기설계대학,Singapore University of Technology and Design (SUTD),기초 시맨틱 통신 시스템 개발,Foundational semantic communication systems,,,,https://sites.google.com/view/jihong-park,assets/img/people/jihong-park.jpg
+3,교수,임승찬,Seung-Chan Lim,홍익대학교 전자전기공학부,"School of Electronic and Electrical Engineering, Hongik University",시맨틱 통신 시스템 최적화,Semantic communication system optimization,,,ICSP Lab,https://sites.google.com/view/sclim/home,assets/img/people/seung-chan-lim.jpg
+4,교수,안희진,Heejin Ahn,KAIST 전기및전자공학부,"School of Electrical Engineering, KAIST",강화학습 기법 개발 및 테스트베드 구축,Reinforcement learning methods and testbed development,,,CIS Lab,https://cis.kaist.ac.kr/,assets/img/people/heejin-ahn.jpg
+4,교수,강준혁,Joonhyuk Kang,KAIST 전기및전자공학부,"School of Electrical Engineering, KAIST",자율주행 환경 연합학습 개발,Federated learning for autonomous driving,,,ARTLAB,https://artlab.kaist.ac.kr/,assets/img/people/joonhyuk-kang.jpg
+4,기업,(주)테슬라시스템,Tesla System,,,실도로 환경 학습 기법 실용성 검증,Validating learning methods on real roads,,,,,assets/img/partners/tesla-system.png
