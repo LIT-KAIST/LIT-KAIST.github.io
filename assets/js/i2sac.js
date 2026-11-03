@@ -6,6 +6,8 @@
    - 연구 기간 파노라마: 지난 차년도/올해/남은 차년도를 구분하고, 좌우 버튼으로
      넘기며, 처음에는 올해(진행 중) 차년도가 보이도록 스크롤해 둡니다.
    - 시나리오 그림 속 (N세부) 박스·조직도의 세부를 누르면 해당 세부과제로 이동해 잠깐 강조합니다.
+   - 메뉴(I²SAC ▾)의 섹션 링크는 바로 점프하지 않고 부드럽게 스크롤해 도착합니다.
+     다른 페이지에서 들어올 때는 i2sac.html <head> 가 해시를 잠시 떼어 두고(__i2Hash), 여기서 위에서부터 스크롤.
    ========================================================================== */
 (function (global) {
   var P = global.Pubs;
@@ -156,9 +158,72 @@
     });
   }
 
+  /* ---- 이 페이지 섹션으로 가는 링크 → 부드럽게 스크롤 ----
+     스크롤 중 글꼴·CSV·이미지로 높이가 바뀌어도 매 프레임 목적지를 다시 재서 정확히 멈춤.
+     휠·터치·키·클릭 입력이 들어오면 바로 멈추고 사용자에게 맡김. */
+  var glide = null;
+  function destY(el) {
+    if (!el) return 0;   // 해시 없는 링크(Overview) → 맨 위
+    var y = el.getBoundingClientRect().top + global.pageYOffset -
+      (parseFloat(global.getComputedStyle(el).scrollMarginTop) || 0);
+    return Math.max(0, Math.min(document.documentElement.scrollHeight - global.innerHeight, y));
+  }
+  function endGlide() {
+    if (!glide) return;
+    var g = glide; glide = null;
+    global.cancelAnimationFrame(g.raf);
+    if (g.done) g.done();
+  }
+  function glideTo(el, done) {
+    endGlide();
+    var y0 = global.pageYOffset, dist = Math.abs(destY(el) - y0);
+    if (reduceMotion || dist < 2) { global.scrollTo(0, destY(el)); if (done) done(); return; }
+    var dur = Math.min(1000, 350 + dist * 0.2), t0 = null;
+    var g = glide = { done: done };
+    g.raf = global.requestAnimationFrame(function step(t) {
+      if (t0 === null) t0 = t;
+      var p = Math.min(1, (t - t0) / dur);
+      var k = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(2 - 2 * p, 3) / 2;   // easeInOutCubic
+      global.scrollTo(0, y0 + (destY(el) - y0) * k);
+      if (p < 1) g.raf = global.requestAnimationFrame(step);
+      else endGlide();
+    });
+  }
+  function samePage(a) {
+    function strip(p) { return p.replace(/\.html$/, ""); }   // /i2sac 과 /i2sac.html 은 같은 페이지
+    return a.origin === location.origin && a.search === location.search &&
+      strip(a.pathname) === strip(location.pathname);
+  }
+  function initSectionLinks() {
+    document.addEventListener("click", function (e) {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target.closest && e.target.closest("a[href]");
+      if (!a || a.target === "_blank" || !samePage(a)) return;
+      var el = a.hash ? document.getElementById(decodeURIComponent(a.hash.slice(1))) : null;
+      if (a.hash && !el) return;
+      e.preventDefault();
+      a.blur();      // :focus-within 으로 열린 드롭다운 닫기
+      endGlide();    // 이전 스크롤의 마무리(해시 복원)가 새 주소를 덮지 않도록 먼저 끝냄
+      var url = location.pathname + location.search + a.hash;
+      if (url !== location.pathname + location.search + location.hash) history.pushState(null, "", url);
+      glideTo(el);
+    });
+    ["wheel", "touchstart", "keydown", "mousedown"].forEach(function (t) {
+      global.addEventListener(t, endGlide, { passive: true });
+    });
+
+    // 다른 페이지 메뉴에서 i2sac.html#… 로 들어온 경우: 위에서부터 스크롤하고, 도착하면 주소에 해시를 되돌림
+    var h = global.__i2Hash;
+    if (!h) return;
+    var el = document.getElementById(decodeURIComponent(h.slice(1)));
+    var restore = function () { history.replaceState(null, "", location.pathname + location.search + h); };
+    if (el) glideTo(el, restore); else restore();
+  }
+
   function load() {
     initPano();
     initSubLinks();
+    initSectionLinks();
     fetch("data/i2sac_members.csv", { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
       .then(function (t) {
