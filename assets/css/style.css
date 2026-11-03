@@ -1282,19 +1282,27 @@ html[lang="en"] .i2-goal-text { font-size: 1rem; }
 .i2-roadmap li:not(.is-now) .i2-yt { color: var(--pmuted); }
 
 /* 3. 연구 내용 · 세부과제 */
-.i2-fig { margin: 0; }
-.i2-fig .ra-fig { max-width: 100%; margin: 0; padding: 14px; border: 1px solid var(--pborder); border-radius: 0; box-shadow: none; }
-.i2-fig .ra-fig:hover { box-shadow: none; }
-.i2-fig figcaption { color: var(--pmuted); font-size: .86rem; margin-top: 10px; }
-.i2-subs { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 48px; }
-.i2-sub { display: flex; flex-direction: column; padding: 22px 0 24px; border-top: 1px solid var(--pborder); scroll-margin-top: 84px; }
+.i2-fig { margin: 0; padding: 14px; background: #fff; border: 1px solid var(--pborder); }
+.i2-map { position: relative; }
+.i2-map-img { display: block; width: 100%; height: auto; }
+/* 그림 위에 올리면 누를 수 있는 세부 박스가 옅게, 가리킨 박스는 진하게 표시 */
+.i2-hot { position: absolute; border-radius: 8px; outline: 2px solid transparent; outline-offset: 2px;
+  transition: outline-color .15s, background-color .15s; }
+.i2-map:hover .i2-hot { outline-color: color-mix(in srgb, var(--plink) 35%, transparent); }
+.i2-map .i2-hot:hover, .i2-hot:focus-visible { outline-color: var(--plink); background: color-mix(in srgb, var(--plink) 8%, transparent); }
+.i2-subs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.i2-sub { display: flex; flex-direction: column; padding: 20px 24px 22px; background: #fff; border: 1px solid var(--pborder);
+  border-radius: 4px; scroll-margin-top: 84px; transition: border-color .4s, box-shadow .4s, background-color .4s; }
+/* 그림·조직도에서 눌러 이동해 오면 잠깐 강조 */
+.i2-sub.is-flash { border-color: var(--plink); box-shadow: 0 0 0 3px color-mix(in srgb, var(--plink) 22%, transparent);
+  background: color-mix(in srgb, var(--plink) 5%, #fff); }
 .i2-sub-title { margin: 0 0 .55em; font-family: var(--font-head); font-size: clamp(1.05rem, 1.8vw, 1.2rem); line-height: 1.4; color: var(--phead); }
 .i2-sub ul { margin: 0 0 16px; padding-left: 1.1em; }
 .i2-sub li { color: var(--pfg); font-size: .95rem; margin: .3em 0; line-height: 1.55; }
 .i2-sub-meta { margin: 0; display: grid; gap: 4px; font-size: .88rem; }
 .i2-sub-meta div { display: grid; grid-template-columns: 5.2em 1fr; gap: 8px; }
 .i2-sub-meta dt { color: var(--pmuted); }
-.i2-sub-meta dd { margin: 0; color: var(--pfg); line-height: 1.5; }
+.i2-sub-meta dd { margin: 0; color: var(--pfg); line-height: 1.5; word-break: keep-all; }
 
 /* 센터 운영 체계 — 연결선만 있는 조직도 */
 .i2-org { display: grid; gap: 30px; }
@@ -1327,11 +1335,12 @@ html[lang="en"] .i2-goal-text { font-size: 1rem; }
 /* 4. 참여연구원 — 카드 대신 목록 */
 .i2-group { scroll-margin-top: 84px; }
 .i2-group + .i2-group { margin-top: 44px; }
-.i2-group-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin: 0; padding-bottom: 12px;
-  border-bottom: 2px solid var(--phead); color: var(--phead); font-size: clamp(1.05rem, 2vw, 1.28rem); line-height: 1.4; }
+.i2-group-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin: 0; padding-bottom: 10px;
+  border-bottom: 1px solid var(--pborder); color: var(--phead); font-size: clamp(1.05rem, 2vw, 1.28rem); line-height: 1.4; }
 .i2-group-head .i2-kicker { margin: 0; font-family: var(--font-body); }
-.i2-pc-grid { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 48px; }
-.i2-pc { display: grid; grid-template-columns: 84px 1fr; gap: 18px; padding: 22px 0; border-bottom: 1px solid var(--pborder); }
+.i2-pc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
+.i2-pc { display: grid; grid-template-columns: 84px 1fr; gap: 18px; padding: 16px; background: #fff;
+  border: 1px solid var(--pborder); border-radius: 4px; }
 .i2-pc-photo { width: 84px; height: 104px; overflow: hidden; background: var(--soft); }
 .i2-pc-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .i2-pc.is-company .i2-pc-photo { display: flex; align-items: center; justify-content: center; padding: 8px;
@@ -1357,6 +1366,8 @@ html[lang="en"] .i2-goal-text { font-size: 1rem; }
   .i2-goal { flex-direction: column; gap: 6px; }
   .i2-goal-text, html[lang="en"] .i2-goal-text { white-space: normal; font-size: 1.12rem; }
   .i2-cores, .i2-subs, .i2-pc-grid { grid-template-columns: 1fr; }
+  .i2-sub { padding: 18px 18px 20px; }
+  .i2-fig { padding: 8px; }
   .i2-core-wide { border-bottom: none; }
   .i2-roadmap { --g: 22px; grid-auto-columns: 74%; }
   .i2-org-cmt, .i2-org-subs { grid-template-columns: repeat(2, 1fr); gap: 18px 16px; }
@@ -1367,6 +1378,6 @@ html[lang="en"] .i2-goal-text { font-size: 1rem; }
   .i2-logos li { height: 108px; }
 }
 @media (max-width: 420px) {
-  .i2-pc { grid-template-columns: 72px 1fr; gap: 14px; }
+  .i2-pc { grid-template-columns: 72px 1fr; gap: 14px; padding: 14px; }
   .i2-pc-photo { width: 72px; height: 90px; }
 }

@@ -5,6 +5,7 @@
    - 링크: http(s) 는 새 탭(↗), 사이트 내부 경로는 같은 탭(→), 비어 있으면 숨김.
    - 연구 기간 파노라마: 지난 차년도/올해/남은 차년도를 구분하고, 좌우 버튼으로
      넘기며, 처음에는 올해(진행 중) 차년도가 보이도록 스크롤해 둡니다.
+   - 시나리오 그림 속 (N세부) 박스·조직도의 세부를 누르면 해당 세부과제로 이동해 잠깐 강조합니다.
    ========================================================================== */
 (function (global) {
   var P = global.Pubs;
@@ -138,8 +139,26 @@
     sync();
   }
 
+  /* ---- 그림 속 세부 박스·조직도 → 해당 세부과제로 이동하며 강조 ---- */
+  function initSubLinks() {
+    document.addEventListener("click", function (e) {
+      var a = e.target.closest && e.target.closest('a[href^="#i2-sub-"]');
+      if (!a) return;
+      var box = document.getElementById(a.getAttribute("href").slice(1));
+      if (!box) return;
+      e.preventDefault();
+      box.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+      box.classList.remove("is-flash");
+      void box.offsetWidth;   // 같은 박스를 다시 눌러도 강조가 다시 보이게
+      box.classList.add("is-flash");
+      clearTimeout(box._flashT);
+      box._flashT = setTimeout(function () { box.classList.remove("is-flash"); }, 2200);
+    });
+  }
+
   function load() {
     initPano();
+    initSubLinks();
     fetch("data/i2sac_members.csv", { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
       .then(function (t) {
