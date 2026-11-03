@@ -1327,10 +1327,11 @@ html[lang="en"] .i2-goal-text { font-size: 1rem; }
 /* 국내외 협력기관 — 한 판의 로고 그리드 */
 .i2-logos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr);
   border-top: 1px solid var(--pborder); border-left: 1px solid var(--pborder); background: #fff; }
-.i2-logos li { height: 124px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+.i2-logos li { height: 124px; display: flex; flex-direction: column; align-items: center; gap: 10px;
   padding: 14px 12px 12px; border-right: 1px solid var(--pborder); border-bottom: 1px solid var(--pborder); }
-.i2-logos img { display: block; max-width: 100%; max-height: 60px; width: auto; height: auto; object-fit: contain; }
-.i2-logos span { font-size: .72rem; color: var(--pmuted); text-align: center; line-height: 1.25; }
+.i2-logos img { display: block; max-width: 100%; max-height: 60px; width: auto; height: auto; object-fit: contain;
+  margin: auto 0; }   /* 로고는 남은 칸 가운데, 기관명은 칸 맨 아래로 */
+.i2-logos span { font-size: .72rem; color: var(--pmuted); text-align: center; line-height: 1.25; word-break: keep-all; }
 
 /* 4. 참여연구원 — 카드 대신 목록 */
 .i2-group { scroll-margin-top: 84px; }
@@ -1375,7 +1376,8 @@ html[lang="en"] .i2-goal-text { font-size: 1rem; }
   .i2-org-box::before, .i2-org-sub::before { display: none; }
   .i2-org-box, .i2-org-sub { padding-top: 12px; border-top: 1px solid var(--pborder); }
   .i2-logos { grid-template-columns: repeat(3, 1fr); }
-  .i2-logos li { height: 108px; }
+  .i2-logos li { height: auto; min-height: 108px; padding: 12px 6px 10px; }
+  .i2-logos img { max-height: 46px; }
 }
 @media (max-width: 420px) {
   .i2-pc { grid-template-columns: 72px 1fr; gap: 14px; padding: 14px; }
