@@ -294,6 +294,7 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
   border-radius: 999px; vertical-align: middle; letter-spacing: .02em;
 }
 .badge-soon { background: #fef3c7; color: var(--badge); }
+.badge-ea { background: #dbeafe; color: #1d4ed8; }   /* early access: 온라인 선공개(권·호 미배정) */
 
 .muted { color: var(--muted); }
 .error {

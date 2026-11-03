@@ -230,7 +230,7 @@
         { name: "note", label: "비고 (Patent 출원/등록 등)" },
         { name: "doi", label: "DOI" },
         { name: "abstract", label: "초록", type: "textarea" },
-        { name: "status", label: "상태", type: "select", options: ["publish", "forthcoming"] },
+        { name: "status", label: "상태 (forthcoming·early access 는 매일 Crossref 에서 확인해 자동으로 올라감)", type: "select", options: ["publish", "early access", "forthcoming"] },
         { name: "__makenews", label: "📰 이 논문으로 뉴스 자동 작성 (새 논문 저장 시)", type: "check", checkedDefault: true },
       ],
     },

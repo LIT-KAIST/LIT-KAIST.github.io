@@ -85,7 +85,7 @@ data/   CSV/MD (사실상의 DB)
 |---|---|
 | `people_members.csv` | `name_korean`,`name_english`,`직함`,`학위`,`관심분야`,`email`,`homepage`,`scholar`,`github`,`cv`,`photo_path`,`랩장`(`Y`=랩장) |
 | `people_alumni.csv` | …`학위`,`졸업논문`,`current_position`,`photo_path` |
-| `journal/conference/patent_*.csv` | `title`,`author`,`journal`/`booktitle`,`volume`,`number`,`pages`,`date`,`doi`,`abstract`,`status`(forthcoming 시 배지),`note` |
+| `journal/conference/patent_*.csv` | `title`,`author`,`journal`/`booktitle`,`volume`,`number`,`pages`,`date`,`doi`,`abstract`,`status`(`forthcoming`·`early access` 시 배지, 아래 7-1 자동 업데이트 대상),`note` |
 | `album.csv` | `date`,`year`,`title`,`content`,`status`,`thumbnail_file`,`image_files`(`\|` 구분) |
 | `news.csv` | `date`,`year`,`forum`,`title`,`title_en`,`content`,`content_en`,`links`,`status` |
 | `projects_current.csv` | `과제명`,`지원기관`,`유형`,`시작`,`종료`,`종료연도`,`원본상태`,`slug`,`소개`,`소개_en` · 상세 본문은 `data/<slug>_ko.md`/`<slug>.md` (slug=파일명, 대소문자 일치) |
@@ -120,6 +120,15 @@ python3 -m http.server 8000   # http://localhost:8000
 `main` 에 push → 자동 반영(1~2분). 저장소 이름이 `<계정>.github.io` 여야 사용자 페이지로 동작.
 - 다른 계정 이전 시: 저장소를 `<새계정>.github.io` 로 만들면 admin이 저장소를 **자동 감지**(코드 수정 불필요).
 - **커스텀 도메인(lit.kaist.ac.kr)** 사용 시: 호스트명 자동감지가 안 되므로 `admin.js`·`news.js` 의 폴백 저장소(`LIT-KAIST/LIT-KAIST.github.io`)가 쓰입니다(이미 설정됨). 새 OG 도메인도 반영 완료.
+
+### 7-1. 논문 출판 정보 자동 업데이트 (Crossref)
+억셉 직후엔 제목·저자·저널만 넣고 `status`를 **forthcoming** 으로 두면 됩니다. 매일 09:00(KST) GitHub Actions(`update-pubs.yml`)가 Crossref 에서 찾아 채우고 main 에 커밋합니다.
+- **상태는 올라가기만 함**: `forthcoming`(게재 예정) → `early access`(DOI 로 온라인 선공개, 권·호 미배정) → `published`(권 배정). 학회 논문은 Crossref 에 등록되면 바로 published.
+- **채우는 칸**: `doi`·`abstract`, 저널이 published 가 되면 `volume`·`number`·`pages` — **비어 있는 칸만** 채우고 직접 넣은 값·`date` 는 건드리지 않음.
+- 상태를 직접 **publish** 로 바꿔 두고 DOI·권·쪽수를 비워 둔 **올해·작년 논문**도 같은 확인을 거쳐 빈칸만 채움(상태는 그대로).
+- **같은 논문인지 엄격히 확인**: 종류(저널/학회) · 제목(단어 단위로 동일, 대소문자·하이픈·a/the 같은 작은 단어만 허용) · 저자 성(순서·인원 모두 동일) · 게재처 이름 · 연도(-1~+2년) · 후보가 하나뿐 — 전부 맞아야 반영. 하나라도 어긋나면 **반영하지 않고** '확인 필요'로만 보고.
+- **결과 확인**: 커밋 메시지에 논문별 DOI 링크와 검사 결과, Actions → *Update publications from Crossref* 실행 화면 Summary 에 반영/확인 필요/대기 목록.
+- 제목에 한글이 있는 논문(국내 학회·저널)은 Crossref 에 보통 없어 건너뜁니다 → 직접 수정. 수동 실행: Actions 탭 → *Run workflow*. 로컬 점검: `python3 .github/scripts/update_pubs.py --dry-run`
 
 ## 8. 캐시 / 이미지 메모
 - CSS·JS는 `?v=YYYYMMDDx` 쿼리로 캐시 관리. **CSS/JS를 수정해 배포할 땐 모든 HTML의 `?v=` 값을 새 값으로** 바꿔야 방문자에게 적용됩니다. (데이터 CSV/MD·업로드 파일은 `no-store`라 버전 안 바꿔도 반영)

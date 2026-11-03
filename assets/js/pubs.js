@@ -211,12 +211,14 @@
       html += '<section class="year-group"><h2 class="year">' + esc(y) +
               ' <span class="year-count">(' + groups.get(y).length + ')</span></h2><ol class="pub-list">';
       for (const rec of groups.get(y)) {
-        const forthcoming = (rec.status || "").toLowerCase() === "forthcoming";
+        // status: forthcoming(게재 예정) · early access(DOI 로 온라인 선공개, 권·호 미배정) · 그 외 = 출판
+        const status = (rec.status || "").toLowerCase().replace(/[\s_-]+/g, " ").trim();
         const abs = cleanAbstract(rec.abstract);
         const link = linkOf(rec);
         html += '<li class="pub" value="' + idx + '">';
         html += '<div class="pub-cite">' + citation(rec, type);
-        if (forthcoming) html += ' <span class="badge badge-soon">forthcoming</span>';
+        if (status === "forthcoming") html += ' <span class="badge badge-soon">forthcoming</span>';
+        else if (status === "early access") html += ' <span class="badge badge-ea">early access</span>';
         html += "</div>";
         html += '<div class="pub-meta">';
         if (link) html += '<a class="link" href="' + esc(link) + '" target="_blank" rel="noopener">' +

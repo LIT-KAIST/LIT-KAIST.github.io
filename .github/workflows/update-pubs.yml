@@ -1,0 +1,51 @@
+name: Update publications from Crossref
+
+# 게재 예정(forthcoming) · early access 논문을 매일 Crossref 에서 찾아 DOI·권·호·쪽수·상태를 채움.
+# 같은 논문인지 엄격히 확인한 것만 반영하고(.github/scripts/update_pubs.py 참고), 바뀐 게 있을 때만 main 에 커밋.
+# 결과(반영/확인 필요/대기)는 Actions 실행 화면의 Summary 에 표로 남음.
+on:
+  schedule:
+    - cron: '0 0 * * *'   # 매일 09:00 KST
+  workflow_dispatch: {}   # Actions 탭에서 수동 실행 가능
+
+permissions:
+  contents: write
+  pages: write            # 커밋 후 GitHub Pages 재빌드 요청용
+
+concurrency:
+  group: update-pubs
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Look up forthcoming / early-access papers
+        env:
+          COMMIT_MSG_FILE: ${{ runner.temp }}/pubs_commit_msg.txt
+        run: python .github/scripts/update_pubs.py
+      - name: Commit changes
+        env:
+          COMMIT_MSG_FILE: ${{ runner.temp }}/pubs_commit_msg.txt
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- data/; then
+            echo "no publication change"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/*.csv
+          git commit -F "$COMMIT_MSG_FILE"
+          git pull --rebase origin main   # 실행 중에 admin 이 커밋했을 때 대비
+          git push
+          # 봇(GITHUB_TOKEN) 커밋은 Pages 자동 빌드가 안 될 수 있어 명시적으로 요청 (실패해도 무시)
+          curl -fsS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages/builds" || true
