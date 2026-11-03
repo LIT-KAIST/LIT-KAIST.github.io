@@ -20,10 +20,11 @@ KAIST 정보전송연구실(LIT) 웹사이트입니다. **빌드 도구 없이 �
 | `seminar.html` | 내부 세미나 (목록 → 상세) | `seminars.csv` + `seminar_<slug>.csv` |
 | `news.html` | 소식/게시판 (한·영) | `news.csv` |
 | `album.html` | 앨범 (연도별, 라이트박스) | `album.csv` + `assets/img/album/` |
+| `i2sac.html` | 지능통감융합연구센터(I²SAC) 소개 — 센터 개요·연구 목표·기간·연구 내용·체계·참여연구원(세부별 교수·기업) | HTML 직접 작성 + `i2sac_members.csv` + `assets/img/i2sac/` |
 | `contact.html` | 연락처·오시는 길·모집 안내 (지도) | HTML 직접 작성 |
 | `admin.html` | 관리자 (토큰 기반 데이터 편집) | — |
 
-**상단 메뉴**: Home · About · People▾ · Publications▾ · Projects · **Activities▾**(Seminar/News/Album) · Contact
+**상단 메뉴**: Home · About · People▾ · Publications▾ · Projects · **Activities▾**(Seminar/News/Album) · **I²SAC▾** · Contact
 (메뉴를 줄이기 위해 News·Album·Seminar는 **Activities** 드롭다운으로 묶여 있습니다.)
 
 ```
@@ -48,7 +49,7 @@ data/   CSV/MD (사실상의 DB)
 `https://<사이트>/admin.html` → **GitHub 토큰** 입력 → 탭에서 추가·수정·삭제.
 변경은 GitHub에 자동 커밋되고 **1~2분 뒤 사이트에 반영**됩니다.
 
-관리 탭: **Members · Alumni · Album · Publications · News · Projects(진행중) · Projects(완료) · Seminar 목록 · Seminar 주차 · Site Text · Hero · Highlights · Contact(연락처·모집)**
+관리 탭: **Members · Alumni · Album · Publications · News · Projects(진행중) · Projects(완료) · I²SAC 참여연구원 · Seminar 목록 · Seminar 주차 · Site Text · Hero · Highlights · Contact(연락처·모집)**
 
 - **사진 업로드**: 폼에서 파일 선택 → 자동으로 폭 1600px 리사이즈 후 커밋
 - **PDF/PPT 업로드**: Seminar의 syllabus·발표자료는 리사이즈 없이 그대로 업로드(같은 경로면 덮어쓰기)
@@ -58,6 +59,7 @@ data/   CSV/MD (사실상의 DB)
   국제 논문엔 약어(`K. Han`, A, B, and C 형식), 국내 논문엔 한글 이름(쉼표 구분)으로 저장되고, ⭐ 저장한 공저자는 `author_favorites.csv`(`name`=약어, `name_english`, `name_korean`)에 공유됩니다.
   새 논문 저장 시 자동 뉴스: 제목은 한국어 칸 "○○ 논문이 게재되었습니다!" / 영어 칸 "○○ paper is accepted!".
   본문은 영어 논문이면 한국어 칸에도 `"제목 by 저자(영문 풀네임)"`를 영어 그대로 두고 나머지 문장만 한국어로, 한글 논문이면 `"제목" 논문(한글 이름)`으로 작성됩니다. (약어가 겹치는 직접 입력 이름은 그대로 둠)
+- **I²SAC 참여연구원**: 센터 페이지(`i2sac.html`) 참여연구원 카드(`i2sac_members.csv`). 세부(1~4)·구분(교수/기업)으로 묶여 표시되고, 같은 세부 안에서는 CSV 순서대로 나옵니다. 링크가 `http`로 시작하면 새 탭(↗), `people.html#faculty`처럼 사이트 내부 경로면 같은 탭(→), 비우면 버튼이 숨겨집니다. 버튼 이름은 '연구실' 칸(비우면 '홈페이지').
 - **Projects 진행중 → 완료(→ Past)**: 기간 종료 과제를 완료 목록으로 이동
 - **Projects 상세 본문(md)**: 진행중 폼의 **"상세 본문(한국어/English)"** 칸에 마크다운을 쓰면 메타데이터(CSV)와 함께 `data/<slug>_ko.md`·`data/<slug>.md` 로 한 번에 저장됩니다. (지원: `#`제목 · `**굵게**` · `*기울임*` · `- 목록` · `![설명](경로)` · `[글자](URL)`) ⚠️ **slug 는 파일명과 대소문자까지 일치**해야 상세가 열립니다(예: `I2SAC`, `SINC`).
 - **Seminar 주차**: 상단에서 세미나를 고르면 그 세미나(`seminar_<slug>.csv`)의 주차를 관리. 새 세미나의 주차 파일은 첫 주차 추가 시 자동 생성됩니다.

@@ -1214,3 +1214,140 @@ html[lang="ko"] .lang-en { display: none; }
   .pub { padding-left: 14px; }
   .pub::before { display: none; }
 }
+
+/* ---------- I²SAC center page (i2sac.html) ---------- */
+.i2-page .panel[id] { scroll-margin-top: 66px; }
+.i2-hero-grid { display: grid; grid-template-columns: 190px 1fr; gap: 36px; align-items: center; margin-bottom: 26px; }
+.i2-logo { width: 100%; height: auto; display: block; filter: brightness(0) invert(1); }
+.panel .i2-title { font-size: clamp(1.9rem, 4.2vw, 2.8rem); margin: 0 0 .3em; word-break: keep-all; }
+.i2-name-sub { margin: 0; color: var(--pmuted); font-size: clamp(1rem, 1.7vw, 1.15rem); line-height: 1.5; }
+.panel.i2-hero .lead { font-size: clamp(1.05rem, 1.9vw, 1.28rem); max-width: 72ch; }
+.i2-facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 28px 0 0; }
+.i2-fact { border: 1px solid var(--pborder); border-radius: 12px; padding: 14px 16px; background: rgba(255,255,255,.06); }
+.i2-fact dt { color: var(--pmuted); font-size: .8rem; font-weight: 600; letter-spacing: .03em; }
+.i2-fact dd { margin: 4px 0 0; color: var(--phead); font-family: var(--font-head); font-weight: 700;
+  font-size: clamp(1.05rem, 1.75vw, 1.3rem); line-height: 1.25; }
+.i2-fact dd > span { white-space: nowrap; }
+.i2-fact dd small { display: block; margin-top: 4px; font-family: var(--font-body); font-weight: 500;
+  font-size: .78rem; color: var(--pmuted); line-height: 1.4; }
+.i2-jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.i2-jump a { color: var(--phead); border: 1px solid var(--pborder); border-radius: 999px; padding: 7px 16px;
+  font-weight: 600; font-size: .9rem; transition: background .15s; }
+.i2-jump a:hover { background: rgba(255,255,255,.12); text-decoration: none; }
+
+.i2-h3 { color: var(--phead); font-size: clamp(1.25rem, 2.3vw, 1.6rem); margin: 46px 0 14px; }
+.i2-intro { color: var(--pmuted); font-size: clamp(1rem, 1.7vw, 1.15rem); line-height: 1.75; max-width: 72ch; margin: 0 0 20px; }
+.i2-tag { display: inline-block; font-size: .74rem; font-weight: 700; letter-spacing: .02em; color: var(--plink);
+  background: color-mix(in srgb, var(--plink) 11%, transparent); border-radius: 999px; padding: 2px 10px; }
+
+/* 연구 목표 */
+.i2-goal { border: 1px solid color-mix(in srgb, var(--plink) 30%, var(--pborder)); border-radius: 16px; padding: 20px 24px;
+  background: color-mix(in srgb, var(--plink) 6%, #fff); margin-bottom: 16px; }
+.i2-label { font-size: .78rem; font-weight: 700; letter-spacing: .05em; color: var(--plink); text-transform: uppercase; }
+.i2-goal-text { margin: 6px 0 0; color: var(--phead); font-family: var(--font-head); font-weight: 700;
+  font-size: clamp(1.15rem, 2.2vw, 1.5rem); line-height: 1.5; }
+.i2-cores { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.i2-core { border: 1px solid var(--pborder); border-radius: 14px; padding: 16px 20px 18px; background: #fff; }
+.i2-core-wide { grid-column: 1 / -1; }
+.i2-core h3 { margin: 8px 0 .35em; font-size: clamp(1.05rem, 1.8vw, 1.2rem); color: var(--phead); }
+.i2-core p { margin: 0; color: var(--pmuted); font-size: .96rem; line-height: 1.65; }
+
+/* 연구 기간 로드맵 (1~8차년도) */
+.i2-period { margin: 0 0 14px; color: var(--pmuted); display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.i2-period strong { font-family: var(--font-head); font-size: clamp(1.2rem, 2.2vw, 1.5rem); color: var(--phead); }
+.i2-roadmap { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.i2-roadmap li { position: relative; border: 1px solid var(--pborder); border-radius: 12px; padding: 12px 14px 14px; background: #fff; }
+.i2-roadmap li.is-now { border-color: var(--plink); box-shadow: 0 0 0 2px color-mix(in srgb, var(--plink) 22%, transparent);
+  background: color-mix(in srgb, var(--plink) 6%, #fff); }
+.i2-yr { display: flex; align-items: baseline; justify-content: space-between; gap: 6px;
+  font-family: var(--font-head); font-weight: 700; color: var(--phead); }
+.i2-yy { font-family: var(--font-body); font-weight: 500; font-size: .82rem; color: var(--pmuted); }
+.i2-yt { display: block; margin-top: 6px; color: var(--pfg); font-size: .9rem; line-height: 1.5; }
+.i2-now { display: none; position: absolute; top: -10px; right: 12px; font-size: .7rem; font-weight: 700; color: #fff;
+  background: var(--plink); border-radius: 999px; padding: 2px 9px; }
+.i2-roadmap li.is-now .i2-now { display: inline-block; }
+
+/* 연구 내용 · 세부과제 */
+.i2-fig { margin: 0; }
+.i2-fig .ra-fig { max-width: 100%; margin-top: 0; }
+.i2-fig figcaption { text-align: center; color: var(--pmuted); font-size: .86rem; margin-top: 8px; }
+.i2-subs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.i2-sub { display: flex; flex-direction: column; border: 1px solid var(--pborder); border-radius: 14px;
+  padding: 16px 20px 16px; background: #fff; scroll-margin-top: 84px; }
+.i2-sub .i2-tag { align-self: flex-start; }
+.i2-sub-title { margin: 8px 0 .5em; font-family: var(--font-head); font-size: clamp(1.05rem, 1.8vw, 1.18rem);
+  line-height: 1.4; color: var(--phead); }
+.i2-sub ul { margin: 0 0 14px; padding-left: 1.15em; }
+.i2-sub li { color: #3a4452; font-size: .94rem; margin: .3em 0; line-height: 1.5; }
+.i2-sub-meta { margin: auto 0 0; padding-top: 12px; border-top: 1px dashed var(--pborder); display: grid; gap: 5px; font-size: .87rem; }
+.i2-sub-meta div { display: grid; grid-template-columns: 5.2em 1fr; gap: 8px; }
+.i2-sub-meta dt { color: var(--plink); font-weight: 700; }
+.i2-sub-meta dd { margin: 0; color: var(--pfg); line-height: 1.5; }
+
+/* 센터 운영 체계 (센터장 → 위원회 · 세부과제) */
+.i2-org { display: grid; gap: 26px; }
+.i2-org-row { position: relative; display: grid; gap: 10px; }
+.i2-org-row + .i2-org-row::before { content: ""; position: absolute; left: 50%; top: -26px; height: 26px;
+  border-left: 2px solid var(--pborder); }
+.i2-org-cmt, .i2-org-subs { grid-template-columns: repeat(4, 1fr); }
+.i2-org-cap { grid-column: 1 / -1; margin: 0; text-align: center; font-size: .78rem; font-weight: 700;
+  letter-spacing: .04em; color: var(--pmuted); }
+.i2-org-top { justify-self: center; text-align: center; background: var(--phead); color: #fff; border-radius: 12px; padding: 10px 30px; }
+.i2-org-top span { display: block; font-size: .78rem; opacity: .85; }
+.i2-org-top strong { display: block; font-family: var(--font-head); font-size: 1.15rem; }
+.i2-org-box { border: 1px solid var(--pborder); border-radius: 12px; background: #fff; padding: 12px 12px; text-align: center; }
+.i2-org-box strong { display: block; color: var(--phead); font-size: .95rem; line-height: 1.35; }
+.i2-org-box span { display: block; color: var(--plink); font-size: .84rem; font-weight: 600; margin-top: 3px; }
+.i2-org-box small { display: block; color: var(--pmuted); font-size: .76rem; margin-top: 6px; line-height: 1.45; }
+.i2-org-sub { display: block; text-align: center; border-radius: 12px; padding: 12px 10px; color: var(--phead);
+  background: color-mix(in srgb, var(--plink) 10%, #fff); border: 1px solid color-mix(in srgb, var(--plink) 28%, #fff);
+  transition: border-color .15s, transform .15s; }
+.i2-org-sub:hover { text-decoration: none; border-color: var(--plink); transform: translateY(-1px); }
+.i2-org-sub strong { display: block; font-family: var(--font-head); }
+.i2-org-sub span { display: block; font-size: .84rem; color: var(--pfg); margin-top: 2px; line-height: 1.35; }
+
+/* 국내외 협력기관 로고 */
+.i2-pgroup { margin: 14px 0 8px; color: var(--phead); font-weight: 700; font-size: .95rem; }
+.i2-logos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.i2-logos li { height: 118px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 10px 10px; background: #fff; border: 1px solid var(--pborder); border-radius: 12px; }
+.i2-logos img { display: block; max-width: 100%; max-height: 62px; width: auto; height: auto; object-fit: contain; }
+.i2-logos span { font-size: .72rem; color: var(--pmuted); text-align: center; line-height: 1.25; }
+
+/* 참여연구원 (세부별 교수·기업 카드) */
+.i2-group { scroll-margin-top: 84px; }
+.i2-group + .i2-group { margin-top: 30px; }
+.i2-group-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 12px; padding-bottom: 8px;
+  border-bottom: 2px solid var(--pborder); color: var(--phead); font-size: clamp(1.05rem, 2vw, 1.25rem); line-height: 1.4; }
+.i2-group-no { flex: none; font-family: var(--font-body); font-size: .76rem; font-weight: 700; color: #fff;
+  background: var(--phead); border-radius: 999px; padding: 3px 11px; }
+.i2-pc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.i2-pc { display: grid; grid-template-columns: 88px 1fr; gap: 14px; border: 1px solid var(--pborder); border-radius: 14px;
+  padding: 14px; background: #fff; transition: box-shadow .15s; }
+.i2-pc:hover { box-shadow: 0 6px 22px rgba(0,0,0,.06); }
+.i2-pc-photo { width: 88px; height: 110px; border-radius: 10px; overflow: hidden; background: var(--soft); }
+.i2-pc-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.i2-pc.is-company .i2-pc-photo { display: flex; align-items: center; justify-content: center; padding: 8px;
+  background: #fff; border: 1px solid var(--pborder); }
+.i2-pc.is-company .i2-pc-photo img { height: auto; max-height: 100%; object-fit: contain; }
+.i2-pc-info { min-width: 0; }
+.i2-pc-name { margin: 2px 0 4px; font-size: 1.1rem; line-height: 1.3; color: var(--pfg); }
+.i2-pc-name .p-name-ko { display: block; margin: 1px 0 0; font-size: .8em; }
+.i2-pc-aff { margin: 0; color: var(--phead); font-size: .86rem; line-height: 1.4; }
+.i2-pc-role { margin: 6px 0 0; color: var(--pmuted); font-size: .86rem; line-height: 1.45; }
+.i2-pc-links { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+.i2-badge { display: inline-block; margin-bottom: 4px; font-size: .7rem; font-weight: 700; color: #fff;
+  background: var(--plink); border: 1px solid var(--plink); border-radius: 999px; padding: 1px 9px; }
+.i2-badge.is-outline { color: var(--plink); background: transparent; }
+
+@media (max-width: 760px) {
+  .i2-hero-grid { grid-template-columns: 1fr; gap: 18px; }
+  .i2-logo { width: 140px; }
+  .i2-facts, .i2-roadmap, .i2-org-cmt, .i2-org-subs { grid-template-columns: repeat(2, 1fr); }
+  .i2-cores, .i2-subs { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) { .i2-pc-grid { grid-template-columns: 1fr; } }
+@media (max-width: 420px) {
+  .i2-pc { grid-template-columns: 76px 1fr; }
+  .i2-pc-photo { width: 76px; height: 96px; }
+}

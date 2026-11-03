@@ -28,7 +28,7 @@
   var quick = [
     ["index.html", "Home"], ["about.html", "About"], ["people.html", "People"],
     ["journal.html", "Publications"], ["projects.html", "Projects"],
-    ["news.html", "News"], ["contact.html", "Contact"],
+    ["news.html", "News"], ["i2sac.html", "I²SAC"], ["contact.html", "Contact"],
   ];
 
   var ext = [];
