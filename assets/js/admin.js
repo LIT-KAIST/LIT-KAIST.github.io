@@ -697,6 +697,8 @@
     if (auBox) setupAuthors(auBox);
     // 저널/학회 위젯(Publications)
     Array.prototype.forEach.call(f.querySelectorAll(".ve-box"), setupVenues);
+    var kvBox = f.querySelector(".kv-box");   // 국내 학술대회 양식
+    if (kvBox) setupKVenue(kvBox);
     // 알림 수신 구성원 체크박스(Mail)
     Array.prototype.forEach.call(f.querySelectorAll(".rc-box"), setupRecipients);
     // 관련 앨범 드롭다운(News)
@@ -833,6 +835,7 @@
       return '<label class="am-field">' + lab +
         '<select class="albref" data-name="' + fd.name + '" data-cur="' + esc(v) + '"><option value="">— 연동 안 함 —</option></select></label>';
     }
+    if (fd.type === "venue" && fd.venueType === "conference" && curPubTarget === "conference_domestic") return kvenueHtml(fd, row);
     if (fd.type === "venue") {
       return '<label class="am-field">' + lab +
         '<input type="text" class="ve-input" data-name="' + fd.name + '" value="' + esc(v) + '">' +
@@ -1032,6 +1035,87 @@
       commitVenue("remove", vtype, n).catch(function (e) { setFormMsg("삭제 실패: " + e.message, "err"); });
     }
   }
+  /* ---------------- 국내 학술대회 양식 (Conference · Domestic) ----------------
+     저장 양식: "학회, 행사명, 개최지, 대한민국, 연도"   예) KICS, 추계종합학술발표회, 경주, 대한민국, 2025
+     행사를 고르고 개최지만 넣으면 이 양식으로 자동 작성 (연도 = 날짜 칸). 목록에 없는 학회는 '직접 입력'. */
+  var KV_EVENTS = [
+    { id: "kics-summer", soc: "KICS", ko: "하계종합학술발표회", en: "KICS Summer Conference" },
+    { id: "kics-fall", soc: "KICS", ko: "추계종합학술발표회", en: "KICS Fall Conference" },
+    { id: "kics-winter", soc: "KICS", ko: "동계종합학술발표회", en: "KICS Winter Conference" },
+    { id: "jcci", soc: "JCCI", ko: "통신정보합동학술대회", en: "JCCI" },
+  ];
+  var KV_CITIES = ["제주", "경주", "여수", "부산", "용평", "평창", "정선", "강릉", "속초", "서울", "대전", "인천", "수원", "대구", "광주"];
+  function kvEvent(id) { return KV_EVENTS.filter(function (e) { return e.id === id; })[0] || null; }
+  // 문자열 → 행사. '…발표회'(한국통신학회 명칭)이거나 KICS/한국통신학회가 적힌 경우만 KICS 로 판별
+  // ('하계종합학술대회'만 있으면 대한전자공학회 행사와 이름이 같아 판별하지 않음 → 직접 입력으로 그대로 유지)
+  function kvMatch(s) {
+    var h = String(s || "").replace(/\s+/g, "");
+    if (/통신정보합동학술대회|JCCI/i.test(h)) return kvEvent("jcci");
+    var m = h.match(/(하계|추계|동계)종합학술(발표회|대회)/);
+    if (!m || !(m[2] === "발표회" || /KICS|한국통신학회/i.test(h))) return null;
+    return kvEvent({ "하계": "kics-summer", "추계": "kics-fall", "동계": "kics-winter" }[m[1]]);
+  }
+  // 기존 값(booktitle/organization, 옛 데이터는 address 칸에 개최지) → { ev, free, city }
+  function kvParse(s, addr) {
+    var t = String(s || "").split(/\s*,\s*/).map(function (x) { return x.trim(); }).filter(Boolean);
+    if (t.length && /^(19|20)\d{2}\.?$/.test(t[t.length - 1])) t.pop();   // 끝의 연도
+    var city = "", ki = t.indexOf("대한민국");
+    if (ki >= 0) { if (ki > 0) city = t[ki - 1]; t.splice(Math.max(ki - 1, 0), ki > 0 ? 2 : 1); }
+    var ev = kvMatch(t.join(", "));
+    if (ev && !city && t.length > 1) {   // "KICS, 추계종합학술발표회, 경주" 처럼 대한민국 없이 끝난 경우
+      var last = t[t.length - 1];
+      if (!kvMatch(last) && !/^(KICS|JCCI|한국통신학회)$/i.test(last)) city = last;
+    }
+    if (!city && addr) { var a = String(addr).split(/\s*,\s*/)[0].trim(); if (a && a !== "대한민국") city = a; }
+    return { ev: ev ? ev.id : "", free: ev ? "" : t.join(", "), city: city };
+  }
+  function kvCompose(st, year) {
+    var ev = kvEvent(st.ev);
+    var head = ev ? ev.soc + ", " + ev.ko : String(st.free || "").trim().replace(/,?\s*(19|20)\d{2}\.?$/, "");
+    if (!head) return "";
+    return [head].concat(st.city ? [st.city, "대한민국"] : [], year ? [year] : []).join(", ");
+  }
+  function kvYear() {
+    var d = document.querySelector('#admForm [data-name="date"]');
+    return (d && /^\d{4}/.test(d.value)) ? d.value.slice(0, 4) : String(new Date().getFullYear());
+  }
+  // 자동 뉴스용 이름 — { short: "KICS Fall Conference 2025", ko: "2025년도 한국통신학회 추계종합학술발표회(KICS Fall Conference 2025)" }
+  function kvNewsNames(booktitle, date) {
+    var ev = kvMatch(booktitle);
+    if (!ev) return null;
+    var y = (String(booktitle).match(/\b((?:19|20)\d{2})\.?\s*$/) || [])[1] || String(date || "").slice(0, 4);
+    var short = ev.en + (y ? " " + y : "");
+    return { short: short, ko: (y ? y + "년도 " : "") + (ev.soc === "KICS" ? "한국통신학회 " : "") + ev.ko + "(" + short + ")" };
+  }
+  function kvenueHtml(fd, row) {
+    var st = kvParse(row ? (row.booktitle || row.organization || row.note || "") : "", row && row.address);
+    var opts = KV_EVENTS.map(function (e) {
+      return '<option value="' + e.id + '"' + (st.ev === e.id ? " selected" : "") + ">" + esc(e.soc + " " + e.ko) + "</option>";
+    }).join("") + '<option value=""' + (st.ev ? "" : " selected") + ">직접 입력 (목록에 없는 학회)</option>";
+    return '<label class="am-field"><span>학술대회 (국내) — 행사를 고르고 개최지만 넣으면 "학회, 행사명, 개최지, 대한민국, 연도" 양식으로 저장 (연도 = 날짜 칸)</span>' +
+      '<input type="hidden" data-name="' + fd.name + '" value="' + esc(row ? (row[fd.name] || "") : "") + '">' +
+      '<div class="kv-box">' +
+        '<select class="kv-ev">' + opts + "</select>" +
+        '<input type="text" class="kv-free" placeholder="학회, 행사명 (예: KICS, 부호 및 정보이론 연구회 워크샵)" value="' + esc(st.free) + '">' +
+        '<input type="text" class="kv-city" list="kvCityList" placeholder="개최지 (예: 제주)" value="' + esc(st.city) + '">' +
+        '<datalist id="kvCityList">' + KV_CITIES.map(function (c) { return '<option value="' + esc(c) + '">'; }).join("") + "</datalist>" +
+      '</div><div class="kv-preview muted"></div></label>';
+  }
+  function setupKVenue(box) {
+    var field = box.parentNode, hidden = field.querySelector("input[type=hidden][data-name]");
+    var sel = box.querySelector(".kv-ev"), free = box.querySelector(".kv-free"), city = box.querySelector(".kv-city");
+    var preview = field.querySelector(".kv-preview"), date = document.querySelector('#admForm [data-name="date"]');
+    function sync() {
+      free.style.display = sel.value ? "none" : "";
+      var s = kvCompose({ ev: sel.value, free: free.value, city: city.value.trim() }, kvYear());
+      hidden.value = s;
+      preview.textContent = s ? "저장·표시: " + s : "행사를 고르거나 학회명을 입력하세요";
+    }
+    [sel, free, city].forEach(function (el) { el.addEventListener("input", sync); el.addEventListener("change", sync); });
+    if (date) date.addEventListener("input", sync);
+    sync();
+  }
+
   // 알림 수신 구성원 체크박스 (체크=받음, 미체크 이름을 exclude 에 저장)
   function setupRecipients(box) {
     var hidden = box.parentNode.querySelector('input[type=hidden][data-name]');
@@ -1419,7 +1503,9 @@
       var stamp = (row.date && /^\d{4}-\d{2}-\d{2}/.test(row.date)) ? row.date : nowStamp();
       var nd = /\d{2}:\d{2}/.test(stamp) ? stamp : (stamp.slice(0, 10) + " " + nowStamp().slice(11));
       // 제목엔 짧은 이름 사용: 학회 "…(ICC 2026)" → "ICC 2026", 저널은 전체명
-      var vm = venue.match(/\(([^)]+)\)\s*$/), short = vm ? vm[1].trim() : venue;
+      // 국내 학회(KICS·JCCI)는 정해진 이름: 제목 "KICS Fall Conference 2025", 본문 "2025년도 한국통신학회 추계종합학술발표회(KICS Fall Conference 2025)"
+      var dom = curPubTarget === "conference_domestic" ? kvNewsNames(row.booktitle, row.date) : null;
+      var vm = venue.match(/\(([^)]+)\)\s*$/), short = dom ? dom.short : (vm ? vm[1].trim() : venue);
       var byEn = '"' + title + (authorsEn ? " by " + authorsEn : "") + '"';
       var koPaper = /[가-힣]/.test(title)
         ? '"' + title + '" 논문' + (authorsKo ? "(" + authorsKo + ")" : "") + "이"
@@ -1427,8 +1513,8 @@
       var nr = { date: nd, year: nd.slice(0, 4), forum: "Board",
         title: short + " 논문이 게재되었습니다!",
         title_en: short + " paper is accepted!",
-        content: koPaper + " " + venue + "에 게재되었습니다. 축하드립니다!",
-        content_en: "One paper " + byEn + " has been accepted to " + venue + "! Congratulations!",
+        content: koPaper + " " + (dom ? dom.ko : venue) + "에 게재되었습니다. 축하드립니다!",
+        content_en: "One paper " + byEn + " has been accepted to " + (dom ? dom.short : venue) + "! Congratulations!",
         links: "", status: "publish" };
       return commitCsv("data/news.csv", "Auto news for accepted paper: " + title.slice(0, 60), function (rows) {
         var ix = colIndex(rows);

@@ -815,6 +815,12 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .ve-del { border: 0; background: transparent; color: #c0392b; cursor: pointer; font-size: .7rem; padding: 2px 4px; margin-left: -2px; border-radius: 4px; }
 .ve-del:hover { background: rgba(192,57,43,.12); }
 .ve-save { white-space: nowrap; align-self: flex-start; }
+/* admin 국내 학술대회 양식 (행사 선택 + 개최지) */
+.kv-box { display: flex; flex-wrap: wrap; gap: 6px; }
+.am-field .kv-box .kv-ev { flex: 1 1 220px; width: auto; }
+.am-field .kv-box .kv-free { flex: 2 1 260px; width: auto; }
+.am-field .kv-box .kv-city { flex: 1 1 120px; width: auto; }
+.kv-preview { font-size: .85rem; margin-top: 4px; }
 /* am-field 안의 체크박스/라디오는 전체너비 인풋 스타일 해제 (밀림 방지) */
 .am-field input[type="checkbox"], .am-field input[type="radio"] {
   width: auto; padding: 0; margin: 0; border: 0; background: none; flex: 0 0 auto;
