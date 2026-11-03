@@ -30,8 +30,8 @@ KAIST 정보전송연구실(LIT) 웹사이트입니다. **빌드 도구 없이 �
 ```
 assets/
 ├── css/style.css
-├── js/  (pubs, people, album, news, projects, seminar, about, home,
-│         i18n, reveal, hero, zoom, sitetext, admin)
+├── js/  (pubs, people, album, news, projects, seminar, about, i2sac,
+│         i18n, reveal, zoom, sitetext, admin, …)
 ├── img/
 │   ├── people/{faculty,members,alumni}/   인물 사진
 │   ├── album/<year>/<month>/              앨범 사진
