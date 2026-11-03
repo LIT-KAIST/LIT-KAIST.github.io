@@ -1258,7 +1258,9 @@ html[lang="en"] .i2-goal-text { font-size: 1rem; }
   transition: background .15s, color .15s, border-color .15s; }
 .i2-pano-btn:hover:not(:disabled) { background: var(--phead); border-color: var(--phead); color: #fff; }
 .i2-pano-btn:disabled { opacity: .3; cursor: default; }
-.i2-roadmap { --g: 32px; position: relative; list-style: none; margin: 0; padding: 0 0 4px;
+.i2-roadmap { --g: 32px; position: relative; list-style: none;
+  /* 가로 스크롤 영역은 바깥을 잘라내므로, 올해 점의 테두리 빛(5px)이 잘리지 않게 사방 여백 8px — 정렬은 음수 margin 으로 유지 */
+  margin: 0 -8px; padding: 8px 8px 4px; scroll-padding-inline: 8px;
   display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 3 * var(--g)) / 3.4); column-gap: var(--g);
   overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; overscroll-behavior-x: contain; }
 .i2-roadmap::-webkit-scrollbar { display: none; }
