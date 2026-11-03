@@ -56,7 +56,8 @@ Rules:
 - For a Korean person name not in the glossary, romanize it as given name then family name (e.g. 홍길동 → Gildong Hong).
 - Write dates naturally in English (e.g. "10/15" → "October 15", "8월 26일 (수)" → "Wednesday, August 26").
 - Keep the line breaks of the source.
-- Titles are short headlines; contents are full sentences."""
+- Titles are short headlines; contents are full sentences.
+- In titles, refer to people by name only: drop position labels attached to a name, such as 박사과정, 석사과정, 석박통합과정 or 박사후연구원 (e.g. "김현우 박사과정 훈련소 입소" → "Hyunwoo Kim enters military basic training"). Keep the degree or position when it is what the news is about, such as an admission, a graduation, a dissertation defense or an appointment."""
 
 SCHEMA = {
     "type": "object",
@@ -222,14 +223,23 @@ def collect():
     summary(f"### 번역할 칸: {len(items)}개\n" + "".join(f"- {it['_where']}\n" for it in items))
     out("count", len(items))
 
+def with_english_names(text, names):
+    """명단에 있는 한글 이름(3자 이상)을 영문 표기로 바꿔 둠 — 번역 중 표기가 흔들리지 않게."""
+    for ko in sorted(names, key=len, reverse=True):
+        if len(ko) >= 3 and ko in text:
+            text = text.replace(ko, names[ko])
+    return text
+
 def translate():
     job_path = os.path.join(WORK, "job.json")
     job = json.load(open(job_path))
     want = {it["id"]: it for it in job["items"]}
+    names = {k: v for k, v in job["glossary"].items() if k not in TERMS}
+    payload = dict(job, items=[dict(it, ko=with_english_names(it["ko"], names)) for it in job["items"]])
     exe = shutil.which("claude") or os.path.expanduser("~/.local/bin/claude")
     # 도구 없이(--tools "") 번역문만, JSON 스키마로 검증된 결과를 받음. 작업 폴더 밖(WORK)에서 실행.
     cmd = [exe, "-p", PROMPT, "--output-format", "json", "--json-schema", json.dumps(SCHEMA), "--tools", ""]
-    r = subprocess.run(cmd, input=open(job_path).read(), capture_output=True, text=True, cwd=WORK, timeout=1200)
+    r = subprocess.run(cmd, input=json.dumps(payload, ensure_ascii=False), capture_output=True, text=True, cwd=WORK, timeout=1200)
     try:
         resp = json.loads(r.stdout)
     except ValueError:
