@@ -1,0 +1,76 @@
+name: Translate Korean to English
+
+# 뉴스·앨범에서 한국어만 있고 영어 칸이 빈 글을 Claude 로 번역해 영어 칸을 채움.
+# 이미 영어가 있는 칸은 덮어쓰지 않음. 동작·규칙은 .github/scripts/translate.py 참고.
+# 인증: 저장소 Secret CLAUDE_CODE_OAUTH_TOKEN (`claude setup-token` 으로 만든 1년짜리 구독 토큰).
+on:
+  push:
+    branches: [main]
+    paths:
+      - data/news.csv
+      - data/album.csv
+  schedule:
+    - cron: '30 0 * * *'   # 매일 09:30 KST — 실패·한도 초과로 남은 빈칸 다시 시도
+  workflow_dispatch: {}     # Actions 탭에서 수동 실행 가능
+
+permissions:
+  contents: write
+  pages: write              # 커밋 후 GitHub Pages 재빌드 요청용
+
+concurrency:
+  group: translate
+  cancel-in-progress: false
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      WORK: ${{ runner.temp }}/translate
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Find Korean text without English
+        id: collect
+        run: python .github/scripts/translate.py collect
+
+      - name: Install Claude Code
+        if: steps.collect.outputs.count != '0'
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Translate with Claude
+        if: steps.collect.outputs.count != '0'
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: python .github/scripts/translate.py translate
+
+      - name: Fill English fields and commit
+        if: steps.collect.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # 번역하는 동안 admin 이 커밋했을 수 있으므로 최신 main 에 다시 적용해서 올림 (최대 3번)
+          for i in 1 2 3; do
+            git fetch -q origin main
+            git reset -q --hard origin/main
+            python .github/scripts/translate.py apply
+            if git diff --quiet -- data/; then echo "nothing to write"; exit 0; fi
+            git add data/news.csv data/album.csv
+            git commit -q -F "$WORK/commit_msg.txt"
+            if git push -q origin HEAD:main; then pushed=1; break; fi
+            sleep 5
+          done
+          [ "$pushed" = 1 ] || { echo "push failed"; exit 1; }
+          # 봇(GITHUB_TOKEN) 커밋은 Pages 자동 빌드가 안 될 수 있어 명시적으로 요청 (실패해도 무시)
+          curl -fsS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages/builds" || true

@@ -3,6 +3,8 @@
    - data/album.csv 를 pubs.js 파서로 읽습니다.
    - image_files 는 '|' 로 구분된 상대경로 (베이스: assets/img/album/)
    - status === 'publish' 만 표시합니다.
+   - 영어 화면에서는 title_en / content_en 을 쓰고, 비어 있으면 한국어를 보여 줍니다
+     (영어 칸은 .github/workflows/translate.yml 이 자동으로 채움).
    ========================================================================== */
 (function (global) {
   var P = global.Pubs;
@@ -19,6 +21,12 @@
       .split("|")
       .map(function (s) { return s.trim(); })
       .filter(Boolean);
+  }
+
+  // 현재 언어의 제목·설명 (영어가 비어 있으면 한국어로)
+  function tx(row, field) {
+    var en = global.LitI18n && global.LitI18n.get() === "en";
+    return (en && (row[field + "_en"] || "").trim()) || row[field] || "";
   }
 
   function isVideo(path) { return /\.(mp4|webm|mov|m4v)$/i.test(path || ""); }
@@ -59,6 +67,11 @@
         buildFilter();
         render();
         buildLightbox();
+        // 한/영 전환 시 카드와 열린 앨범 설명을 다시 그림
+        document.addEventListener("lit:lang", function () {
+          render();
+          if (curRow && lb && lb.getAttribute("aria-hidden") === "false") updateMeta();
+        });
         // 뉴스 등에서 넘어온 딥링크(?a=<date>) → 해당 앨범 자동 열기
         var qa = null;
         try { qa = new URLSearchParams(location.search).get("a"); } catch (e) {}
@@ -103,7 +116,7 @@
         : (isVideo(thumb)
             ? '<video class="ac-vid" src="' + esc(BASE + thumb) + '#t=0.1" muted preload="metadata" playsinline></video>' +
               '<span class="ac-play" aria-hidden="true">▶</span>'
-            : '<img src="' + esc(BASE + thumb) + '" alt="' + esc(row.title) +
+            : '<img src="' + esc(BASE + thumb) + '" alt="' + esc(tx(row, "title")) +
               '" loading="lazy" onerror="this.classList.add(\'p-imgerr\')">');
       return (
         '<button class="album-card reveal" type="button" data-idx="' + idx + '">' +
@@ -116,9 +129,9 @@
             "</span>" +
           "</span>" +
           '<span class="ac-body">' +
-            '<span class="ac-title">' + esc(row.title) + "</span>" +
+            '<span class="ac-title">' + esc(tx(row, "title")) + "</span>" +
             '<span class="ac-date">' + esc(dateLabel(row)) + "</span>" +
-            (row.content ? '<span class="ac-desc">' + esc(row.content) + "</span>" : "") +
+            (tx(row, "content") ? '<span class="ac-desc">' + esc(tx(row, "content")) + "</span>" : "") +
           "</span>" +
         "</button>"
       );
@@ -261,11 +274,11 @@
     // 제목/날짜/설명/카운터/네비/스택 표시 (이미지와 무관, 즉시)
     function updateMeta() {
       var multi = curImgs.length > 1;
-      lbImg.alt = (curRow.title || "") + " (" + (curPos + 1) + ")";
+      lbImg.alt = tx(curRow, "title") + " (" + (curPos + 1) + ")";
       lbCap.innerHTML =
-        "<strong>" + esc(curRow.title) + "</strong>" +
+        "<strong>" + esc(tx(curRow, "title")) + "</strong>" +
         '<span class="lb-date">' + esc(dateLabel(curRow)) + "</span>" +
-        (curRow.content ? '<span class="lb-desc">' + esc(curRow.content) + "</span>" : "");
+        (tx(curRow, "content") ? '<span class="lb-desc">' + esc(tx(curRow, "content")) + "</span>" : "");
       lbCounter.textContent = multi ? (curPos + 1) + " / " + curImgs.length : "";
       lbPrev.style.display = multi ? "" : "none";
       lbNext.style.display = multi ? "" : "none";
