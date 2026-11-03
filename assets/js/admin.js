@@ -1073,7 +1073,11 @@
     var ev = kvEvent(st.ev);
     var head = ev ? ev.soc + ", " + ev.ko : String(st.free || "").trim().replace(/,?\s*(19|20)\d{2}\.?$/, "");
     if (!head) return "";
-    return [head].concat(st.city ? [st.city, "대한민국"] : [], year ? [year] : []).join(", ");
+    var parts = [head];
+    if (st.city) parts.push(st.city);                    // 개최지를 모르면 그 자리만 비움
+    parts.push("대한민국");
+    if (year && head.indexOf(year) < 0) parts.push(year); // "JC-SAT 2008"처럼 이미 연도가 있으면 생략
+    return parts.join(", ");
   }
   function kvYear() {
     var d = document.querySelector('#admForm [data-name="date"]');
