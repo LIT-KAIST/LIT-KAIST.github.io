@@ -821,6 +821,7 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .am-field .kv-box .kv-free { flex: 2 1 260px; width: auto; }
 .am-field .kv-box .kv-city { flex: 1 1 120px; width: auto; }
 .kv-preview { font-size: .85rem; margin-top: 4px; }
+.kv-apply { margin-top: 6px; }
 /* am-field 안의 체크박스/라디오는 전체너비 인풋 스타일 해제 (밀림 방지) */
 .am-field input[type="checkbox"], .am-field input[type="radio"] {
   width: auto; padding: 0; margin: 0; border: 0; background: none; flex: 0 0 auto;

@@ -1044,7 +1044,7 @@
     { id: "kics-winter", soc: "KICS", ko: "동계종합학술발표회", en: "KICS Winter Conference" },
     { id: "jcci", soc: "JCCI", ko: "통신정보합동학술대회", en: "JCCI" },
   ];
-  var KV_CITIES = ["제주", "경주", "여수", "부산", "용평", "평창", "정선", "강릉", "속초", "서울", "대전", "인천", "수원", "대구", "광주"];
+  var KV_CITIES = ["제주", "경주", "홍천", "여수", "부산", "용평", "평창", "정선", "강릉", "속초", "서울", "대전", "인천", "수원", "대구", "광주"];
   function kvEvent(id) { return KV_EVENTS.filter(function (e) { return e.id === id; })[0] || null; }
   // 문자열 → 행사. '…발표회'(한국통신학회 명칭)이거나 KICS/한국통신학회가 적힌 경우만 KICS 로 판별
   // ('하계종합학술대회'만 있으면 대한전자공학회 행사와 이름이 같아 판별하지 않음 → 직접 입력으로 그대로 유지)
@@ -1087,33 +1087,50 @@
     var short = ev.en + (y ? " " + y : "");
     return { short: short, ko: (y ? y + "년도 " : "") + (ev.soc === "KICS" ? "한국통신학회 " : "") + ev.ko + "(" + short + ")" };
   }
+  // 새 항목은 고른 대로 바로 양식 적용. 기존 항목은 수정 창을 열어도 학회명을 그대로 두고,
+  // 행사·개최지를 바꾸거나 '양식으로 바꾸기'를 눌렀을 때만 양식으로 저장 (이미 양식대로인 값은 날짜를 바꾸면 연도만 따라감)
   function kvenueHtml(fd, row) {
-    var st = kvParse(row ? (row.booktitle || row.organization || row.note || "") : "", row && row.address);
+    var shown = row ? (row.booktitle || row.organization || row.note || "") : "";   // 사이트에 지금 보이는 학회명
+    var st = kvParse(shown, row && row.address);
     var opts = KV_EVENTS.map(function (e) {
       return '<option value="' + e.id + '"' + (st.ev === e.id ? " selected" : "") + ">" + esc(e.soc + " " + e.ko) + "</option>";
     }).join("") + '<option value=""' + (st.ev ? "" : " selected") + ">직접 입력 (목록에 없는 학회)</option>";
     return '<label class="am-field"><span>학술대회 (국내) — 행사를 고르고 개최지만 넣으면 "학회, 행사명, 개최지, 대한민국, 연도" 양식으로 저장 (연도 = 날짜 칸)</span>' +
       '<input type="hidden" data-name="' + fd.name + '" value="' + esc(row ? (row[fd.name] || "") : "") + '">' +
-      '<div class="kv-box">' +
+      '<div class="kv-box" data-edit="' + (row ? "1" : "") + '" data-shown="' + esc(shown) + '">' +
         '<select class="kv-ev">' + opts + "</select>" +
         '<input type="text" class="kv-free" placeholder="학회, 행사명 (예: KICS, 부호 및 정보이론 연구회 워크샵)" value="' + esc(st.free) + '">' +
         '<input type="text" class="kv-city" list="kvCityList" placeholder="개최지 (예: 제주)" value="' + esc(st.city) + '">' +
         '<datalist id="kvCityList">' + KV_CITIES.map(function (c) { return '<option value="' + esc(c) + '">'; }).join("") + "</datalist>" +
-      '</div><div class="kv-preview muted"></div></label>';
+      '</div><div class="kv-preview muted"></div>' +
+      '<button type="button" class="adm-btn kv-apply" style="display:none">양식으로 바꾸기</button></label>';
   }
   function setupKVenue(box) {
     var field = box.parentNode, hidden = field.querySelector("input[type=hidden][data-name]");
     var sel = box.querySelector(".kv-ev"), free = box.querySelector(".kv-free"), city = box.querySelector(".kv-city");
-    var preview = field.querySelector(".kv-preview"), date = document.querySelector('#admForm [data-name="date"]');
-    function sync() {
+    var preview = field.querySelector(".kv-preview"), apply = field.querySelector(".kv-apply");
+    var date = document.querySelector('#admForm [data-name="date"]');
+    var orig = hidden.value, shown = box.getAttribute("data-shown") || "";
+    function composed() { return kvCompose({ ev: sel.value, free: free.value, city: city.value.trim() }, kvYear()); }
+    var live = !box.getAttribute("data-edit") || composed() === orig;
+    function render() {
       free.style.display = sel.value ? "none" : "";
-      var s = kvCompose({ ev: sel.value, free: free.value, city: city.value.trim() }, kvYear());
-      hidden.value = s;
-      preview.textContent = s ? "저장·표시: " + s : "행사를 고르거나 학회명을 입력하세요";
+      var s = composed();
+      if (live) {
+        hidden.value = s;
+        preview.textContent = s ? "저장·표시: " + s : "행사를 고르거나 학회명을 입력하세요";
+      } else {
+        hidden.value = orig;
+        preview.textContent = "지금 값 그대로 저장: " + (shown || "(비어 있음)") +
+          (s ? '  ·  행사·개최지를 바꾸거나 아래 버튼을 누르면 → "' + s + '"' : "");
+      }
+      apply.style.display = live || !s ? "none" : "";
     }
-    [sel, free, city].forEach(function (el) { el.addEventListener("input", sync); el.addEventListener("change", sync); });
-    if (date) date.addEventListener("input", sync);
-    sync();
+    function touch() { live = true; render(); }
+    [sel, free, city].forEach(function (el) { el.addEventListener("input", touch); el.addEventListener("change", touch); });
+    apply.addEventListener("click", function (e) { e.preventDefault(); touch(); });
+    if (date) date.addEventListener("input", render);
+    render();
   }
 
   // 알림 수신 구성원 체크박스 (체크=받음, 미체크 이름을 exclude 에 저장)
