@@ -1,4 +1,4 @@
-"""한국어만 있는 글의 영어 칸을 Claude 로 채움 (.github/workflows/translate.yml 에서 실행).
+"""앨범에서 한국어만 있는 글의 영어 칸을 Claude 로 채움 (.github/workflows/translate.yml 에서 실행).
 
   python translate.py collect    영어 칸이 빈 항목을 모아 $WORK/job.json 으로 (GITHUB_OUTPUT 에 count)
   python translate.py translate  job.json → Claude Code(구독 토큰) → $WORK/result.json (검증 포함)
@@ -18,9 +18,8 @@ WORK = os.environ.get("WORK") or os.path.join(ROOT, ".translate-work")
 SINCE = "2025-01-01"          # 이 날짜 이후 글만 (옛 글엔 예전 홈페이지 HTML 이 섞여 있음)
 MAX_ITEMS = 150               # 한 번에 번역할 최대 칸 수 (나머지는 다음 실행)
 
-# 번역 대상: 파일 → 한국어 칸 → 영어 칸. 행은 date 칸으로 식별.
+# 번역 대상: 파일 → 한국어 칸 → 영어 칸. 행은 date 칸으로 식별. (지금은 앨범만 — 뉴스 영어는 사람이 씀)
 TARGETS = [
-    {"file": "data/news.csv", "pairs": [("title", "title_en"), ("content", "content_en")]},
     {"file": "data/album.csv", "pairs": [("title", "title_en"), ("content", "content_en")]},
 ]
 
