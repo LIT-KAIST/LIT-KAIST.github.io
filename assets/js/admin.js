@@ -243,6 +243,7 @@
         { name: "reg_no", label: "등록번호 — 등록되면 입력 (예: 10-2593833 · 10,491,286). 비워 두면 사이트에 '출원'으로 표시", only: PATENT_T },
         { name: "reg_date", label: "등록일 (YYYY-MM-DD)", only: PATENT_T },
         { name: "family", label: "관련 기준 출원번호 — 해외·PCT 출원이나 우선권 재출원이면, 바탕이 된 최초 국내 출원번호를 고르세요 (그 기준 특허 자신은 비움). 사이트에서 서로 '관련 출원'으로 연결됩니다", type: "famref", only: PATENT_T },
+        { name: "산단외", label: "산학협력단 특허 목록에 없는 특허 — 다음에 산단 목록으로 다시 맞출 때 지우지 않고 남겨 둠", type: "check", only: PATENT_T },
         { name: "journal", label: "저널 (Journal) — 버튼 클릭 또는 직접 입력", type: "venue", venueType: "journal", except: PATENT_T },
         { name: "booktitle", label: "학술대회 (Conference) — 버튼 클릭 시 연도 자동 삽입", type: "venue", venueType: "conference", except: PATENT_T },
         { name: "volume", label: "Volume", except: PATENT_T },
@@ -1495,6 +1496,16 @@
       // 특허: date = 등록일(등록) / 출원일(출원) — 사이트 정렬·연도 묶음 기준. 새 행엔 pub_id 부여
       if (pat) {
         row.__extra = { date: row.reg_no ? row.reg_date : row.app_date };
+        // 중복 방지: 같은 출원번호(국내·국제 통틀어) 또는 같은 나라의 같은 등록번호가 이미 있으면 저장하지 않음
+        var myCc = curPubTarget === "patent_domestic" ? "KR" : (row.country || "");
+        var others = patRows.filter(function (r) { return r.pub_id !== editingId; });
+        var dup = (row.app_no && others.filter(function (r) { return famKey(r.app_no) === famKey(row.app_no); })[0]) ||
+          (row.reg_no && others.filter(function (r) {
+            return famKey(r.reg_no) === famKey(row.reg_no) && ((r.country || "KR").trim() || "KR") === myCc;
+          })[0]);
+        if (dup) throw new Error("이미 같은 " + (row.app_no && famKey(dup.app_no) === famKey(row.app_no) ? "출원번호" : "등록번호") +
+          "의 특허가 있습니다: 「" + (dup.title || "") + "」 (" + ((dup.country || "").trim() ? "International" : "Domestic") +
+          ", pub_id " + dup.pub_id + "). 중복으로 넣지 않도록 확인해 주세요.");
         // 관련 기준 출원번호는 실제로 있는 출원번호여야 연결됨 (오타 방지)
         if (row.family) {
           var fk = famKey(row.family);
