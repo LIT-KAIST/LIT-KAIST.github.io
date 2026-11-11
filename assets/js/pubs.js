@@ -131,6 +131,45 @@
     return (s || "").replace(/\s+/g, " ").trim();
   }
 
+  function lang() {
+    if (global.LitI18n && global.LitI18n.get) return global.LitI18n.get();
+    return document.documentElement.lang === "en" ? "en" : "ko";
+  }
+  // A leaf element whose text i18n.js swaps on the KO/EN toggle.
+  function i18nSpan(cls, ko, en) {
+    return '<span class="' + cls + '" data-ko="' + esc(ko) + '" data-en="' + esc(en) + '">' +
+      esc(lang() === "en" ? en : ko) + "</span>";
+  }
+
+  /* ------------------------------- patents -------------------------------- *
+   * One row = one patent. app_no/app_date (출원) are kept after it is granted;
+   * reg_no/reg_date (등록) are filled in when it is. A row with reg_no is
+   * "granted" and is filed under its registration year, otherwise "filed"
+   * under its application year.
+   */
+  function prepPatent(r) {
+    r._status = (r.reg_no || "").trim() ? "granted" : "filed";
+    const d = r._status === "granted" ? r.reg_date : r.app_date;
+    if (d && d.trim()) r.date = d.trim();
+    const nums = [r.app_no, r.reg_no].join(" ");
+    r._hay = [r.title, r.author, r.editor, r.country, r.app_date, r.reg_date, nums,
+      nums.replace(/[^0-9 ]/g, ""), r.abstract].join(" ").toLowerCase();
+  }
+
+  function patentLine(rec) {
+    function part(cls, ko, en, no, date) {
+      return '<span class="' + cls + '">' + i18nSpan("pat-k", ko, en) +
+        '<span class="pat-no">' + esc(no) + "</span>" +
+        (date ? ' <span class="pat-d">(' + esc(date.replace(/-/g, ".")) + ")</span>" : "") + "</span>";
+    }
+    const parts = [];
+    if ((rec.reg_no || "").trim()) parts.push(part("pat-reg", "등록", "Registered", rec.reg_no.trim(), (rec.reg_date || "").trim()));
+    if ((rec.app_no || "").trim()) parts.push(part("pat-app", "출원", "Filed", rec.app_no.trim(), (rec.app_date || "").trim()));
+    const cc = (rec.country || "").trim();
+    return '<div class="pat-nums">' + (cc && cc !== "KR" ? '<span class="pat-cc">' + esc(cc) + "</span>" : "") +
+      parts.join(" ") + "</div>";
+  }
+
   /* --------------------------- citation builders ------------------------- */
   // Returns the inner HTML for one entry's citation line (already escaped).
   function citation(rec, type) {
@@ -138,6 +177,11 @@
     const title = esc(rec.title || "");
     let venue = "";
     let detail = "";
+
+    if (type === "patent") {   // 번호·날짜는 patentLine() 이 아래 줄에 따로 표시
+      return (authors ? '<span class="authors">' + authors + "</span>, " : "") +
+        '&ldquo;<span class="title">' + title + '</span>.&rdquo;';
+    }
 
     if (type === "journal") {
       venue = esc(rec.journal || "");
@@ -152,13 +196,6 @@
       if (rec.volume) bits.push("vol. " + esc(rec.volume));
       if (rec.pages) bits.push("pp. " + esc(rec.pages));
       detail = bits.join(", ");
-    } else if (type === "patent") {
-      // For patents: 출원(Filed) vs 등록(Registered/Granted), plus the number.
-      const note = rec.note || "";
-      const kind = note.indexOf("등록") !== -1 ? "등록"
-                 : note.indexOf("출원") !== -1 ? "출원" : "";
-      const num = esc(firstNonEmpty(rec.number, rec.isbn));
-      venue = (kind ? kind + " " : "") + num;
     }
 
     let html = "";
@@ -220,6 +257,7 @@
         if (status === "forthcoming") html += ' <span class="badge badge-soon">forthcoming</span>';
         else if (status === "early access") html += ' <span class="badge badge-ea">early access</span>';
         html += "</div>";
+        if (type === "patent") html += patentLine(rec);
         html += '<div class="pub-meta">';
         if (link) html += '<a class="link" href="' + esc(link) + '" target="_blank" rel="noopener">' +
                           (/doi\.org/.test(link) ? "DOI" : "Link") + " ↗</a>";
@@ -300,8 +338,9 @@
   // config: {
   //   type, mount, count, search, tabsEl,
   //   sources: [{ key, label, csv }, ...],
-  //   default: key
-  // }
+  //   default: key,
+  //   split: { el, field, options: [{ key, ko, en }, ...] }   // optional second-level
+  // }                                                          // filter inside each tab
   function initCategory(config) {
     const mount = document.getElementById(config.mount);
     const countEl = config.count ? document.getElementById(config.count) : null;
@@ -311,6 +350,26 @@
     const data = {};       // key -> records[]
     let active = null;
     wireAbstractToggle(mount);
+
+    // e.g. patents: 등록 | 출원 inside International / Domestic (kept across tab switches)
+    const split = config.split || null;
+    const splitEl = split ? document.getElementById(split.el) : null;
+    let sub = split ? split.options[0].key : null;
+    if (splitEl) {
+      splitEl.innerHTML = split.options.map(function (o) {
+        return '<button type="button" class="seg-btn" data-sub="' + esc(o.key) + '" aria-pressed="' + (o.key === sub) + '">' +
+          i18nSpan("seg-label", o.ko, o.en) + ' <span class="tab-count" data-subcount="' + esc(o.key) + '"></span></button>';
+      }).join("");
+      splitEl.addEventListener("click", function (e) {
+        const b = e.target.closest && e.target.closest(".seg-btn");
+        if (!b) return;
+        sub = b.getAttribute("data-sub");
+        Array.prototype.forEach.call(splitEl.querySelectorAll(".seg-btn"), function (x) {
+          x.setAttribute("aria-pressed", String(x === b));
+        });
+        apply();
+      });
+    }
 
     // build the tab bar
     if (tabsEl) {
@@ -326,8 +385,17 @@
 
     function apply() {
       const q = searchEl ? searchEl.value.trim().toLowerCase() : "";
-      const all = data[active] || [];
-      const filtered = q ? all.filter((r) => r._hay.indexOf(q) !== -1) : all;
+      let all = data[active] || [];
+      let filtered = q ? all.filter((r) => r._hay.indexOf(q) !== -1) : all;
+      if (split) {
+        // 버튼 옆 숫자 = 지금 검색어에 맞는 건수 → 다른 쪽에 결과가 있는지 바로 보임
+        split.options.forEach(function (o) {
+          const c = splitEl && splitEl.querySelector('[data-subcount="' + o.key + '"]');
+          if (c) c.textContent = "(" + filtered.filter((r) => r[split.field] === o.key).length + ")";
+        });
+        all = all.filter((r) => r[split.field] === sub);
+        filtered = filtered.filter((r) => r[split.field] === sub);
+      }
       if (countEl) {
         countEl.textContent = q ? filtered.length + " / " + all.length + "건" : all.length + "건";
       }
@@ -360,6 +428,7 @@
 
     Promise.all(sources.map(function (s) {
       return loadCsv(s.csv).then(function (recs) {
+        if (config.type === "patent") recs.forEach(prepPatent);
         data[s.key] = recs;
         if (tabsEl) {
           const c = tabsEl.querySelector('[data-count="' + s.key + '"]');

@@ -296,6 +296,46 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .badge-soon { background: #fef3c7; color: var(--badge); }
 .badge-ea { background: #dbeafe; color: #1d4ed8; }   /* early access: 온라인 선공개(권·호 미배정) */
 
+/* Patents: 등록 | 출원 segmented filter (inside each International/Domestic tab) */
+.toolbar-split { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.toolbar-split .search { flex: 1 1 260px; max-width: 540px; }
+.seg {
+  display: inline-flex; gap: 2px; padding: 3px; flex: none;
+  background: var(--soft); border: 1px solid var(--line); border-radius: 10px;
+}
+.seg-btn {
+  font: inherit; font-family: var(--font-head); font-size: .95rem; cursor: pointer;
+  border: 0; background: none; color: var(--muted); padding: 6px 16px; border-radius: 7px;
+}
+.seg-btn:hover { color: var(--fg); }
+.seg-btn[aria-pressed="true"] {
+  background: #fff; color: var(--accent-dark); font-weight: 700;
+  box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgba(15, 23, 42, .08);
+}
+.seg-btn[aria-pressed="true"] .tab-count { color: var(--accent); }
+
+/* Patents: 등록번호(날짜) · 출원번호(날짜) line under the title */
+.pat-nums {
+  margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px;
+  font-size: .88rem; color: #374151; font-variant-numeric: tabular-nums;
+}
+.pat-reg, .pat-app { white-space: nowrap; }
+.pat-reg .pat-no { font-weight: 600; color: var(--fg); }
+.pat-k {
+  display: inline-block; margin-right: 6px; padding: 1px 7px; border-radius: 999px;
+  font-size: .72rem; font-weight: 700; letter-spacing: .02em; vertical-align: 1px;
+  background: var(--soft); color: var(--muted); border: 1px solid var(--line);
+}
+.pat-reg .pat-k {
+  background: color-mix(in srgb, var(--accent) 10%, #fff); color: var(--accent-dark);
+  border-color: color-mix(in srgb, var(--accent) 25%, #fff);
+}
+.pat-d { color: var(--muted); }
+.pat-cc {
+  margin-right: -10px; padding: 0 5px; border: 1px solid color-mix(in srgb, var(--accent) 35%, #fff); border-radius: 4px;
+  font-size: .74rem; font-weight: 700; letter-spacing: .04em; color: var(--accent-dark);
+}
+
 .muted { color: var(--muted); }
 .error {
   background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;
@@ -1170,6 +1210,7 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .adm-mini:hover { border-color: var(--accent); }
 .adm-mini.adm-danger { color: #b91c1c; }
 .adm-mini.adm-danger:hover { border-color: #b91c1c; }
+.adm-mini.adm-grant { background: color-mix(in srgb, var(--accent) 10%, #fff); border-color: color-mix(in srgb, var(--accent) 25%, #fff); font-weight: 600; }   /* 특허: 출원 → 등록 처리 */
 /* Publications 목록: 상태 바로 변경 (색 = 사이트 배지와 같음) */
 .adm-stsel { font: inherit; font-size: .8rem; cursor: pointer; border: 1px solid var(--line); border-radius: 7px;
   background: #fff; padding: 3px 6px; color: var(--fg); }

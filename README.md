@@ -15,7 +15,7 @@ KAIST 정보전송연구실(LIT) 웹사이트입니다. **빌드 도구 없이 �
 | `index.html` | 홈 (히어로 + 최신 소식 카드, 연구분야, 갤러리) — 첫 화면 왼쪽 아래 카드에 `news.csv` 최신 4건을 제목 전체로 자동 표시(**부고 유형은 제외**, 뉴스 페이지엔 그대로) | `news.csv`, `album.csv`, `assets/img/research/` |
 | `about.html` | 소개 (소개·비전, 현황, 연구 분야, 대표 성과) | HTML 직접 작성 + `assets/img/research/` |
 | `people.html` | 구성원 (Faculty / Members / Alumni 탭) | `faculty(_ko).md`, `people_members.csv`, `people_alumni.csv` |
-| `journal/conferences/patents.html` | 출판물 (International / Domestic 탭) | `*_international.csv`, `*_domestic.csv` |
+| `journal/conferences/patents.html` | 출판물 (International / Domestic 탭 · 특허는 탭 안에서 **등록 / 출원** 으로 한 번 더 나뉨) | `*_international.csv`, `*_domestic.csv` |
 | `projects.html` | 연구 과제 (Current / Past 탭) | `projects_current.csv`(+상세 md), `projects_past.csv` |
 | `seminar.html` | 내부 세미나 (목록 → 상세) | `seminars.csv` + `seminar_<slug>.csv` |
 | `news.html` | 소식/게시판 (한·영) | `news.csv` |
@@ -70,6 +70,7 @@ data/   CSV/MD (사실상의 DB)
 - **Hero**: 홈 히어로 슬라이드(`hero.csv`) 추가·삭제 + 이미지 업로드(순서 = CSV 순서)
 - **Highlights**: About 대표 성과(`highlights.csv`). 출처(출판물 종류) + 논문 제목만 넣으면 해당 출판물 CSV에서 저자·게재지·연도·DOI를 자동으로 가져와 인용 표시
 - **Publications 상태 바로 변경**: 목록의 각 논문 옆 선택칸(publish · early access · forthcoming)을 바꾸면 수정 창 없이 즉시 저장(커밋)됩니다.
+- **특허 (Publications → Patent · International / Domestic)**: 한 특허를 한 행으로 관리합니다. 새 특허는 **출원번호·출원일**만 넣어 저장하면 사이트의 '출원' 목록에 나오고, 나중에 등록되면 목록의 **✓ 등록 처리** 버튼에서 **등록번호·등록일**만 넣으면 '등록' 목록(등록연도)으로 옮겨집니다. 출원번호·출원일은 그대로 함께 표시돼 출원 ↔ 등록이 자동으로 연결됩니다. 같은 제목의 특허가 여러 건 있을 수 있어 특허는 제목이 아니라 `pub_id`로 구분합니다(새 항목은 자동 부여). 국제 특허는 '국가 / 기구'(US·EP·PCT…)를 고르세요.
 - **국내 학술대회 양식** (Publications → Conference · Domestic): 학회명은 **`학회, 행사명, 개최지, 대한민국, 연도`** 로 통일 (예: `KICS, 추계종합학술발표회, 경주, 대한민국, 2025`).
   폼에서 행사(KICS 하계·추계·동계종합학술발표회 / JCCI 통신정보합동학술대회)를 고르고 개최지만 넣으면 자동 작성되며 연도는 날짜 칸에서 가져옵니다. 목록에 없는 학회는 '직접 입력'(학회·행사명만 쓰면 개최지·대한민국·연도는 자동). 개최지를 모르면 그 자리만 비움(`KICS, 하계종합학술발표회, 대한민국, 2019`).
   저자는 한글 이름 `박성민, 박현철` 형식(구성원 버튼). 자동 뉴스 제목은 `KICS Fall Conference 2025` / `JCCI 2025`, 본문은 `2025년도 한국통신학회 추계종합학술발표회(KICS Fall Conference 2025)`.
@@ -96,7 +97,8 @@ data/   CSV/MD (사실상의 DB)
 |---|---|
 | `people_members.csv` | `name_korean`,`name_english`,`직함`,`학위`,`관심분야`,`email`,`homepage`,`scholar`,`github`,`cv`,`photo_path`,`랩장`(`Y`=랩장) |
 | `people_alumni.csv` | …`학위`,`졸업논문`,`current_position`,`photo_path` |
-| `journal/conference/patent_*.csv` | `title`,`author`,`journal`/`booktitle`,`volume`,`number`,`pages`,`date`,`doi`,`abstract`,`status`(`forthcoming`·`early access` 시 배지, 아래 7-1 자동 업데이트 대상),`note` |
+| `journal/conference_*.csv` | `title`,`author`,`journal`/`booktitle`,`volume`,`number`,`pages`,`date`,`doi`,`abstract`,`status`(`forthcoming`·`early access` 시 배지, 아래 7-1 자동 업데이트 대상),`note` |
+| `patent_*.csv` | **한 특허 = 한 행.** `pub_id`(관리자 페이지가 행을 찾는 키),`title`,`author`(발명자),`app_no`·`app_date`(출원번호·출원일),`reg_no`·`reg_date`(등록번호·등록일 — 비어 있으면 사이트에 '출원', 있으면 '등록'),`country`(국제만: `US`·`EP`·`PCT`…),`date`(= 등록일 또는 출원일, 정렬·연도 묶음용 — 관리자 페이지가 자동 채움),`url`,`note`(관리용 메모, 사이트 미표시) |
 | `album.csv` | `date`,`year`,`title`,`content`,`status`,`thumbnail_file`,`image_files`(`\|` 구분) |
 | `news.csv` | `date`,`year`,`forum`,`title`,`title_en`,`content`,`content_en`,`links`,`status` |
 | `projects_current.csv` | `과제명`,`지원기관`,`유형`,`시작`,`종료`,`종료연도`,`원본상태`,`slug`,`소개`,`소개_en` · 상세 본문은 `data/<slug>_ko.md`/`<slug>.md` (slug=파일명, 대소문자 일치) |

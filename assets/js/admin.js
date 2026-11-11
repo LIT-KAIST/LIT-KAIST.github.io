@@ -11,6 +11,7 @@
   var FILE_BRANCH = "main";
   var MAXW = 1600;       // 사진 리사이즈 최대 폭(px)
   var JPEG_Q = 0.85;
+  var PATENT_T = /^patent_/;   // Publications 대상 중 특허(patent_international / patent_domestic)
 
   /* ---------------- 공통 유틸 ---------------- */
   function esc(s) {
@@ -211,6 +212,7 @@
     },
     publications: {
       label: "Publications", isPub: true, idCol: "title",
+      title: function (r) { return r.title || ""; },   // 특허는 idCol 이 pub_id 라도 제목으로 표시
       targets: [
         { key: "journal_international", label: "Journal · International" },
         { key: "journal_domestic", label: "Journal · Domestic" },
@@ -219,21 +221,39 @@
         { key: "patent_international", label: "Patent · International" },
         { key: "patent_domestic", label: "Patent · Domestic" },
       ],
-      sub: function (r) { return (r.author || "").slice(0, 60); },
+      sub: function (r) {
+        var au = (r.author || r.editor || "").slice(0, 60);
+        if (!isPatentTarget()) return au;
+        // 특허: 등록이면 등록번호(등록일), 아니면 출원번호(출원일)
+        var st = (r.reg_no || "").trim()
+          ? "등록 " + r.reg_no.trim() + (r.reg_date ? " (" + r.reg_date + ")" : "")
+          : "출원 " + (r.app_no || "").trim() + (r.app_date ? " (" + r.app_date + ")" : "");
+        return [(r.country || "").trim(), st, au].filter(Boolean).join(" · ");
+      },
+      // only/except: 이 Publications 대상(curPubTarget)에서만 / 이 대상을 빼고 보이는 칸
       fields: [
         { name: "title", label: "제목", required: true },
-        { name: "author", label: "저자 — 구성원 클릭 추가 · 직접 추가 · ◀▶ 순서 (자동으로 A, B, and C 형식 저장)", type: "authors" },
-        { name: "date", label: "날짜 (YYYY-MM-DD)" },
-        { name: "journal", label: "저널 (Journal) — 버튼 클릭 또는 직접 입력", type: "venue", venueType: "journal" },
-        { name: "booktitle", label: "학술대회 (Conference) — 버튼 클릭 시 연도 자동 삽입", type: "venue", venueType: "conference" },
-        { name: "volume", label: "Volume" },
-        { name: "number", label: "Number / 출원·등록번호 (Patent)" },
-        { name: "pages", label: "Pages" },
-        { name: "note", label: "비고 (Patent 출원/등록 등)" },
-        { name: "doi", label: "DOI" },
+        { name: "author", label: "저자 — 구성원 클릭 추가 · 직접 추가 · ◀▶ 순서 (자동으로 A, B, and C 형식 저장)", type: "authors", except: PATENT_T },
+        { name: "author", label: "발명자 — 구성원 클릭 추가 · 직접 추가 · ◀▶ 순서", type: "authors", only: PATENT_T },
+        { name: "date", label: "날짜 (YYYY-MM-DD)", except: PATENT_T },
+        // 특허: 한 특허 = 한 행. 등록되면 등록번호·등록일만 채우면 사이트에서 '출원' → '등록'으로 옮겨감 (출원 정보는 그대로 함께 표시)
+        { name: "country", label: "국가 / 기구", type: "select", options: ["US", "EP", "PCT", "JP", "CN"], only: /^patent_international$/ },
+        { name: "app_no", label: "출원번호 (예: 10-2024-0182018 · 16/209,439 · PCT/KR2022/002415)", only: PATENT_T },
+        { name: "app_date", label: "출원일 (YYYY-MM-DD)", only: PATENT_T },
+        { name: "reg_no", label: "등록번호 — 등록되면 입력 (예: 10-2593833 · 10,491,286). 비워 두면 사이트에 '출원'으로 표시", only: PATENT_T },
+        { name: "reg_date", label: "등록일 (YYYY-MM-DD)", only: PATENT_T },
+        { name: "journal", label: "저널 (Journal) — 버튼 클릭 또는 직접 입력", type: "venue", venueType: "journal", except: PATENT_T },
+        { name: "booktitle", label: "학술대회 (Conference) — 버튼 클릭 시 연도 자동 삽입", type: "venue", venueType: "conference", except: PATENT_T },
+        { name: "volume", label: "Volume", except: PATENT_T },
+        { name: "number", label: "Number", except: PATENT_T },
+        { name: "pages", label: "Pages", except: PATENT_T },
+        { name: "note", label: "비고", except: PATENT_T },
+        { name: "note", label: "비고 (관리용 메모 — 사이트에는 표시되지 않음)", only: PATENT_T },
+        { name: "doi", label: "DOI", except: PATENT_T },
+        { name: "url", label: "링크 (선택 — KIPRIS·Google Patents 등)", only: PATENT_T },
         { name: "abstract", label: "초록", type: "textarea" },
-        { name: "status", label: "상태 (forthcoming·early access 는 매일 Crossref 에서 확인해 자동으로 올라감)", type: "select", options: ["publish", "early access", "forthcoming"] },
-        { name: "__makenews", label: "📰 이 논문으로 뉴스 자동 작성 (새 논문 저장 시)", type: "check", checkedDefault: true },
+        { name: "status", label: "상태 (forthcoming·early access 는 매일 Crossref 에서 확인해 자동으로 올라감)", type: "select", options: ["publish", "early access", "forthcoming"], except: PATENT_T },
+        { name: "__makenews", label: "📰 이 논문으로 뉴스 자동 작성 (새 논문 저장 시)", type: "check", checkedDefault: true, except: PATENT_T },
       ],
     },
     news: {
@@ -424,6 +444,18 @@
   function csvPathOf(col) {
     return (col.isPub || col.targetsFrom) ? "data/" + curPubTarget + ".csv" : col.csv;
   }
+  function isPatentTarget() { return PATENT_T.test(curPubTarget || ""); }
+  // 지금 대상(curPubTarget)에서 쓰는 칸만 — only/except 가 없으면 항상 포함
+  function fieldsOf(col) {
+    var t = curPubTarget || "";
+    return col.fields.filter(function (fd) {
+      return !(fd.only && !fd.only.test(t)) && !(fd.except && fd.except.test(t));
+    });
+  }
+  // 특허는 같은 제목이 여러 건(우선권 재출원 등) 있어 제목 대신 pub_id 로 행을 찾음
+  function syncPubIdCol(col) {
+    if (col.isPub) col.idCol = isPatentTarget() ? "pub_id" : "title";
+  }
 
   function init(mountId) {
     root = document.getElementById(mountId);
@@ -510,6 +542,7 @@
 
   function selectTab(key) {
     curKey = key;
+    listReq++;   // 이전 탭에서 아직 오는 중인 목록 응답은 무시
     Array.prototype.forEach.call(document.querySelectorAll(".adm-tab"), function (b) {
       b.classList.toggle("active", b.getAttribute("data-key") === key);
     });
@@ -539,11 +572,12 @@
 
     function buildSel(targets) {
       curPubTarget = targets[0].key;
+      syncPubIdCol(col);
       pubSel.innerHTML = '<select id="admPubTarget">' + targets.map(function (t) {
         return '<option value="' + esc(t.key) + '">' + esc(t.label) + "</option>";
       }).join("") + "</select>";
       document.getElementById("admPubTarget").addEventListener("change", function () {
-        curPubTarget = this.value; loadList();
+        curPubTarget = this.value; syncPubIdCol(col); loadList();
       });
     }
 
@@ -602,17 +636,19 @@
       .catch(function (e) { listEl.innerHTML = '<div class="error">로드 실패: ' + esc(e.message) + "</div>"; });
   }
 
-  var rowsCache = [];
+  var rowsCache = [], listReq = 0;
   function loadList() {
-    var col = COLLECTIONS[curKey];
+    var col = COLLECTIONS[curKey], my = ++listReq;
+    rowsCache = [];
     listEl.innerHTML = '<p class="muted">목록 불러오는 중…</p>';
     fetch(csvPathOf(col) + "?z=" + Math.round(performance.now()), { cache: "no-store" })
       .then(function (r) { return r.ok ? r.text() : ""; })
       .then(function (t) {
+        if (my !== listReq) return;   // 그사이 다른 탭/대상을 골랐으면 늦게 온 응답은 버림
         rowsCache = t ? P._rowsToObjects(P._parseCSV(t)) : [];
         renderList();
       })
-      .catch(function (e) { listEl.innerHTML = '<div class="error">목록 로드 실패: ' + esc(e.message) + "</div>"; });
+      .catch(function (e) { if (my === listReq) listEl.innerHTML = '<div class="error">목록 로드 실패: ' + esc(e.message) + "</div>"; });
   }
 
   function renderList() {
@@ -632,7 +668,9 @@
           '<div class="adm-row-main"><span class="adm-row-title">' + esc(disp) + "</span>" +
           '<span class="adm-row-sub">' + esc(col.sub ? col.sub(r) : "") + "</span></div>" +
           '<div class="adm-row-act">' +
-            (col.isPub ? statusSelHtml(r, id) : "") +
+            (col.isPub && !isPatentTarget() ? statusSelHtml(r, id) : "") +
+            (col.isPub && isPatentTarget() && !(r.reg_no || "").trim()
+              ? '<button type="button" class="adm-mini adm-grant" data-act="grant" data-id="' + esc(id) + '" title="등록번호·등록일만 넣으면 사이트에서 출원 → 등록으로 옮겨짐">✓ 등록 처리</button>' : "") +
             (col.auto ? '<button type="button" class="adm-mini" data-act="dl" data-id="' + esc(id) + '">📥 사진</button>' : "") +
             (col.moveToAlumni ? '<button type="button" class="adm-mini" data-act="move" data-id="' + esc(id) + '">→ Alumni</button>' : "") +
             (col.moveTo ? '<button type="button" class="adm-mini" data-act="move2" data-id="' + esc(id) + '">' + esc(col.moveTo.label || "→ 이동") + "</button>" : "") +
@@ -647,6 +685,7 @@
         else if (act === "del") doDelete(id);
         else if (act === "move") openMove(findRow(id));
         else if (act === "move2") doMoveTo(findRow(id));
+        else if (act === "grant") openGrant(findRow(id));
         else if (act === "dl") downloadAlbumMedia(id);
       });
     });
@@ -750,7 +789,7 @@
     document.getElementById("admFormTitle").textContent =
       (row ? "수정" : "추가") + " — " + col.label + ((col.isPub || col.targetsFrom) ? " (" + curPubTarget + ")" : "");
     var f = document.getElementById("admForm");
-    f.innerHTML = col.fields.map(function (fd) { return fieldHtml(fd, row); }).join("");
+    f.innerHTML = fieldsOf(col).map(function (fd) { return fieldHtml(fd, row); }).join("");
     // 이미지 입력 미리보기 핸들러
     Array.prototype.forEach.call(f.querySelectorAll("input[type=file]"), function (inp) {
       inp.addEventListener("change", function () {
@@ -829,8 +868,10 @@
       return '<input type="hidden" data-name="' + fd.name + '" value="' + esc(v) + '">';
     }
     if (fd.type === "select") {
+      // 목록에 없는 기존 값도 그대로 보여 주고 유지 (저장 시 첫 옵션으로 덮어쓰지 않게)
+      var opts = v && fd.options.indexOf(v) < 0 ? [v].concat(fd.options) : fd.options;
       return '<label class="am-field">' + lab + '<select data-name="' + fd.name + '">' +
-        fd.options.map(function (o) {
+        opts.map(function (o) {
           return '<option value="' + esc(o) + '"' + (o === v ? " selected" : "") + ">" + esc(o) + "</option>";
         }).join("") + "</select></label>";
     }
@@ -1403,15 +1444,20 @@
   /* ---------------- 저장 (추가/수정) ---------------- */
   function onSubmit() {
     var col = COLLECTIONS[curKey];
-    var reqf = col.fields.filter(function (f) { return f.required; })[0];
+    var fields = fieldsOf(col);
+    var reqf = fields.filter(function (f) { return f.required; })[0];
     if (reqf && !formVal(reqf.name)) { setFormMsg(reqf.label + "은(는) 필수입니다.", "err"); return; }
+    var pat = col.isPub && isPatentTarget();
+    var perr = pat ? patentFormError() : "";
+    if (perr) { setFormMsg(perr, "err"); return; }
 
     setFormMsg("저장 중… (사진이 있으면 업로드 후 커밋)", "");
-    // 1) 이미지 업로드 → 경로 결정
-    uploadFormImages(col).then(function (imgVals) {
+    // 1) 이미지 업로드 → 경로 결정 (특허: 새 pub_id 계산용 최대값도 함께)
+    Promise.all([uploadFormImages(col), pat && !editingId ? maxPatentId() : 0]).then(function (res) {
+      var imgVals = res[0], siteMaxId = res[1];
       // 2) row 객체 구성
       var row = {};
-      col.fields.forEach(function (fd) {
+      fields.forEach(function (fd) {
         if (fd.type === "image" || fd.type === "images" || fd.type === "file" || fd.type === "md" || fd.type === "thumbpick") return;
         if (fd.type === "check") {
           var cb = document.querySelector('#admForm input[type=checkbox][data-name="' + fd.name + '"]');
@@ -1429,10 +1475,13 @@
         var stamp = albumStamp();
         row.date = stamp; row.year = stamp.slice(0, 4);
       }
+      // 특허: date = 등록일(등록) / 출원일(출원) — 사이트 정렬·연도 묶음 기준. 새 행엔 pub_id 부여
+      if (pat) row.__extra = { date: row.reg_no ? row.reg_date : row.app_date };
 
-      var headerCols = col.fields
+      var headerCols = fields
         .filter(function (fd) { return fd.type !== "images" && fd.type !== "md" && fd.type !== "thumbpick"; })
-        .map(function (fd) { return fd.name; });
+        .map(function (fd) { return fd.name; })
+        .filter(function (n, i, a) { return a.indexOf(n) === i; });
       // 앨범 썸네일 선택(영상이면 첫 프레임 캡처) 반영 후 커밋
       return resolvePickedThumb(col, imgVals).then(function (picked) {
         if (picked !== undefined) row.thumbnail_file = picked;
@@ -1449,6 +1498,12 @@
             }
             if (!hit) throw new Error("수정할 항목을 찾지 못했습니다.");
           } else {
+            if (pat) {
+              var fileMax = 0;
+              for (var j = 1; j < rows.length; j++) fileMax = Math.max(fileMax, parseInt(rows[j][ix.pub_id], 10) || 0);
+              row.__extra.pub_id = String(Math.max(fileMax, siteMaxId) + 1);
+              row.__extra.type = "patent";
+            }
             var cells = new Array((rows[0] || []).length).fill("");
             setCells(cells, ix, row, col);
             rows.splice(1, 0, cells); // 맨 위(최신)
@@ -1465,9 +1520,13 @@
 
   // row 객체의 값을 cells(배열)에 헤더 위치대로 기록 (정의된 필드만; 나머지 보존)
   function setCells(cells, ix, row, col) {
-    col.fields.forEach(function (fd) {
+    fieldsOf(col).forEach(function (fd) {
       var name = fd.type === "images" ? null : fd.name;
       if (name && ix[name] != null) cells[ix[name]] = row[name] || "";
+    });
+    // 폼에 없는 자동 칸 (특허: date · 새 행의 pub_id · type)
+    if (row.__extra) Object.keys(row.__extra).forEach(function (k) {
+      if (ix[k] != null) cells[ix[k]] = row.__extra[k] || "";
     });
     // album: image_files / thumbnail_file
     if (row.image_files != null && ix.image_files != null) cells[ix.image_files] = row.image_files;
@@ -1684,11 +1743,73 @@
     return Promise.all(jobs).then(function () { return result; });
   }
 
+  /* ---------------- 특허: 입력 확인 · 새 pub_id · 등록 처리(출원 → 등록) ---------------- */
+  function okPatDate(d) { return !d || /^\d{4}(-\d{2}-\d{2})?$/.test(d); }
+  function patentFormError() {
+    var app = formVal("app_no"), ad = formVal("app_date"), reg = formVal("reg_no"), rd = formVal("reg_date");
+    if (!app && !reg) return "출원번호 또는 등록번호 중 하나는 입력하세요.";
+    if (!okPatDate(ad) || !okPatDate(rd)) return "날짜는 YYYY-MM-DD 형식으로 입력하세요.";
+    if (reg && !rd) return "등록일을 입력하세요. (사이트에서 등록연도별로 묶입니다)";
+    if (!reg && rd) return "등록일만 있고 등록번호가 없습니다.";
+    if (!reg && !ad) return "출원일을 입력하세요. (사이트에서 출원연도별로 묶입니다)";
+    return "";
+  }
+  // 국내·국제 특허 CSV 전체에서 가장 큰 pub_id (두 파일에 걸쳐 겹치지 않게). 못 읽으면 0
+  function maxPatentId() {
+    return Promise.all(["patent_domestic", "patent_international"].map(function (k) {
+      return fetch("data/" + k + ".csv?z=" + Date.now(), { cache: "no-store" })
+        .then(function (r) { return r.ok ? r.text() : ""; })
+        .then(function (t) {
+          return (t ? P._rowsToObjects(P._parseCSV(t)) : []).reduce(function (m, r) {
+            return Math.max(m, parseInt(r.pub_id, 10) || 0);
+          }, 0);
+        }).catch(function () { return 0; });
+    })).then(function (a) { return Math.max.apply(null, a); });
+  }
+  function openGrant(row) {
+    if (!token()) { setMsg("먼저 GitHub 토큰을 저장하세요.", "err"); return; }
+    if (!row) return;
+    editingId = null; pendingFiles = {};
+    document.getElementById("admFormTitle").textContent = "등록 처리 — " + (row.title || "");
+    document.getElementById("admForm").innerHTML =
+      '<p class="am-note">출원 ' + esc(row.app_no || "-") + (row.app_date ? " (" + esc(row.app_date) + ")" : "") +
+        "<br>등록번호·등록일을 넣으면 사이트에서 이 특허가 <b>출원</b> 목록에서 <b>등록</b> 목록(등록연도)으로 옮겨집니다. " +
+        "출원번호·출원일은 그대로 함께 표시됩니다.</p>" +
+      field("등록번호 (예: 10-2593833 · 10,491,286)", "gr_no", "") +
+      field("등록일 (YYYY-MM-DD)", "gr_date", "");
+    document.getElementById("admSubmit").onclick = function () { doGrant(row); };
+    document.getElementById("admFormMsg").textContent = "";
+    openModal();
+  }
+  function doGrant(row) {
+    var no = mv("gr_no"), d = mv("gr_date"), id = (row.pub_id || "").trim();
+    if (!no) { setFormMsg("등록번호를 입력하세요.", "err"); return; }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { setFormMsg("등록일을 YYYY-MM-DD 형식으로 입력하세요.", "err"); return; }
+    if (!id) { setFormMsg("이 항목에 pub_id 가 없어 찾을 수 없습니다. '수정'에서 등록번호·등록일을 넣어 주세요.", "err"); return; }
+    setFormMsg("저장 중…", "");
+    commitCsv(csvPathOf(COLLECTIONS[curKey]), "Patent registered: " + (row.title || "").slice(0, 60) + " → " + no, function (rows) {
+      var ix = colIndex(rows);
+      if (ix.reg_no == null || ix.reg_date == null || ix.pub_id == null) throw new Error("reg_no · reg_date · pub_id 열이 없습니다.");
+      for (var i = 1; i < rows.length; i++) {
+        if ((rows[i][ix.pub_id] || "").trim() === id) {
+          rows[i][ix.reg_no] = no; rows[i][ix.reg_date] = d;
+          if (ix.date != null) rows[i][ix.date] = d;
+          return;
+        }
+      }
+      throw new Error("목록에서 항목을 찾지 못했습니다.");
+    }).then(function () {
+      setFormMsg("등록 처리 완료! 1~2분 후 사이트의 '등록' 목록에 나타납니다.", "ok");
+      document.getElementById("admSubmit").onclick = onSubmit;
+      setTimeout(function () { closeModal(); loadList(); }, 1000);
+    }).catch(function (e) { setFormMsg(e.message, "err"); });
+  }
+
   /* ---------------- 삭제 ---------------- */
   function doDelete(id) {
     if (!token()) { setMsg("먼저 GitHub 토큰을 저장하세요.", "err"); return; }
-    var col = COLLECTIONS[curKey];
-    if (!global.confirm("삭제할까요?\n\n" + id)) return;
+    var col = COLLECTIONS[curKey], drow = findRow(id);
+    if (!global.confirm("삭제할까요?\n\n" + ((drow && col.title && col.title(drow)) || id))) return;
     setMsg("삭제 중…", "");
     commitCsv(csvPathOf(col), "Delete " + col.label + ": " + id, function (rows) {
       var idi = colIndex(rows)[col.idCol], hit = false;

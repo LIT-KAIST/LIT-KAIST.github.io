@@ -16,18 +16,18 @@
   <meta name="twitter:title" content="Patents — LIT @ KAIST" />
   <meta name="twitter:description" content="KAIST 정보전송연구실(LIT) — 6G·ISAC·MIMO·심층강화학습 연구" />
   <meta name="twitter:image" content="https://lit.kaist.ac.kr/assets/og.jpg?v=1" />
-  <link rel="icon" type="image/png" href="assets/favicon-256.png?v=20261103m" />
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=20261103m" />
+  <link rel="icon" type="image/png" href="assets/favicon-256.png?v=20261111a" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=20261111a" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261103m" />
-  <script src="assets/js/theme.js?v=20261103m"></script>
+  <link rel="stylesheet" href="assets/css/style.css?v=20261111a" />
+  <script src="assets/js/theme.js?v=20261111a"></script>
 </head>
 <body>
   <header class="site-header">
     <div class="wrap">
-      <a class="brand" href="index.html"><img class="brand-logo" src="assets/lit-logo.png?v=20261103m" alt="LIT — Laboratory for Information Transmission"></a>
+      <a class="brand" href="index.html"><img class="brand-logo" src="assets/lit-logo.png?v=20261111a" alt="LIT — Laboratory for Information Transmission"></a>
       <nav class="nav">
         <a href="index.html">Home</a>
         <a href="about.html">About</a>
@@ -89,7 +89,8 @@
       <div class="count"><span id="count">불러오는 중…</span></div>
     </div>
     <div id="tabs" class="tabs"></div>
-    <div class="toolbar">
+    <div class="toolbar toolbar-split">
+      <div id="status" class="seg" role="group" aria-label="등록 / 출원"></div>
       <input id="search" class="search" type="search"
              placeholder="제목 · 발명자 · 출원/등록번호 · 연도 검색…"
              data-ko-placeholder="제목 · 발명자 · 출원/등록번호 · 연도 검색…"
@@ -101,10 +102,10 @@
 
   <footer class="site-footer" id="siteFooter"></footer>
 
-  <script src="assets/js/pubs.js?v=20261103m"></script>
-  <script src="assets/js/i18n.js?v=20261103m"></script>
-  <script src="assets/js/reveal.js?v=20261103m"></script>
-  <script src="assets/js/footer.js?v=20261103m"></script>
+  <script src="assets/js/pubs.js?v=20261111a"></script>
+  <script src="assets/js/i18n.js?v=20261111a"></script>
+  <script src="assets/js/reveal.js?v=20261111a"></script>
+  <script src="assets/js/footer.js?v=20261111a"></script>
   <script>
     document.getElementById("yr").textContent = new Date().getFullYear();
     Pubs.initCategory({
@@ -118,6 +119,15 @@
         { key: "domestic", label: "Domestic", csv: "data/patent_domestic.csv" },
       ],
       default: "international",
+      // 한 특허 = 한 행: 등록번호가 있으면 '등록'(등록연도별), 없으면 '출원'(출원연도별)
+      split: {
+        el: "status",
+        field: "_status",
+        options: [
+          { key: "granted", ko: "등록", en: "Registered" },
+          { key: "filed", ko: "출원", en: "Filed" },
+        ],
+      },
     });
   </script>
 </body>
