@@ -242,7 +242,7 @@
         { name: "app_date", label: "출원일 (YYYY-MM-DD)", only: PATENT_T },
         { name: "reg_no", label: "등록번호 — 등록되면 입력 (예: 10-2593833 · 10,491,286). 비워 두면 사이트에 '출원'으로 표시", only: PATENT_T },
         { name: "reg_date", label: "등록일 (YYYY-MM-DD)", only: PATENT_T },
-        { name: "family", label: "관련 기준 출원번호 — 해외·PCT 출원이나 우선권 재출원이면, 바탕이 된 최초 국내 출원번호를 고르세요 (그 기준 특허 자신은 비움). 사이트에서 서로 '관련 출원'으로 연결됩니다", type: "famref", only: PATENT_T },
+        { name: "family", label: "관련 기준 출원번호 — 공보·출원서의 우선권 정보로 확인된 경우에만: 국내 우선권 주장 출원이나 해외·PCT 출원이면 바탕이 된 최초 국내 출원번호를 고르세요 (그 기준 특허 자신은 비움). 사이트에서 서로 '관련 출원'으로 연결됩니다", type: "famref", only: PATENT_T },
         { name: "산단외", label: "산학협력단 특허 목록에 없는 특허 — 다음에 산단 목록으로 다시 맞출 때 지우지 않고 남겨 둠", type: "check", only: PATENT_T },
         { name: "journal", label: "저널 (Journal) — 버튼 클릭 또는 직접 입력", type: "venue", venueType: "journal", except: PATENT_T },
         { name: "booktitle", label: "학술대회 (Conference) — 버튼 클릭 시 연도 자동 삽입", type: "venue", venueType: "conference", except: PATENT_T },

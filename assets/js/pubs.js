@@ -178,17 +178,27 @@
   }
 
   function ccOf(rec) { return (rec.country || "").trim() || "KR"; }
+  // 관련 출원 칩: 국내끼리는 '국내 우선권'(우선권 주장으로 이어진 출원), 해외·PCT 는 따로 묶어 표시
   function relatedLine(rec) {
     if (!rec._related || !rec._related.length) return "";
-    return '<div class="pat-rel-row">' + i18nSpan("pat-rel-h", "관련 출원", "Related filings") +
-      rec._related.map(function (o) {
+    function chips(list) {
+      return list.map(function (o) {
         const reg = (o.reg_no || "").trim();
         return '<a class="pat-rel" href="#p' + esc(o.pub_id) + '" title="' + esc(o.title || "") + '">' +
           '<span class="pat-cc">' + esc(ccOf(o)) + "</span>" +
           '<span class="pat-no">' + esc(reg || (o.app_no || "").trim()) + "</span>" +
           (reg ? i18nSpan("pat-rel-st", "등록", "Registered") : i18nSpan("pat-rel-st", "출원", "Filed")) +
           "</a>";
-      }).join("") + "</div>";
+      }).join("");
+    }
+    const kr = rec._related.filter(function (o) { return ccOf(o) === "KR"; });
+    const fx = rec._related.filter(function (o) { return ccOf(o) !== "KR"; });
+    let h = "";
+    if (kr.length) h += '<span class="pat-rel-grp">' + (ccOf(rec) === "KR"
+      ? i18nSpan("pat-rel-h", "국내 우선권", "Domestic priority")
+      : i18nSpan("pat-rel-h", "국내 출원", "Korean application")) + chips(kr) + "</span>";
+    if (fx.length) h += '<span class="pat-rel-grp">' + i18nSpan("pat-rel-h", "해외·PCT 출원", "Foreign & PCT filings") + chips(fx) + "</span>";
+    return '<div class="pat-rel-row">' + h + "</div>";
   }
 
   function patentLine(rec) {

@@ -333,7 +333,9 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .pat-d { color: var(--muted); }
 
 /* Patents: '관련 출원' — 같은 발명의 국내 우선권 재출원 · PCT · 해외 출원으로 이동하는 칩 */
-.pat-rel-row { margin-top: 7px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .84rem; }
+.pat-rel-row { margin-top: 7px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; font-size: .84rem; }
+.pat-rel-grp { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pat-note { margin: 10px 0 0; font-size: .82rem; color: var(--muted); line-height: 1.55; max-width: 78ch; }
 .pat-rel-h { color: var(--muted); font-size: .78rem; margin-right: 2px; }
 .pat-rel {
   display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 3px; white-space: nowrap;
