@@ -228,7 +228,7 @@
         var st = (r.reg_no || "").trim()
           ? "등록 " + r.reg_no.trim() + (r.reg_date ? " (" + r.reg_date + ")" : "")
           : "출원 " + (r.app_no || "").trim() + (r.app_date ? " (" + r.app_date + ")" : "");
-        return [(r.country || "").trim(), st, au].filter(Boolean).join(" · ");
+        return [(r.country || "").trim(), st, (r.family || "").trim() ? "기준 " + r.family.trim() : "", au].filter(Boolean).join(" · ");
       },
       // only/except: 이 Publications 대상(curPubTarget)에서만 / 이 대상을 빼고 보이는 칸
       fields: [
@@ -242,6 +242,7 @@
         { name: "app_date", label: "출원일 (YYYY-MM-DD)", only: PATENT_T },
         { name: "reg_no", label: "등록번호 — 등록되면 입력 (예: 10-2593833 · 10,491,286). 비워 두면 사이트에 '출원'으로 표시", only: PATENT_T },
         { name: "reg_date", label: "등록일 (YYYY-MM-DD)", only: PATENT_T },
+        { name: "family", label: "관련 기준 출원번호 — 해외·PCT 출원이나 우선권 재출원이면, 바탕이 된 최초 국내 출원번호를 고르세요 (그 기준 특허 자신은 비움). 사이트에서 서로 '관련 출원'으로 연결됩니다", type: "famref", only: PATENT_T },
         { name: "journal", label: "저널 (Journal) — 버튼 클릭 또는 직접 입력", type: "venue", venueType: "journal", except: PATENT_T },
         { name: "booktitle", label: "학술대회 (Conference) — 버튼 클릭 시 연도 자동 삽입", type: "venue", venueType: "conference", except: PATENT_T },
         { name: "volume", label: "Volume", except: PATENT_T },
@@ -250,7 +251,7 @@
         { name: "note", label: "비고", except: PATENT_T },
         { name: "note", label: "비고 (관리용 메모 — 사이트에는 표시되지 않음)", only: PATENT_T },
         { name: "doi", label: "DOI", except: PATENT_T },
-        { name: "url", label: "링크 (선택 — KIPRIS·Google Patents 등)", only: PATENT_T },
+        { name: "url", label: "링크 — 비워 두면 등록번호로 Google Patents 주소를 자동으로 넣음 (다른 주소를 쓰려면 직접 입력)", only: PATENT_T },
         { name: "abstract", label: "초록", type: "textarea" },
         { name: "status", label: "상태 (forthcoming·early access 는 매일 Crossref 에서 확인해 자동으로 올라감)", type: "select", options: ["publish", "early access", "forthcoming"], except: PATENT_T },
         { name: "__makenews", label: "📰 이 논문으로 뉴스 자동 작성 (새 논문 저장 시)", type: "check", checkedDefault: true, except: PATENT_T },
@@ -801,6 +802,13 @@
     if (auBox) setupAuthors(auBox);
     // 저널/학회 위젯(Publications)
     Array.prototype.forEach.call(f.querySelectorAll(".ve-box"), setupVenues);
+    var famList = f.querySelector("#famList");
+    if (famList) loadPatentRows().then(function (all) {
+      famList.innerHTML = all.filter(function (r) { return (r.app_no || "").trim() && r.pub_id !== (row && row.pub_id); })
+        .map(function (r) {
+          return '<option value="' + esc(r.app_no.trim()) + '">' + esc(((r.country || "KR").trim() || "KR") + " · " + (r.title || "").slice(0, 60)) + "</option>";
+        }).join("");
+    });
     var kvBox = f.querySelector(".kv-box");   // 국내 학술대회 양식
     if (kvBox) setupKVenue(kvBox);
     // 알림 수신 구성원 체크박스(Mail)
@@ -972,6 +980,10 @@
           '<div class="au-preview muted"></div>' +
         '</div></label>';
     }
+    if (fd.type === "famref") {   // 특허 family: 국내·국제 특허 출원번호 자동완성
+      return '<label class="am-field">' + lab + '<input type="text" data-name="' + fd.name + '" value="' + esc(v) + '" list="famList" autocomplete="off" placeholder="예: 10-2016-0082505 (비우면 관련 출원 없음)">' +
+        '<datalist id="famList"></datalist></label>';
+    }
     return '<label class="am-field">' + lab + '<input type="text" data-name="' + fd.name + '" value="' + esc(v) + '"></label>';
   }
 
@@ -1017,7 +1029,11 @@
   function isIntlPub() { return /international/i.test(curPubTarget || ""); }
   // 저자 표기 양식: 국제 = 약어(K. Han), 국내 = 한글 이름(없으면 영문 풀네임)
   function authorLabel(p, intl) { return intl ? (p.abbr || abbrevName(p.en) || p.ko || "") : (p.ko || p.en || p.abbr || ""); }
-  function joinAuthors(names, intl) { return intl ? oxfordJoin(names) : names.filter(Boolean).join(", "); }
+  // 한글 이름이 섞이면(예: 해외 특허 발명자) 'A and B' 가 아니라 쉼표로만 이음
+  function joinAuthors(names, intl) {
+    var ko = names.some(function (n) { return /[가-힣]/.test(n || ""); });
+    return intl && !ko ? oxfordJoin(names) : names.filter(Boolean).join(", ");
+  }
   // 칩은 표기(data-nm)와 함께 그 사람의 풀네임(data-en/data-ko)을 들고 있음 → 자동 뉴스에서 약어가 같은 사람도 구분
   function auChip(name, en, ko) {
     return '<span class="au-chip" data-nm="' + esc(name) + '"' + (en ? ' data-en="' + esc(en) + '"' : "") + (ko ? ' data-ko="' + esc(ko) + '"' : "") +
@@ -1453,8 +1469,9 @@
 
     setFormMsg("저장 중… (사진이 있으면 업로드 후 커밋)", "");
     // 1) 이미지 업로드 → 경로 결정 (특허: 새 pub_id 계산용 최대값도 함께)
-    Promise.all([uploadFormImages(col), pat && !editingId ? maxPatentId() : 0]).then(function (res) {
-      var imgVals = res[0], siteMaxId = res[1];
+    Promise.all([uploadFormImages(col), pat ? loadPatentRows() : []]).then(function (res) {
+      var imgVals = res[0], patRows = res[1];
+      var siteMaxId = patRows.reduce(function (m, r) { return Math.max(m, parseInt(r.pub_id, 10) || 0); }, 0);
       // 2) row 객체 구성
       var row = {};
       fields.forEach(function (fd) {
@@ -1476,7 +1493,17 @@
         row.date = stamp; row.year = stamp.slice(0, 4);
       }
       // 특허: date = 등록일(등록) / 출원일(출원) — 사이트 정렬·연도 묶음 기준. 새 행엔 pub_id 부여
-      if (pat) row.__extra = { date: row.reg_no ? row.reg_date : row.app_date };
+      if (pat) {
+        row.__extra = { date: row.reg_no ? row.reg_date : row.app_date };
+        // 관련 기준 출원번호는 실제로 있는 출원번호여야 연결됨 (오타 방지)
+        if (row.family) {
+          var fk = famKey(row.family);
+          if (fk === famKey(row.app_no)) row.family = "";   // 자기 자신 = 기준 특허 → 비움
+          else if (!patRows.some(function (r) { return famKey(r.app_no) === fk; }))
+            throw new Error("관련 기준 출원번호 '" + row.family + "'를 국내·국제 특허 목록에서 찾지 못했습니다. 목록에서 고르거나 비워 두세요.");
+        }
+        if (!row.url && row.reg_no) row.url = googlePatentsUrl(curPubTarget === "patent_domestic" ? "KR" : row.country, row.reg_no);
+      }
 
       var headerCols = fields
         .filter(function (fd) { return fd.type !== "images" && fd.type !== "md" && fd.type !== "thumbpick"; })
@@ -1754,17 +1781,22 @@
     if (!reg && !ad) return "출원일을 입력하세요. (사이트에서 출원연도별로 묶입니다)";
     return "";
   }
-  // 국내·국제 특허 CSV 전체에서 가장 큰 pub_id (두 파일에 걸쳐 겹치지 않게). 못 읽으면 0
-  function maxPatentId() {
+  // 국내·국제 특허 CSV 전체 (새 pub_id 계산 · family 확인 · 자동완성용). 못 읽은 파일은 빈 목록
+  function loadPatentRows() {
     return Promise.all(["patent_domestic", "patent_international"].map(function (k) {
       return fetch("data/" + k + ".csv?z=" + Date.now(), { cache: "no-store" })
         .then(function (r) { return r.ok ? r.text() : ""; })
-        .then(function (t) {
-          return (t ? P._rowsToObjects(P._parseCSV(t)) : []).reduce(function (m, r) {
-            return Math.max(m, parseInt(r.pub_id, 10) || 0);
-          }, 0);
-        }).catch(function () { return 0; });
-    })).then(function (a) { return Math.max.apply(null, a); });
+        .then(function (t) { return t ? P._rowsToObjects(P._parseCSV(t)) : []; })
+        .catch(function () { return []; });
+    })).then(function (a) { return a[0].concat(a[1]); });
+  }
+  function famKey(s) { return String(s || "").toUpperCase().replace(/[^0-9A-Z]/g, ""); }
+  // 등록번호 → Google Patents 주소 (KR 10-2965358 → KR102965358, US 10,491,286 → US10491286). PCT 는 없음
+  function googlePatentsUrl(cc, regNo) {
+    cc = String(cc || "KR").trim().toUpperCase();
+    var d = String(regNo || "").replace(/-0000$/, "").replace(/\D/g, "");
+    if (!d || cc === "PCT") return "";
+    return "https://patents.google.com/patent/" + cc + (cc === "KR" ? d : d.replace(/^0+/, ""));
   }
   function openGrant(row) {
     if (!token()) { setMsg("먼저 GitHub 토큰을 저장하세요.", "err"); return; }
@@ -1794,6 +1826,10 @@
         if ((rows[i][ix.pub_id] || "").trim() === id) {
           rows[i][ix.reg_no] = no; rows[i][ix.reg_date] = d;
           if (ix.date != null) rows[i][ix.date] = d;
+          if (ix.url != null && !(rows[i][ix.url] || "").trim()) {
+            var cc = curPubTarget === "patent_domestic" ? "KR" : (ix.country != null ? rows[i][ix.country] : "");
+            rows[i][ix.url] = googlePatentsUrl(cc, no);
+          }
           return;
         }
       }

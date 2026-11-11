@@ -151,9 +151,44 @@
     r._status = (r.reg_no || "").trim() ? "granted" : "filed";
     const d = r._status === "granted" ? r.reg_date : r.app_date;
     if (d && d.trim()) r.date = d.trim();
+    // family: 같은 발명(국내 우선권 재출원 · PCT · 해외 출원)끼리 묶는 키 = 기준(최초 국내) 출원번호.
+    // 기준 특허 자신은 family 를 비워 두므로 자기 출원번호가 곧 키.
+    r._fkey = famKey(r.family || r.app_no);
     const nums = [r.app_no, r.reg_no].join(" ");
     r._hay = [r.title, r.author, r.editor, r.country, r.app_date, r.reg_date, nums,
       nums.replace(/[^0-9 ]/g, ""), r.abstract].join(" ").toLowerCase();
+  }
+  function famKey(s) { return (s || "").toUpperCase().replace(/[^0-9A-Z]/g, ""); }
+
+  // 모든 탭의 특허를 한꺼번에 보고 family 별로 묶어, 각 항목에 '관련 출원' 목록(_related)을 붙임
+  function linkFamilies(data) {
+    const groups = {};
+    Object.keys(data).forEach(function (src) {
+      data[src].forEach(function (r) {
+        r._src = src;
+        if (r._fkey) (groups[r._fkey] = groups[r._fkey] || []).push(r);
+      });
+    });
+    Object.keys(groups).forEach(function (k) {
+      const g = groups[k];
+      if (g.length < 2) return;
+      g.sort(function (a, b) { return (a.app_date || a.date || "").localeCompare(b.app_date || b.date || ""); });
+      g.forEach(function (r) { r._related = g.filter(function (o) { return o !== r; }); });
+    });
+  }
+
+  function ccOf(rec) { return (rec.country || "").trim() || "KR"; }
+  function relatedLine(rec) {
+    if (!rec._related || !rec._related.length) return "";
+    return '<div class="pat-rel-row">' + i18nSpan("pat-rel-h", "관련 출원", "Related filings") +
+      rec._related.map(function (o) {
+        const reg = (o.reg_no || "").trim();
+        return '<a class="pat-rel" href="#p' + esc(o.pub_id) + '" title="' + esc(o.title || "") + '">' +
+          '<span class="pat-cc">' + esc(ccOf(o)) + "</span>" +
+          '<span class="pat-no">' + esc(reg || (o.app_no || "").trim()) + "</span>" +
+          (reg ? i18nSpan("pat-rel-st", "등록", "Registered") : i18nSpan("pat-rel-st", "출원", "Filed")) +
+          "</a>";
+      }).join("") + "</div>";
   }
 
   function patentLine(rec) {
@@ -252,15 +287,16 @@
         const status = (rec.status || "").toLowerCase().replace(/[\s_-]+/g, " ").trim();
         const abs = cleanAbstract(rec.abstract);
         const link = linkOf(rec);
-        html += '<li class="pub" value="' + idx + '">';
+        html += '<li class="pub" value="' + idx + '"' +
+          (type === "patent" && rec.pub_id ? ' id="p' + esc(rec.pub_id) + '"' : "") + ">";
         html += '<div class="pub-cite">' + citation(rec, type);
         if (status === "forthcoming") html += ' <span class="badge badge-soon">forthcoming</span>';
         else if (status === "early access") html += ' <span class="badge badge-ea">early access</span>';
         html += "</div>";
-        if (type === "patent") html += patentLine(rec);
+        if (type === "patent") html += patentLine(rec) + relatedLine(rec);
         html += '<div class="pub-meta">';
         if (link) html += '<a class="link" href="' + esc(link) + '" target="_blank" rel="noopener">' +
-                          (/doi\.org/.test(link) ? "DOI" : "Link") + " ↗</a>";
+                          (/doi\.org/.test(link) ? "DOI" : /patents\.google\./.test(link) ? "Google Patents" : "Link") + " ↗</a>";
         if (abs) html += '<button type="button" class="abs-toggle" aria-expanded="false">초록 ▾</button>';
         html += "</div>";
         if (abs) html += '<div class="abstract" hidden>' + esc(abs) + "</div>";
@@ -420,11 +456,40 @@
       let t;
       searchEl.addEventListener("input", function () { clearTimeout(t); t = setTimeout(apply, 120); });
     }
-    // nav dropdown links like journal.html#domestic switch the tab
-    global.addEventListener("hashchange", function () {
+
+    function setSub(key) {
+      if (!split || !key || key === sub) return;
+      sub = key;
+      if (splitEl) Array.prototype.forEach.call(splitEl.querySelectorAll(".seg-btn"), function (x) {
+        x.setAttribute("aria-pressed", String(x.getAttribute("data-sub") === key));
+      });
+    }
+    // #p<pub_id> (특허 '관련 출원' 링크): 그 항목이 있는 탭·등록/출원으로 바꾸고 스크롤 + 잠깐 강조
+    function goTo(id) {
+      let rec = null;
+      Object.keys(data).some(function (k) {
+        rec = data[k].filter(function (r) { return r.pub_id === id; })[0] || null;
+        return !!rec;
+      });
+      if (!rec) return false;
+      if (searchEl) searchEl.value = "";
+      if (split) setSub(rec[split.field]);
+      setActive(rec._src, false);
+      const el = document.getElementById("p" + id);
+      if (el) {
+        // 긴 목록에서 부드러운 스크롤은 렌더·레이아웃 변화에 끊길 수 있어 바로 이동 + 강조로 눈길을 끎
+        el.scrollIntoView({ block: "center", behavior: "auto" });
+        el.classList.remove("pat-flash"); void el.offsetWidth; el.classList.add("pat-flash");
+      }
+      return true;
+    }
+    // 해시: #international/#domestic(메뉴 링크) → 탭 전환, #p123 → 그 특허로 이동
+    function onHash() {
       const k = location.hash.replace(/^#/, "");
-      if (data[k] && k !== active) setActive(k, false);
-    });
+      if (data[k]) { if (k !== active) setActive(k, false); return true; }
+      const m = /^p(\d+)$/.exec(k);
+      return m && config.type === "patent" ? goTo(m[1]) : false;
+    }
 
     Promise.all(sources.map(function (s) {
       return loadCsv(s.csv).then(function (recs) {
@@ -437,14 +502,9 @@
       });
     }))
       .then(function () {
-        const hashKey = location.hash.replace(/^#/, "");
-        const start = data[hashKey] ? hashKey : (config.default || sources[0].key);
-        setActive(start, false);
-        // 같은 페이지에서 해시(#international/#domestic)가 바뀌면 탭 전환
-        global.addEventListener("hashchange", function () {
-          const k = location.hash.replace(/^#/, "");
-          if (data[k]) setActive(k, false);
-        });
+        if (config.type === "patent") linkFamilies(data);
+        if (!onHash()) setActive(config.default || sources[0].key, false);
+        global.addEventListener("hashchange", onHash);
       })
       .catch(function (err) { mount.innerHTML = errorHtml(err); });
   }

@@ -4,3 +4,7 @@ Thumbs.db
 __pycache__/
 *.pyc
 .translate-work/
+
+# 산학협력단 등에서 받은 원본 목록 (개인 정보 포함 가능) — 저장소에 올리지 않음
+*.xlsx
+*.xls

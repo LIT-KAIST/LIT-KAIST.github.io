@@ -71,6 +71,8 @@ data/   CSV/MD (사실상의 DB)
 - **Highlights**: About 대표 성과(`highlights.csv`). 출처(출판물 종류) + 논문 제목만 넣으면 해당 출판물 CSV에서 저자·게재지·연도·DOI를 자동으로 가져와 인용 표시
 - **Publications 상태 바로 변경**: 목록의 각 논문 옆 선택칸(publish · early access · forthcoming)을 바꾸면 수정 창 없이 즉시 저장(커밋)됩니다.
 - **특허 (Publications → Patent · International / Domestic)**: 한 특허를 한 행으로 관리합니다. 새 특허는 **출원번호·출원일**만 넣어 저장하면 사이트의 '출원' 목록에 나오고, 나중에 등록되면 목록의 **✓ 등록 처리** 버튼에서 **등록번호·등록일**만 넣으면 '등록' 목록(등록연도)으로 옮겨집니다. 출원번호·출원일은 그대로 함께 표시돼 출원 ↔ 등록이 자동으로 연결됩니다. 같은 제목의 특허가 여러 건 있을 수 있어 특허는 제목이 아니라 `pub_id`로 구분합니다(새 항목은 자동 부여). 국제 특허는 '국가 / 기구'(US·EP·PCT…)를 고르세요.
+  - **관련 출원(family) 연결**: 같은 발명의 해외·PCT 출원이나 국내 우선권 재출원은 '관련 기준 출원번호' 칸에 **바탕이 된 최초 국내 출원번호**를 고르면(자동완성) 됩니다. 기준 특허 자신은 비워 둡니다. 사이트의 각 특허 아래에 '관련 출원' 칩이 생기고, 누르면 그 특허(다른 탭·등록/출원이어도)로 이동합니다. 각 특허는 `patents.html#p<pub_id>` 주소로 바로 열 수 있습니다.
+  - **Google Patents 링크**: 등록번호가 있고 링크 칸이 비어 있으면 저장·등록 처리 때 Google Patents 주소가 자동으로 들어갑니다(막 등록된 특허는 Google Patents 에 올라오기까지 몇 주 걸릴 수 있음).
 - **국내 학술대회 양식** (Publications → Conference · Domestic): 학회명은 **`학회, 행사명, 개최지, 대한민국, 연도`** 로 통일 (예: `KICS, 추계종합학술발표회, 경주, 대한민국, 2025`).
   폼에서 행사(KICS 하계·추계·동계종합학술발표회 / JCCI 통신정보합동학술대회)를 고르고 개최지만 넣으면 자동 작성되며 연도는 날짜 칸에서 가져옵니다. 목록에 없는 학회는 '직접 입력'(학회·행사명만 쓰면 개최지·대한민국·연도는 자동). 개최지를 모르면 그 자리만 비움(`KICS, 하계종합학술발표회, 대한민국, 2019`).
   저자는 한글 이름 `박성민, 박현철` 형식(구성원 버튼). 자동 뉴스 제목은 `KICS Fall Conference 2025` / `JCCI 2025`, 본문은 `2025년도 한국통신학회 추계종합학술발표회(KICS Fall Conference 2025)`.
@@ -98,7 +100,7 @@ data/   CSV/MD (사실상의 DB)
 | `people_members.csv` | `name_korean`,`name_english`,`직함`,`학위`,`관심분야`,`email`,`homepage`,`scholar`,`github`,`cv`,`photo_path`,`랩장`(`Y`=랩장) |
 | `people_alumni.csv` | …`학위`,`졸업논문`,`current_position`,`photo_path` |
 | `journal/conference_*.csv` | `title`,`author`,`journal`/`booktitle`,`volume`,`number`,`pages`,`date`,`doi`,`abstract`,`status`(`forthcoming`·`early access` 시 배지, 아래 7-1 자동 업데이트 대상),`note` |
-| `patent_*.csv` | **한 특허 = 한 행.** `pub_id`(관리자 페이지가 행을 찾는 키),`title`,`author`(발명자),`app_no`·`app_date`(출원번호·출원일),`reg_no`·`reg_date`(등록번호·등록일 — 비어 있으면 사이트에 '출원', 있으면 '등록'),`country`(국제만: `US`·`EP`·`PCT`…),`date`(= 등록일 또는 출원일, 정렬·연도 묶음용 — 관리자 페이지가 자동 채움),`url`,`note`(관리용 메모, 사이트 미표시) |
+| `patent_*.csv` | **한 특허 = 한 행.** `pub_id`(관리자 페이지가 행을 찾는 키),`title`,`author`(발명자),`app_no`·`app_date`(출원번호·출원일),`reg_no`·`reg_date`(등록번호·등록일 — 비어 있으면 사이트에 '출원', 있으면 '등록'),`country`(국제만: `US`·`EP`·`PCT`…),`family`(관련 기준 출원번호 — 아래 참고),`date`(= 등록일 또는 출원일, 정렬·연도 묶음용 — 관리자 페이지가 자동 채움),`url`(Google Patents 등 공보 링크),`note`(관리용 메모, 사이트 미표시 — 산학협력단 목록의 `소멸`·`포기/취하/종결` 표시도 여기) |
 | `album.csv` | `date`,`year`,`title`,`content`,`status`,`thumbnail_file`,`image_files`(`\|` 구분) |
 | `news.csv` | `date`,`year`,`forum`,`title`,`title_en`,`content`,`content_en`,`links`,`status` |
 | `projects_current.csv` | `과제명`,`지원기관`,`유형`,`시작`,`종료`,`종료연도`,`원본상태`,`slug`,`소개`,`소개_en` · 상세 본문은 `data/<slug>_ko.md`/`<slug>.md` (slug=파일명, 대소문자 일치) |
