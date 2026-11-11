@@ -475,6 +475,7 @@
       });
     }
     // #p<pub_id> (특허 '관련 출원' 링크): 그 항목이 있는 탭·등록/출원으로 바꾸고 스크롤 + 잠깐 강조
+    let flashTimer = 0, flashOutTimer = 0;
     function goTo(id) {
       let rec = null;
       Object.keys(data).some(function (k) {
@@ -489,7 +490,15 @@
       if (el) {
         // 긴 목록에서 부드러운 스크롤은 렌더·레이아웃 변화에 끊길 수 있어 바로 이동 + 강조로 눈길을 끎
         el.scrollIntoView({ block: "center", behavior: "auto" });
-        el.classList.remove("pat-flash"); void el.offsetWidth; el.classList.add("pat-flash");
+        // 5초 강조 후 해제 (떼는 순간 pat-flash-out 으로 서서히 사라짐). 다시 누르면 처음부터 5초
+        clearTimeout(flashTimer); clearTimeout(flashOutTimer);
+        el.classList.remove("pat-flash-out");
+        el.classList.add("pat-flash");
+        flashTimer = setTimeout(function () {
+          el.classList.add("pat-flash-out");
+          el.classList.remove("pat-flash");
+          flashOutTimer = setTimeout(function () { el.classList.remove("pat-flash-out"); }, 900);
+        }, 5000);
       }
       return true;
     }

@@ -345,13 +345,11 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .pat-rel:hover { border-color: var(--accent); color: var(--accent-dark); }
 .pat-rel .pat-cc { margin: 0; border-radius: 999px; padding: 0 6px; }
 .pat-rel-st { color: var(--muted); font-size: .74rem; }
-.pub.pat-flash { animation: pat-flash 2.2s ease-out; }
-@keyframes pat-flash {
-  0%, 35% { background: color-mix(in srgb, var(--accent) 14%, #fff); box-shadow: inset 3px 0 0 var(--accent); }
-  100% { background: transparent; box-shadow: inset 3px 0 0 transparent; }
-}
+/* 관련 출원으로 이동한 특허: 5초 강조(pubs.js 가 class 를 붙였다 뗌) → 떼는 순간만 서서히 사라짐 */
+.pub.pat-flash { background: color-mix(in srgb, var(--accent) 14%, #fff); box-shadow: inset 3px 0 0 var(--accent); }
+.pub.pat-flash-out { transition: background-color .8s ease, box-shadow .8s ease; }
 @media (prefers-reduced-motion: reduce) {
-  .pub.pat-flash { animation: none; box-shadow: inset 3px 0 0 var(--accent); }
+  .pub.pat-flash-out { transition: none; }
 }
 .pat-cc {
   margin-right: -10px; padding: 0 5px; border: 1px solid color-mix(in srgb, var(--accent) 35%, #fff); border-radius: 4px;
