@@ -300,8 +300,9 @@
         html += '<li class="pub" value="' + idx + '"' +
           (type === "patent" && rec.pub_id ? ' id="p' + esc(rec.pub_id) + '"' : "") + ">";
         html += '<div class="pub-cite">' + citation(rec, type);
-        if (status === "forthcoming") html += ' <span class="badge badge-soon">forthcoming</span>';
-        else if (status === "early access") html += ' <span class="badge badge-ea">early access</span>';
+        // 게재 예정·온라인 선공개 배지는 논문 전용 (특허는 등록/출원으로 구분)
+        if (type !== "patent" && status === "forthcoming") html += ' <span class="badge badge-soon">forthcoming</span>';
+        else if (type !== "patent" && status === "early access") html += ' <span class="badge badge-ea">early access</span>';
         html += "</div>";
         if (type === "patent") html += patentLine(rec) + relatedLine(rec);
         html += '<div class="pub-meta">';

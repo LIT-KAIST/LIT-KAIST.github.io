@@ -295,6 +295,7 @@ def main():
         elif r.get("reg_no"):
             say("  등록 유지 (산단 목록엔 등록 정보 없음):", r["pub_id"], r["reg_no"], r["title"][:40])
         r["date"] = r["reg_date"] if r.get("reg_no") else r["app_date"]
+        r["status"] = "published"   # 특허는 논문용 상태(forthcoming 등)를 쓰지 않음
         after = (r["app_no"], r["app_date"], r.get("reg_no", ""), r.get("reg_date", ""))
         if before != after and r.get("pub_id"):
             say("  갱신", r["pub_id"], before, "→", after, r["title"][:30])
